@@ -35,6 +35,8 @@ $GLOBALS['strBasicInformation'] = "Gwybodaeth Sylfaenol";
 // Email Settings
 $GLOBALS['strEmailSettings'] = "Prif Osodiadau";
 
+// Security settings
+
 // Audit Trail Settings
 
 // Debug Logging Settings
@@ -44,7 +46,6 @@ $GLOBALS['strTypeFTPUsername'] = "Mewngofnodi";
 $GLOBALS['strTypeFTPPassword'] = "Cyfrinair";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "Actifadu XML RPC";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Actifadu Lleol";
-$GLOBALS['strDeliveryExecPhp'] = "Caniatáu i god PHP mewn hysbysebion i gael ei weithredu<br />(Rhybudd: Risg Diogelwch)";
 
 // General Settings
 

@@ -30,64 +30,66 @@ require_once OX_PATH . '/lib/pear/HTML/Template/Flexy.php';
  */
 class MAX_Admin_Inventory_TrackerAppend
 {
-    /* @var MAX_Dal_TrackerTags */
-    var $_dal;
+    /** @var MAX_Dal_Inventory_Trackers */
+    public $_dal;
 
-    var $_cycle = 0;
+    public $_cycle = 0;
 
-    var $advertiser_id;
-    var $tracker_id;
-    var $codes;
-    var $showReminder;
-    var $assetPath;
+    public $advertiser_id;
+    public $tracker_id;
+    public $codes;
+    public $showReminder = false;
+    public $assetPath;
+
+    /** @var string */
+    public $csrf_token;
 
     /**
      * PHP5-style constructor
      */
-    function __construct()
+    public function __construct()
     {
         $this->_useDefaultDal();
 
         $this->advertiser_id = MAX_getValue('clientid', 0);
-        $this->tracker_id    = MAX_getValue('trackerid', 0);
-        $this->assetPath 	 = OX::assetPath();
-        $this->showReminder  = false;
+        $this->tracker_id = MAX_getValue('trackerid', 0);
+        $this->assetPath = OX::assetPath();
     }
 
-    function _useDefaultDal()
+    public function _useDefaultDal()
     {
-        $oServiceLocator =& OA_ServiceLocator::instance();
-        $dal =& $oServiceLocator->get('MAX_Dal_Inventory_Trackers');
+        $oServiceLocator = OA_ServiceLocator::instance();
+        $dal = &$oServiceLocator->get('MAX_Dal_Inventory_Trackers');
         if (!$dal) {
             $dal = new MAX_Dal_Inventory_Trackers();
         }
-        $this->_dal =& $dal;
+        $this->_dal = &$dal;
     }
 
-    function cycleRow($class)
+    public function cycleRow($class)
     {
-        return trim($class.(($this->_cycle++ % 2) ? ' light' : ' dark'));
+        return trim($class . (($this->_cycle++ % 2) ? ' light' : ' dark'));
     }
 
-    function getPausedCodes()
+    public function getPausedCodes()
     {
-        $paused = array();
+        $paused = [];
         foreach ($this->codes as $k => $v) {
             if ($v['paused']) {
                 $paused[] = $k;
             }
         }
 
-        return join(',', $paused);
+        return implode(',', $paused);
     }
 
-    function handlePost($vars)
+    public function handlePost($vars)
     {
-        $codes = array();
+        $codes = [];
 
         if (isset($vars['tag']) && is_array($vars['tag'])) {
             foreach ($vars['tag'] as $k => $v) {
-                $codes[$k] = array('tagcode' => stripslashes($v), 'paused' => false);
+                $codes[$k] = ['tagcode' => stripslashes($v), 'paused' => false];
                 $codes[$k]['autotrack'] = isset($vars['autotrack'][$k]);
             }
         }
@@ -103,7 +105,7 @@ class MAX_Admin_Inventory_TrackerAppend
         if (isset($vars['t_action'])) {
             switch ($vars['t_action']) {
                 case 'new':
-                    $codes[] = array('tagcode' => '', 'paused' => false);
+                    $codes[] = ['tagcode' => '', 'paused' => false];
                     break;
 
                 case 'del':
@@ -145,10 +147,10 @@ class MAX_Admin_Inventory_TrackerAppend
             $doTrackers->get($this->tracker_id);
 
             $translation = new OX_Translation();
-            $translated_message = $translation->translate ( $GLOBALS['strTrackerAppendHasBeenUpdated'], array(
-                MAX::constructURL(MAX_URL_ADMIN, "tracker-edit.php?clientid=".$this->advertiser_id."&trackerid=".$this->tracker_id),
-                htmlspecialchars($doTrackers->trackername)
-            ));
+            $translated_message = $translation->translate($GLOBALS['strTrackerAppendHasBeenUpdated'], [
+                MAX::constructURL(MAX_URL_ADMIN, "tracker-edit.php?clientid=" . $this->advertiser_id . "&trackerid=" . $this->tracker_id),
+                htmlspecialchars($doTrackers->trackername),
+            ]);
             OA_Admin_UI::queueMessage($translated_message, 'local', 'confirm', 0);
 
             OX_Admin_Redirect::redirect("tracker-append.php?clientid={$this->advertiser_id}&trackerid={$this->tracker_id}");
@@ -158,33 +160,31 @@ class MAX_Admin_Inventory_TrackerAppend
         }
     }
 
-    function handleGet()
+    public function handleGet()
     {
-        if (is_null($this->codes)) {
-            $this->codes = $this->_dal->getAppendCodes($this->tracker_id);
-        }
+        $this->codes ??= $this->_dal->getAppendCodes($this->tracker_id);
     }
 
-    function display()
+    public function display()
     {
-        $output = new HTML_Template_Flexy(array(
-            'templateDir'       => MAX_PATH . '/lib/max/Admin/Inventory/themes',
-            'compileDir'        => MAX_PATH . '/var/templates_compiled',
-            'flexyIgnore'        => true
-        ));
+        $output = new HTML_Template_Flexy([
+            'templateDir' => MAX_PATH . '/lib/max/Admin/Inventory/themes',
+            'compileDir' => MAX_PATH . '/var/templates_compiled',
+            'flexyIgnore' => true,
+        ]);
 
         // Load token now
-        $this->csrf_token    = phpAds_SessionGetToken();
+        $this->csrf_token = phpAds_SessionGetToken();
 
         $codes = $this->codes;
-        $this->codes = array();
+        $this->codes = [];
         if (is_array($codes)) {
-            foreach ($codes as $v){
+            foreach ($codes as $v) {
                 $k = count($this->codes);
-                $v['id']   = "tag_{$k}";
+                $v['id'] = "tag_{$k}";
                 $v['name'] = "tag[{$k}]";
                 $v['autotrackname'] = "autotrack[{$k}]";
-                $v['autotrack'] = isset($v['autotrack']) ? $v['autotrack'] : false;
+                $v['autotrack'] ??= false;
                 $v['rank'] = $k + 1;
                 $v['move_up'] = $k > 0;
                 $v['move_down'] = $k < count($codes) - 1;
@@ -197,5 +197,3 @@ class MAX_Admin_Inventory_TrackerAppend
         $output->outputObject($this);
     }
 }
-
-?>

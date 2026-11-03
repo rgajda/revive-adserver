@@ -16,14 +16,8 @@
  */
 class OA_Admin_SectionCheckerFilter
 {
-    function __construct()
-    {
-    }
-
-
-    function accept($oSection)
+    public function accept($oSection)
     {
         return $oSection->check();
     }
 }
-?>

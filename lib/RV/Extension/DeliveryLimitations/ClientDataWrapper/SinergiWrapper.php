@@ -16,7 +16,6 @@ use RV\Extension\DeliveryLimitations\ClientDataWrapperInterface;
 use Sinergi\BrowserDetector\Browser;
 use Sinergi\BrowserDetector\Os;
 
-
 class SinergiWrapper implements ClientDataWrapperInterface
 {
     /**
@@ -51,12 +50,12 @@ class SinergiWrapper implements ClientDataWrapperInterface
      * @var array
      */
     private static $aOsMap = [
-      Os::WINDOWS => [
-          '95' => '95',
-          '98' => '98',
-          '2000' => '2k',
-          'XP' => 'xp',
-          '7' => 'w7',
+        Os::WINDOWS => [
+            '95' => '95',
+            '98' => '98',
+            '2000' => '2k',
+            'XP' => 'xp',
+            '7' => 'w7',
         ],
         Os::OSX => 'osx',
         Os::LINUX => 'linux',
@@ -152,11 +151,7 @@ class SinergiWrapper implements ClientDataWrapperInterface
     {
         $browser = $this->getSinergiBrowser()->getName();
 
-        if (isset(self::$aBrowserMap[$browser])) {
-            return self::$aBrowserMap[$browser];
-        }
-
-        return 'Unknown';
+        return self::$aBrowserMap[$browser] ?? 'Unknown';
     }
 
     /**

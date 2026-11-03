@@ -274,8 +274,10 @@ class HTML_TreeMenu
         // Now process the XML_Tree object, setting the XML attributes
         // to be the tag data (with out the XML tag name or contents).
         $treeStructure = Tree::createFromXMLTree($xmlTree, true);
-        $treeStructure->nodes->traverse(create_function('&$node', '$tagData = $node->getTag(); $node->setTag($tagData["attributes"]);'));
-
+        $treeStructure->nodes->traverse(function ($node) {
+            $tagData = $node->getTag();
+            $node->setTag($tagData["attributes"]);
+        });
 
         return HTML_TreeMenu::createFromStructure(array('structure' => $treeStructure));
     }
@@ -439,7 +441,7 @@ class HTML_TreeNode
     * @access public
     * @param  object $node The new node
     */
-    function &addItem(&$node)
+    function &addItem($node)
     {
         $node->parent  = &$this;
         $this->items[] = &$node;

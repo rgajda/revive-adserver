@@ -21,24 +21,27 @@ class DataObjects_Acls_channel extends DB_DataObjectCommon
     /* the code below is auto generated do not remove the above tag */
 
     public $__table = 'acls_channel';                    // table name
-    public $channelid;                       // MEDIUMINT(9) => openads_mediumint => 129 
-    public $logical;                         // VARCHAR(3) => openads_varchar => 130 
-    public $type;                            // VARCHAR(255) => openads_varchar => 130 
-    public $comparison;                      // CHAR(2) => openads_char => 130 
-    public $data;                            // TEXT() => openads_text => 162 
-    public $executionorder;                  // INT(10) => openads_int => 129 
+    public $channelid;                       // MEDIUMINT(9) => openads_mediumint => 129
+    public $logical;                         // VARCHAR(3) => openads_varchar => 130
+    public $type;                            // VARCHAR(255) => openads_varchar => 130
+    public $comparison;                      // CHAR(2) => openads_char => 130
+    public $data;                            // TEXT() => openads_text => 162
+    public $executionorder;                  // INT(10) => openads_int => 129
 
     /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGetFromClassName('DataObjects_Acls_channel',$k,$v); }
+    public static function staticGet($k, $v = null)
+    {
+        return DB_DataObject::staticGetFromClassName('DataObjects_Acls_channel', $k, $v);
+    }
 
-    var $defaultValues = array(
-                'channelid' => 0,
-                'logical' => 'and',
-                'type' => '',
-                'comparison' => '==',
-                'data' => '',
-                'executionorder' => 0,
-                );
+    public $defaultValues = [
+        'channelid' => 0,
+        'logical' => 'and',
+        'type' => '',
+        'comparison' => '==',
+        'data' => '',
+        'executionorder' => 0,
+    ];
 
     /* the code above is auto generated do not remove the tag below */
     ###END_AUTOCODE
@@ -48,8 +51,9 @@ class DataObjects_Acls_channel extends DB_DataObjectCommon
      *
      * @return array
      */
-    function sequenceKey() {
-        return array(false, false, false);
+    public function sequenceKey()
+    {
+        return [false, false, false];
     }
 
     /**
@@ -61,13 +65,13 @@ class DataObjects_Acls_channel extends DB_DataObjectCommon
      * @return boolean              true on success or if no acls exist else
      *                              false  is returned
      */
-    function duplicate($origChannelId, $newChannelId)
+    public function duplicate($origChannelId, $newChannelId)
     {
         $this->channelid = $origChannelId;
         if ($this->find()) {
             while ($this->fetch()) {
                 //  copy the current acl, change the channel id, and insert
-                $oNewChannelAcl = clone($this);
+                $oNewChannelAcl = clone ($this);
                 $oNewChannelAcl->channelid = $newChannelId;
                 $result = $oNewChannelAcl->insert();
 
@@ -79,5 +83,3 @@ class DataObjects_Acls_channel extends DB_DataObjectCommon
         return true;
     }
 }
-
-?>

@@ -10,6 +10,8 @@
 +---------------------------------------------------------------------------+
 */
 
+use RV\Extension\MailerComponentInterface;
+
 // Require the initialisation file
 require_once '../../init.php';
 
@@ -29,62 +31,89 @@ $oOptions = new OA_Admin_Option('settings');
 $prefSection = "email";
 
 // Prepare an array for storing error messages
-$aErrormessage = array();
+$aErrormessage = [];
+
+$aComponentItems = [];
+$aComponents = OX_Component::getComponents('mailer');
+foreach ($aComponents as $name => $oComponent) {
+    if ($oComponent->enabled) {
+        $aComponentItems[$oComponent->getComponentIdentifier()] = $oComponent;
+    }
+}
+
+uasort($aComponentItems, function (MailerComponentInterface $a, MailerComponentInterface $b) {
+    if ($a->getPriority() === $b->getPriority()) {
+        return $a->getName() <=> $b->getName();
+    }
+
+    return $b->getPriority() <=> $a->getPriority();
+});
+
+$aComponentItems = array_merge(['' => $strNone], array_map(fn(MailerComponentInterface $x) => $x->getName(), $aComponentItems));
+
 
 // If the settings page is a submission, deal with the form data
-if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
+$oSettings = new OA_Admin_Settings();
+if ($oSettings->isFormSubmitted()) {
     // Prepare an array of the HTML elements to process, and the
     // location to save the values in the settings configuration
     // file
-    $aElements = array();
+    $aElements = [];
     // E-mail Addresses
-    $aElements += array(
-        'email_fromAddress'       => array('email' => 'fromAddress'),
-        'email_fromName'          => array('email' => 'fromName'),
-        'email_fromCompany'       => array('email' => 'fromCompany'),
-        'email_useManagerDetails' => array('email' => 'useManagerDetails',
-                                           'bool'  => true
-                                          )
-    );
+    $aElements += [
+        'email_fromAddress' => ['email' => 'fromAddress'],
+        'email_fromName' => ['email' => 'fromName'],
+        'email_fromCompany' => ['email' => 'fromCompany'],
+        'email_useManagerDetails' => ['email' => 'useManagerDetails',
+            'bool' => true,
+        ],
+    ];
     // E-mail Log
-    $aElements += array(
-        'email_logOutgoing' => array(
+    $aElements += [
+        'email_logOutgoing' => [
             'email' => 'logOutgoing',
-            'bool'  => true
-        )
-    );
-    // E-mail Headers
-    $aElements += array(
-        'email_headers' => array(
-            'email'        => 'headers',
-            'preg_match'   => "/\r?\n/",
-            'preg_replace' => '\\r\\n'
-        )
-    );
-    // qmail Patch
-    $aElements += array(
-        'email_qmailPatch' => array(
-            'email' => 'qmailPatch',
-            'bool'  => true
-        )
-    );
-    // Create a new settings object, and save the settings!
-    $oSettings = new OA_Admin_Settings();
-    $result = $oSettings->processSettingsFromForm($aElements);
-    if ($result) {
+            'bool' => true,
+        ],
+    ];
+    // Selected Mailer plugin
+    $aElements += [
+        'email_pluginType' => ['email' => 'pluginType'],
+    ];
+
+    if (!empty($_POST['email_pluginType'])) {
+        $oMailer = OX_Component::factoryByComponentIdentifier($_POST['email_pluginType']);
+
+        if (!$oMailer instanceof MailerComponentInterface) {
+            $aErrormessage[2][] = 'Not a mailer plugin';
+        } elseif (!$oMailer->checkConfig()) {
+            $aErrormessage[2][] = sprintf(
+                'The plugin settings are invalid, please <a href="%s">configure it</a> first!',
+                'plugin-settings.php?group=' . urlencode($oMailer->group),
+            );
+        }
+    }
+
+    if (empty($aErrormessage)) {
+        // Save the settings!
+        $oSettings = new OA_Admin_Settings();
+        $result = $oSettings->processSettingsFromForm($aElements);
+        if ($result) {
             // Queue confirmation message
             $setPref = $oOptions->getSettingsPreferences($prefSection);
             $title = $setPref[$prefSection]['name'];
-            $translation = new OX_Translation ();
-            $translated_message = $translation->translate($GLOBALS['strXSettingsHaveBeenUpdated'],
-                array(htmlspecialchars($title)));
+            $translation = new OX_Translation();
+            $translated_message = $translation->translate(
+                $GLOBALS['strXSettingsHaveBeenUpdated'],
+                [htmlspecialchars($title)],
+            );
             OA_Admin_UI::queueMessage($translated_message, 'local', 'confirm', 0);
-             // The settings configuration file was written correctly,
+            // The settings configuration file was written correctly,
             OX_Admin_Redirect::redirect(basename($_SERVER['SCRIPT_NAME']));
-            }
-    // Could not write the settings configuration file, store this
-    // error message and continue
-    $aErrormessage[0][] = $strUnableToWriteConfig;
+        }
+        // Could not write the settings configuration file, store this
+        // error message and continue
+        $aErrormessage[0][] = $strUnableToWriteConfig;
+    }
 }
 
 // Set the correct section of the settings pages and display the drop-down menu
@@ -95,85 +124,73 @@ $title = $setPref[$prefSection]['name'];
 $oHeaderModel = new OA_Admin_UI_Model_PageHeaderModel($title);
 phpAds_PageHeader('account-settings-index', $oHeaderModel);
 
-
 // Prepare an array of HTML elements to display for the form, and
 // output using the $oOption object
-$aSettings = array (
-    array (
-       'text'  => $strEmailAddresses,
-       'items' => array (
-            array (
-                'type'    => 'text',
-                'name'    => 'email_fromAddress',
-                'text'    => $strEmailFromAddress,
-                'req'     => true,
-                'size'    => 35,
-                'check'   => 'email'
-            ),
-            array (
-                'type'    => 'break'
-            ),
-            array (
-                'type'    => 'text',
-                'name'    => 'email_fromName',
-                'text'    => $strEmailFromName,
-                'req'     => false,
-                'size'    => 35
-            ),
-            array (
-                'type'    => 'break'
-            ),
-            array (
-                'type'    => 'text',
-                'name'    => 'email_fromCompany',
-                'text'    => $strEmailFromCompany,
-                'req'     => false,
-                'size'    => 35,
-            ),
-            array (
-                'type'    => 'break'
-            ),
-            array (
-                'type'    => 'checkbox',
-                'name'    => 'email_useManagerDetails',
-                'text'    => $strUseManagerDetails,
-            )
-        )
-    ),
-    array (
-       'text'  => $strEmailLog,
-       'items' => array (
-            array (
-                'type'    => 'checkbox',
-                'name'    => 'email_logOutgoing',
-                'text'    => $strUserlogEmail
-            )
-        )
-    ),
-    array (
-       'text'  => $strEmailHeader,
-       'items' => array (
-            array (
-               'type'     => 'textarea',
-               'name'     => 'email_headers',
-               'text'     => $strAdminEmailHeaders
-            )
-        )
-    ),
-        array (
-        'text'  => $strQmailPatch,
-        'items' => array (
-            array (
-                'type'    => 'checkbox',
-                'name'    => 'email_qmailPatch',
-                'text'    => $strEnableQmailPatch
-            )
-        )
-    )
-);
+$aSettings = [
+    [
+        'text' => $strEmailAddresses,
+        'items' => [
+            [
+                'type' => 'text',
+                'name' => 'email_fromAddress',
+                'text' => $strEmailFromAddress,
+                'req' => true,
+                'size' => 35,
+                'check' => 'email',
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'text',
+                'name' => 'email_fromName',
+                'text' => $strEmailFromName,
+                'req' => false,
+                'size' => 35,
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'text',
+                'name' => 'email_fromCompany',
+                'text' => $strEmailFromCompany,
+                'req' => false,
+                'size' => 35,
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'checkbox',
+                'name' => 'email_useManagerDetails',
+                'text' => $strUseManagerDetails,
+            ],
+        ],
+    ],
+    [
+        'text' => $strEmailLog,
+        'items' => [
+            [
+                'type' => 'checkbox',
+                'name' => 'email_logOutgoing',
+                'text' => $strUserlogEmail,
+            ],
+        ],
+    ],
+    [
+        'text' => "Mailer Plugin",
+        'items' => [
+            [
+                'type' => 'select',
+                'name' => 'email_pluginType',
+                'text' => $strMailerPlugin,
+                'items' => $aComponentItems,
+            ],
+        ],
+    ],
+];
 $oOptions->show($aSettings, $aErrormessage);
 
 // Display the page footer
 phpAds_PageFooter();
-
-?>

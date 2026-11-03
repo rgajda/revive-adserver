@@ -28,7 +28,7 @@ require_once MAX_PATH . '/lib/max/Admin/Invocation.php';
 require_once MAX_PATH . '/www/admin/lib-zones.inc.php';
 require_once MAX_PATH . '/www/admin/lib-gui.inc.php';
 
-phpAds_registerGlobal('affiliateid', 'codetype');
+phpAds_registerGlobal('codetype');
 
 OA_Permission::enforceAccount(OA_ACCOUNT_MANAGER, OA_ACCOUNT_TRAFFICKER);
 OA_Permission::enforceAccessToObject('affiliates', $affiliateid);
@@ -45,6 +45,6 @@ phpAds_SessionDataStore();
 Language_Loader::load('default');
 
 $maxInvocation = new MAX_Admin_Invocation();
-echo $maxInvocation->generateInvocationCode($invocationTag = null);
 
-?>
+$invocationTag = null;
+echo $maxInvocation->generateWebsiteInvocationCode($invocationTag);

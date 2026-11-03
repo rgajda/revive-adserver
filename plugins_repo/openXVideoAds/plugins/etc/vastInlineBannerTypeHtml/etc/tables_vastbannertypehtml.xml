@@ -5,7 +5,7 @@
  <name>vastbannertypehtml</name>
  <create>true</create>
  <overwrite>false</overwrite>
- <version>013</version>
+ <version>014</version>
  <status>final</status>
 
  <table>
@@ -13,14 +13,6 @@
   <name>banner_vast_element</name>
 
   <declaration>
-
-   <field>
-    <name>banner_vast_element_id</name>
-    <type>openads_mediumint</type>
-    <length>9</length>
-    <notnull>true</notnull>
-    <default></default>
-   </field>
 
    <field>
     <name>banner_id</name>
@@ -185,9 +177,10 @@
    </field>
 
    <index>
-    <name>banner_vast_banner_vast_element_id</name>
+    <name>banner_vast_element_pkey</name>
+    <primary>true</primary>
     <field>
-     <name>banner_vast_element_id</name>
+     <name>banner_id</name>
      <sorting>ascending</sorting>
     </field>
    </index>

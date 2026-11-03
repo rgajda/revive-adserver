@@ -20,7 +20,7 @@ require_once OX_PATH . '/lib/pear/Date.php';
 /**
  * Definitions of class constants.
  */
-define('OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI',   0);
+define('OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI', 0);
 define('OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR', 1);
 define('OX_DAL_MAINTENANCE_STATISTICS_UPDATE_BOTH', 2);
 
@@ -37,7 +37,6 @@ define('OX_DAL_MAINTENANCE_STATISTICS_UPDATE_BOTH', 2);
  */
 abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
 {
-
     /**
      * A sting that can be used in SQL to cast a value into a timestamp.
      *
@@ -53,7 +52,9 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      *
      * @var string
      */
-    var $timestampCastString;
+    public $timestampCastString;
+
+    private $aMtRevenueCache = [];
 
     /**
      * A method to perform the migration of logged bucket-based aggregate statistics
@@ -75,7 +76,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      *               of rows of aggregate data that were migrated from the bucket table(s)
      *               to the statistics table.
      */
-    function summariseBucketsAggregate($statisticsTableName, $aMigrationMaps, $aDates, $aExtras = array())
+    public function summariseBucketsAggregate($statisticsTableName, $aMigrationMaps, $aDates, $aExtras = [])
     {
         // Perform basic checking of the parameters; assumes that $aMigrationDetails
         // has already been checked by the Plugins_DeliveryLog::testStatisticsMigration()
@@ -141,7 +142,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
 
         // Ensure that the groupSource, groupDestination, sumSource,
         // sumDestination and sumDefault arrays are all sorted by key
-        foreach ($aMigrationMaps as $key => $aMigrationDetails) {
+        foreach (array_keys($aMigrationMaps) as $key) {
             ksort($aMigrationMaps[$key]['groupSource']);
             ksort($aMigrationMaps[$key]['groupDestination']);
             ksort($aMigrationMaps[$key]['sumSource']);
@@ -153,22 +154,20 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         // the grouped columns array, the array of the order the summed
         // columns should be selected in and the array of the summed column
         // defaults
-        $aDestinationColumns   = array();
-        $aSelectColumns        = array();
-        $aGroupedColumns       = array();
-        $aSummedColumns        = array();
-        $aSummedColumnDefaults = array();
+        $aDestinationColumns = [];
+        $aSelectColumns = [];
+        $aGroupedColumns = [];
+        $aSummedColumns = [];
         foreach ($aMigrationMaps[$masterMigrationMapKey]['groupDestination'] as $value) {
             $aDestinationColumns[] = $value;
-            $aSelectColumns[]      = $value;
-            $aGroupedColumns[]     = $this->oDbh->quoteIdentifier($value, true);
+            $aSelectColumns[] = $value;
+            $aGroupedColumns[] = $this->oDbh->quoteIdentifier($value, true);
         }
         foreach ($aMigrationMaps as $aMigrationDetails) {
             foreach ($aMigrationDetails['sumDestination'] as $key => $value) {
                 $aDestinationColumns[] = $value;
-                $aSelectColumns[]      = 'SUM(' . $this->oDbh->quoteIdentifier($value, true) . ') AS ' . $this->oDbh->quoteIdentifier($value, true);
-                $aSummedColumns[]      = $value;
-                $aSummedColumnDefaults = $aMigrationDetails['sumDefault'][$key];
+                $aSelectColumns[] = 'SUM(' . $this->oDbh->quoteIdentifier($value, true) . ') AS ' . $this->oDbh->quoteIdentifier($value, true);
+                $aSummedColumns[] = $value;
             }
         }
 
@@ -176,18 +175,18 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         // and test each one (if required) to ensure that there is at least
         // some raw data to migrate (otherwise, any "extra" columns/values
         // that are included will cause the migration SQL to fail)
-        $dataExists    = false;
-        $aUnionSelects = array();
+        $dataExists = false;
+        $aUnionSelects = [];
         foreach ($aMigrationMaps as $aMigrationDetails) {
             // Prepare the array of select statements for the bucket source
-            $aSelectColumnStatements = array();
+            $aSelectColumnStatements = [];
             foreach ($aMigrationDetails['groupDestination'] as $key => $value) {
                 $aSelectColumnStatements[] = $this->oDbh->quoteIdentifier($aMigrationDetails['groupSource'][$key], true) . ' AS ' . $this->oDbh->quoteIdentifier($value, true);
             }
             foreach ($aSummedColumns as $value) {
                 $key = array_search($value, $aMigrationDetails['sumDestination']);
                 if ($key === false) {
-                    $aSelectColumnStatements[] = $this->oDbh->quoteIdentifier($aMigrationDetails['sumDefault'][$key], true) . ' AS ' . $this->oDbh->quoteIdentifier($value, true);
+                    $aSelectColumnStatements[] = $this->oDbh->quote($aMigrationDetails['sumDefault'][$key]) . ' AS ' . $this->oDbh->quoteIdentifier($value, true);
                 } else {
                     $aSelectColumnStatements[] = $this->oDbh->quoteIdentifier($aMigrationDetails['sumSource'][$key], true) . ' AS ' . $this->oDbh->quoteIdentifier($value, true);
                 }
@@ -230,9 +229,9 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
             foreach ($aExtras as $key => $value) {
                 $aDestinationColumns[] = $this->oDbh->quoteIdentifier($key, true);
                 if (is_numeric($value) || preg_match("/^['|\"]\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}['|\"]" . $this->timestampCastString . "/", $value)) {
-                    $aSelectColumns[]  = $value . ' AS ' . $this->oDbh->quoteIdentifier($key, true);
+                    $aSelectColumns[] = $value . ' AS ' . $this->oDbh->quoteIdentifier($key, true);
                 } else {
-                    $aSelectColumns[]  = $this->oDbh->quoteIdentifier($value, true) . ' AS ' . $this->oDbh->quoteIdentifier($key, true);
+                    $aSelectColumns[] = $this->oDbh->quoteIdentifier($value, true) . ' AS ' . $this->oDbh->quoteIdentifier($key, true);
                 }
             }
         }
@@ -279,7 +278,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      *               of rows of raw data that were migrated from the bucket table to the
      *               statistics table.
      */
-    function summariseBucketsRaw($statisticsTableName, $aMigrationDetails, $aDates)
+    public function summariseBucketsRaw($statisticsTableName, $aMigrationDetails, $aDates)
     {
         // Perform basic checking of the parameters; assumes that $aMigrationDetails
         // has already been checked by the Plugins_DeliveryLog::testStatisticsMigration()
@@ -332,7 +331,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         ksort($aMigrationDetails['extrasValue']);
 
         // Prepare the destination columns array
-        $aDestinationColumns = array();
+        $aDestinationColumns = [];
         foreach ($aMigrationDetails['destination'] as $value) {
             $aDestinationColumns[] = $this->oDbh->quoteIdentifier($value, true);
         }
@@ -341,7 +340,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         }
 
         // Prepare the select column statements array
-        $aSelectColumnStatements = array();
+        $aSelectColumnStatements = [];
         foreach ($aMigrationDetails['destination'] as $key => $value) {
             $aSelectColumnStatements[] = $this->oDbh->quoteIdentifier($aMigrationDetails['source'][$key]) . ' AS ' . $this->oDbh->quoteIdentifier($value, true);
         }
@@ -395,7 +394,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      *               of rows of raw data that were migrated from the bucket table to the
      *               statistics table.
      */
-    function summariseBucketsRawSupplementary($statisticsTableName, $aMigrationDetails, $aDates)
+    public function summariseBucketsRawSupplementary($statisticsTableName, $aMigrationDetails, $aDates)
     {
         // Perform basic checking of the parameters; assumes that $aMigrationDetails
         // has already been checked by the Plugins_DeliveryLog::testStatisticsMigration()
@@ -451,7 +450,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         }
 
         // Prepare the previously migrated raw data statistics table columns array
-        $aMasterColumns = array();
+        $aMasterColumns = [];
         foreach ($aMigrationDetails['masterTablePrimaryKeys'] as $value) {
             $aMasterColumns[] = $this->oDbh->quoteIdentifier($value, true);
         }
@@ -497,7 +496,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         ksort($aMigrationDetails['destination']);
 
         // Prepare the destination columns array
-        $aDestinationColumns = array();
+        $aDestinationColumns = [];
         foreach ($aMigrationDetails['bucketTablePrimaryKeys'] as $value) {
             $aDestinationColumns[] = $this->oDbh->quoteIdentifier($value, true);
         }
@@ -508,7 +507,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         $counter = 0;
         while ($aRow = $rsResult->fetchRow()) {
             // Prepare the select column statements array
-            $aSelectColumnStatements = array();
+            $aSelectColumnStatements = [];
             foreach ($aMigrationDetails['bucketTablePrimaryKeys'] as $value) {
                 $aSelectColumnStatements[] = $this->oDbh->quote($aRow[$value], 'text') . ' AS ' . $this->oDbh->quoteIdentifier($value, true);
             }
@@ -517,7 +516,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
             }
 
             // Prepare the where statementes array
-            $aWhereStatements = array();
+            $aWhereStatements = [];
             foreach ($aMigrationDetails['masterTableKeys'] as $key => $value) {
                 $aWhereStatements[] = $this->oDbh->quoteIdentifier($aMigrationDetails['bucketTableKeys'][$key], true) . ' = ' . $this->oDbh->quote($aRow[$value], 'text');
             }
@@ -558,7 +557,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param PEAR::Date $oStart The start date of the operation interval to migrate.
      * @param PEAR::Date $oEnd The end date of the operation interval to migrate.
      */
-    function migrateRawRequests($oStart, $oEnd)
+    public function migrateRawRequests($oStart, $oEnd)
     {
         // Perform the default action for migration of raw requests...
         return $this->_migrateRawData($oStart, $oEnd, 'request');
@@ -572,7 +571,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param PEAR::Date $oStart The start date of the operation interval to migrate.
      * @param PEAR::Date $oEnd The end date of the operation interval to migrate.
      */
-    function migrateRawImpressions($oStart, $oEnd)
+    public function migrateRawImpressions($oStart, $oEnd)
     {
         // Perform the default action for migration of raw impressions...
         return $this->_migrateRawData($oStart, $oEnd, 'impression');
@@ -586,7 +585,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param PEAR::Date $oStart The start date of the operation interval to migrate.
      * @param PEAR::Date $oEnd The end date of the operation interval to migrate.
      */
-    function migrateRawClicks($oStart, $oEnd)
+    public function migrateRawClicks($oStart, $oEnd)
     {
         // Perform the default action for migration of raw clicks...
         return $this->_migrateRawData($oStart, $oEnd, 'click');
@@ -611,9 +610,9 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         $bucketTable = $aConf['table']['prefix'] . 'data_bkt_';
         if ($type == 'request') {
             $bucketTable .= 'r';
-        } else if ($type == 'impression') {
+        } elseif ($type == 'impression') {
             $bucketTable .= 'm';
-        } else if ($type == 'click') {
+        } elseif ($type == 'click') {
             $bucketTable .= 'c';
         } else {
             // Invalid call!
@@ -634,13 +633,12 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * into new style, bucket-based data, in the event of the requirement to process
      * any such data on upgrade to (or beyond) OpenX 2.8.
      *
-     * @abstract
      * @param string $bucketTable The bucket table to migrate the data into.
      * @param string $rawTable The raw table to migrate the data from.
      * @param PEAR::Date $oStart The start date of the operation interval to migrate.
      * @param PEAR::Date $oEnd The end date of the operation interval to migrate.
      */
-    abstract function _getMigrateRawDataSQL($bucketTable, $rawTable, $oStart, $oEnd);
+    abstract public function _getMigrateRawDataSQL($bucketTable, $rawTable, $oStart, $oEnd);
 
     /**
      * A method to manage the migration of conversions from the final conversion
@@ -652,16 +650,16 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param PEAR::Date $oStart The start date/time to migrate from.
      * @param PEAR::Date $oEnd   The end date/time to migrate to.
      */
-    function manageConversions($oStart, $oEnd)
+    public function manageConversions($oStart, $oEnd)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         // The custom IF function in PgSQL is not suitable for this query, we need explicit use of CASE
         if ($this->oDbh->dbsyntax == 'pgsql') {
-            $sqlBasketValue = "CASE WHEN v.purpose = 'basket_value' AND diac.connection_status = ". MAX_CONNECTION_STATUS_APPROVED ." THEN diavv.value::numeric ELSE 0 END";
-            $sqlNumItems = "CASE WHEN v.purpose = 'num_items' AND diac.connection_status = ". MAX_CONNECTION_STATUS_APPROVED ." THEN diavv.value::integer ELSE 0 END";
+            $sqlBasketValue = "CASE WHEN v.purpose = 'basket_value' AND diac.connection_status = " . MAX_CONNECTION_STATUS_APPROVED . " THEN diavv.value::numeric ELSE 0 END";
+            $sqlNumItems = "CASE WHEN v.purpose = 'num_items' AND diac.connection_status = " . MAX_CONNECTION_STATUS_APPROVED . " THEN diavv.value::integer ELSE 0 END";
         } else {
-            $sqlBasketValue = "IF(v.purpose = 'basket_value' AND diac.connection_status = ". MAX_CONNECTION_STATUS_APPROVED .", diavv.value, 0)";
-            $sqlNumItems = "IF(v.purpose = 'num_items' AND diac.connection_status = ". MAX_CONNECTION_STATUS_APPROVED .", diavv.value, 0)";
+            $sqlBasketValue = "IF(v.purpose = 'basket_value' AND diac.connection_status = " . MAX_CONNECTION_STATUS_APPROVED . ", diavv.value, 0)";
+            $sqlNumItems = "IF(v.purpose = 'num_items' AND diac.connection_status = " . MAX_CONNECTION_STATUS_APPROVED . ", diavv.value, 0)";
         }
         // Prepare the query to obtain all of the conversions, and their associated total number
         // of items and total basket values (where they exist), ready for update/insertion into
@@ -692,8 +690,8 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
             WHERE
                 diac.connection_status = " . MAX_CONNECTION_STATUS_APPROVED . "
                 AND diac.inside_window = 1
-                AND diac.tracker_date_time >= ". $this->oDbh->quote($oStart->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
-                AND diac.tracker_date_time <= ". $this->oDbh->quote($oEnd->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                AND diac.tracker_date_time >= " . $this->oDbh->quote($oStart->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                AND diac.tracker_date_time <= " . $this->oDbh->quote($oEnd->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
             GROUP BY
                 diac.data_intermediate_ad_connection_id,
                 date_f,
@@ -792,7 +790,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param string $toTable        The name of the summary table to summarise to
      *                               (e.g. 'data_summary_ad_hourly').
      */
-    function saveSummary($oStartDate, $oEndDate, $aActions, $fromTable, $toTable)
+    public function saveSummary($oStartDate, $oEndDate, $aActions, $fromTable, $toTable)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         // Check that there are types to summarise
@@ -800,12 +798,14 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
             return;
         }
         // How many days does the start/end period span?
-        $days = Date_Calc::dateDiff($oStartDate->getDay(),
-                                    $oStartDate->getMonth(),
-                                    $oStartDate->getYear(),
-                                    $oEndDate->getDay(),
-                                    $oEndDate->getMonth(),
-                                    $oEndDate->getYear());
+        $days = Date_Calc::dateDiff(
+            $oStartDate->getDay(),
+            $oStartDate->getMonth(),
+            $oStartDate->getYear(),
+            $oEndDate->getDay(),
+            $oEndDate->getMonth(),
+            $oEndDate->getYear(),
+        );
         if ($days == 0) {
             // Save the data
             $this->_saveSummary($oStartDate, $oEndDate, $aActions, $fromTable, $toTable);
@@ -867,17 +867,17 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param string $toTable      The name of the summary table to summarise to
      *                             (e.g. 'data_summary_ad_hourly').
      */
-    function _saveSummary($oStartDate, $oEndDate, $aActions, $fromTable, $toTable)
+    public function _saveSummary($oStartDate, $oEndDate, $aActions, $fromTable, $toTable)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         if ($oStartDate->format('%Y-%m-%d') != $oEndDate->format('%Y-%m-%d')) {
             MAX::raiseError('_saveSummary called with dates not on the same day.', null, PEAR_ERROR_DIE);
         }
         $finalFromTable = $aConf['table']['prefix'] . $aConf['table'][$fromTable];
-        $finalToTable   = $aConf['table']['prefix'] . $aConf['table'][$toTable];
+        $finalToTable = $aConf['table']['prefix'] . $aConf['table'][$toTable];
         $query = "
             INSERT INTO
-                ".$this->oDbh->quoteIdentifier($finalToTable,true)."
+                " . $this->oDbh->quoteIdentifier($finalToTable, true) . "
                 (
                     date_time,
                     ad_id,
@@ -906,12 +906,12 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 SUM(conversions) AS conversions,
                 SUM(total_basket_value) AS total_basket_value,
                 SUM(total_num_items) AS total_num_items,
-                '".date('Y-m-d H:i:s')."'
+                '" . date('Y-m-d H:i:s') . "'
             FROM
-                ".$this->oDbh->quoteIdentifier($finalFromTable,true)."
+                " . $this->oDbh->quoteIdentifier($finalFromTable, true) . "
             WHERE
-                date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp')."
-                AND date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp')."
+                date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                AND date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
             GROUP BY
                 hour_date_time, ad_id, creative_id, zone_id";
         // Prepare the message about what's about to happen
@@ -943,7 +943,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param string $table          The name of the summary table to update with financial
      *                               information (e.g. 'data_summary_ad_hourly').
      */
-    function _saveSummaryUpdateWithFinanceInfo($oStartDate, $oEndDate, $table)
+    public function _saveSummaryUpdateWithFinanceInfo($oStartDate, $oEndDate, $table)
     {
         OA::debug('- Selecting unique ad IDs during this OI', PEAR_LOG_DEBUG);
         $aConf = $GLOBALS['_MAX']['CONF'];
@@ -952,25 +952,25 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         }
 
         $indexHint = '';
-        if(($aConf['database']['type'] == 'mysql' || $aConf['database']['type'] == 'mysqli')
-            && $table == 'data_summary_ad_hourly') {
-            $indexHint = ' FORCE INDEX('.$aConf['table']['prefix'].'data_summary_ad_hourly_date_time) ';
+        if ($aConf['database']['type'] == 'mysqli' && $table == 'data_summary_ad_hourly') {
+            $indexHint = ' FORCE INDEX(' . $aConf['table']['prefix'] . 'data_summary_ad_hourly_date_time) ';
         }
+
         // Obtain a list of unique ad IDs from the summary table
         $query = "
             SELECT DISTINCT
                 ad_id AS ad_id
             FROM
-                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table'][$table],true)."
+                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table'][$table], true) . "
                 $indexHint
             WHERE
-                date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') ."
-                AND date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
+                date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                AND date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
         $rsResult = $this->oDbh->query($query);
         if (PEAR::isError($rsResult)) {
             return MAX::raiseError($rsResult, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
         }
-        $aAdIds = array();
+        $aAdIds = [];
         while ($aRow = $rsResult->fetchRow()) {
             $aAdIds[] = $aRow['ad_id'];
         }
@@ -993,9 +993,9 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      *               tenancy only, otherwise it would be impossible to split the revenue correctly.
      *               False is returned if none of the ads requested have finance information set.
      */
-    function _saveSummaryGetAdFinanceInfo($aAdIds)
+    public function _saveSummaryGetAdFinanceInfo($aAdIds)
     {
-        OA::debug('- Select ad finance information for '.count($aAdIds).' ads', PEAR_LOG_DEBUG);
+        OA::debug('- Select ad finance information for ' . count($aAdIds) . ' ads', PEAR_LOG_DEBUG);
         $aConf = $GLOBALS['_MAX']['CONF'];
         if (empty($aAdIds)) {
             return false;
@@ -1008,8 +1008,8 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 c.revenue AS revenue,
                 c.revenue_type AS revenue_type
             FROM
-                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['campaigns'],true)." AS c,
-                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['banners'],true)." AS a
+                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['campaigns'], true) . " AS c,
+                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['banners'], true) . " AS a
             WHERE
                 a.bannerid IN (" . $this->oDbh->escape(implode(', ', $aAdIds)) . ")
                 AND a.campaignid = c.campaignid
@@ -1020,7 +1020,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
             MAX::raiseError($rsResult, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
             return false;
         }
-        $aResult = array();
+        $aResult = [];
         while ($aRow = $rsResult->fetchRow()) {
             $aResult[] = $aRow;
         }
@@ -1061,7 +1061,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      *
      * @TODO Update to deal with monthly tenancy.
      */
-    function _saveSummaryUpdateAdsWithFinanceInfo($aAdFinanceInfo, $oStartDate, $oEndDate, $table)
+    public function _saveSummaryUpdateAdsWithFinanceInfo($aAdFinanceInfo, $oStartDate, $oEndDate, $table)
     {
         OA::debug('- Starting update finance information for ads', PEAR_LOG_DEBUG);
 
@@ -1071,19 +1071,19 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 MAX::raiseError('_saveSummaryUpdateAdsWithFinanceInfo called with dates not on the same day.', null, PEAR_ERROR_DIE);
             }
         }
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         // Prepare the revenue type to column name mapping array
-        $aAdFinanceMappings =& $oServiceLocator->get('aAdFinanceMappings');
-        if (($aAdFinanceMappings === false) || (!array($aAdFinanceMappings)) || (empty($aAdFinanceMappings))) {
-            $aAdFinanceMappings = array(
+        $aAdFinanceMappings = &$oServiceLocator->get('aAdFinanceMappings');
+        if (($aAdFinanceMappings === false) || (![$aAdFinanceMappings]) || (empty($aAdFinanceMappings))) {
+            $aAdFinanceMappings = [
                 MAX_FINANCE_CPM => 'impressions',
                 MAX_FINANCE_CPC => 'clicks',
-                MAX_FINANCE_CPA => 'conversions'
-            );
+                MAX_FINANCE_CPA => 'conversions',
+            ];
         }
         $countQueries = 0;
         // Try to get the $aAdFinanceLimitTypes array
-        $aAdFinanceLimitTypes =& $oServiceLocator->get('aAdFinanceLimitTypes');
+        $aAdFinanceLimitTypes = &$oServiceLocator->get('aAdFinanceLimitTypes');
         foreach ($aAdFinanceInfo as $aInfo) {
             $query = '';
             $setInfo = true;
@@ -1103,50 +1103,50 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                     case MAX_FINANCE_CPM:
                         $query = "
                             UPDATE
-                                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table'][$table],true)."
+                                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table'][$table], true) . "
                             SET
                                 total_revenue = {$aAdFinanceMappings[MAX_FINANCE_CPM]} * {$aInfo['revenue']} / 1000,
-                                updated = '". OA::getNow() ."'
+                                updated = '" . OA::getNow() . "'
                             WHERE
                                 ad_id = {$aInfo['ad_id']}
-                                AND date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') ."
-                                AND date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
+                                AND date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                                AND date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
                         break;
                     case MAX_FINANCE_CPC:
                         $query = "
                             UPDATE
-                                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table'][$table],true)."
+                                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table'][$table], true) . "
                             SET
                                 total_revenue = {$aAdFinanceMappings[MAX_FINANCE_CPC]} * {$aInfo['revenue']},
-                                updated = '". OA::getNow() ."'
+                                updated = '" . OA::getNow() . "'
                             WHERE
                                 ad_id = {$aInfo['ad_id']}
-                                AND date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') ."
-                                AND date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
+                                AND date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                                AND date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
                         break;
                     case MAX_FINANCE_CPA:
                         $query = "
                             UPDATE
-                                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table'][$table],true)."
+                                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table'][$table], true) . "
                             SET
                                 total_revenue = {$aAdFinanceMappings[MAX_FINANCE_CPA]} * {$aInfo['revenue']},
-                                updated = '". OA::getNow() ."'
+                                updated = '" . OA::getNow() . "'
                             WHERE
                                 ad_id = {$aInfo['ad_id']}
-                                AND date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') ."
-                                AND date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
+                                AND date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                                AND date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
                         break;
                     case MAX_FINANCE_MT:
                         $query = "
                             UPDATE
-                                ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table'][$table],true)."
+                                " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table'][$table], true) . "
                             SET
-                                total_revenue = ".$this->getMtRevenue($aInfo, $oStartDate, $oEndDate, $table).",
-                                updated = '". OA::getNow() ."'
+                                total_revenue = " . $this->getMtRevenue($aInfo, $oStartDate, $oEndDate, $table) . ",
+                                updated = '" . OA::getNow() . "'
                             WHERE
                                 ad_id = {$aInfo['ad_id']}
-                                AND date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') ."
-                                AND date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
+                                AND date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                                AND date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
                         break;
                 }
             }
@@ -1158,7 +1158,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 $countQueries++;
             }
         }
-        OA::debug('- Updated finance information for '. $countQueries .' ads', PEAR_LOG_DEBUG);
+        OA::debug('- Updated finance information for ' . $countQueries . ' ads', PEAR_LOG_DEBUG);
     }
 
     /**
@@ -1172,12 +1172,13 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param string $table
      * @return double
      */
-    function getMtRevenue($aInfo, $oStartDate, $oEndDate, $table)
+    public function getMtRevenue($aInfo, $oStartDate, $oEndDate, $table)
     {
-        OA::debug(sprintf("  - Calculating MT revenue for banner [id%d] between %s and %s:",
+        OA::debug(sprintf(
+            "  - Calculating MT revenue for banner [id%d] between %s and %s:",
             $aInfo['ad_id'],
             $oStartDate->format('%Y-%m-%d %H:%M:%S %Z'),
-            $oEndDate->format('%Y-%m-%d %H:%M:%S %Z')
+            $oEndDate->format('%Y-%m-%d %H:%M:%S %Z'),
         ), PEAR_LOG_DEBUG);
         $aConf = $GLOBALS['_MAX']['CONF'];
 
@@ -1198,12 +1199,12 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 SELECT
                     COUNT(*) as cnt
                 FROM
-                    ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table'][$table],true)." d JOIN
-                    ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['banners'],true)." a ON (a.bannerid = d.ad_id)
+                    " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table'][$table], true) . " d JOIN
+                    " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['banners'], true) . " a ON (a.bannerid = d.ad_id)
                 WHERE
                     a.campaignid = {$aInfo['campaign_id']}
-                    AND d.date_time >= ". $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') ."
-                    AND d.date_time <= ". $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
+                    AND d.date_time >= " . $this->oDbh->quote($oStartDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp') . "
+                    AND d.date_time <= " . $this->oDbh->quote($oEndDate->format('%Y-%m-%d %H:%M:%S'), 'timestamp');
 
             $this->aMtRevenueCache[$aInfo['campaign_id']] = $this->oDbh->query($query)->fetchOne();
         }
@@ -1213,14 +1214,16 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         $oMonthStart->setMinute(0);
         $oMonthStart->setSecond(0);
 
-        OA::debug(sprintf("    - Month start: %s",
-            $oMonthStart->format('%Y-%m-%d %H:%M:%S %Z')
+        OA::debug(sprintf(
+            "    - Month start: %s",
+            $oMonthStart->format('%Y-%m-%d %H:%M:%S %Z'),
         ), PEAR_LOG_DEBUG);
 
         $daysInMonth = $oMonthStart->getDaysInMonth();
 
-        OA::debug(sprintf("    - Days in month: %d",
-            $daysInMonth
+        OA::debug(sprintf(
+            "    - Days in month: %d",
+            $daysInMonth,
         ), PEAR_LOG_DEBUG);
 
         $oMonthEnd = new Date($oMonthStart);
@@ -1228,37 +1231,42 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         $oMonthEnd = $oMonthEnd->getNextDay();
         $oMonthEnd->setTZ($oMonthStart->tz);
 
-        OA::debug(sprintf("    - Month end: %s",
-            $oMonthEnd->format('%Y-%m-%d %H:%M:%S %Z')
+        OA::debug(sprintf(
+            "    - Month end: %s",
+            $oMonthEnd->format('%Y-%m-%d %H:%M:%S %Z'),
         ), PEAR_LOG_DEBUG);
 
         $oDiff = new Date_Span();
         $oDiff->setFromDateDiff($oMonthEnd, $oMonthStart);
         $hoursPerMonth = ceil($oDiff->toHours());
 
-        OA::debug(sprintf("    - Hours per month: %d",
-            $hoursPerMonth
+        OA::debug(sprintf(
+            "    - Hours per month: %d",
+            $hoursPerMonth,
         ), PEAR_LOG_DEBUG);
 
         $oDiff = new Date_Span();
         $oDiff->setFromDateDiff($oEndDate, $oStartDate);
         $hoursPerInterval = ceil($oDiff->toHours());
 
-        OA::debug(sprintf("    - Hours per interval: %d",
-            $hoursPerInterval
+        OA::debug(sprintf(
+            "    - Hours per interval: %d",
+            $hoursPerInterval,
         ), PEAR_LOG_DEBUG);
 
         $adZoneCombinations = $this->aMtRevenueCache[$aInfo['campaign_id']];
 
-        OA::debug(sprintf("    - Ad/zone/OI combinations for campaign [id%d]: %d",
+        OA::debug(sprintf(
+            "    - Ad/zone/OI combinations for campaign [id%d]: %d",
             $aInfo['campaign_id'],
-            $this->aMtRevenueCache[$aInfo['campaign_id']]
+            $this->aMtRevenueCache[$aInfo['campaign_id']],
         ), PEAR_LOG_DEBUG);
 
         $result = $aInfo['revenue'] / $hoursPerMonth * $hoursPerInterval / $adZoneCombinations;
 
-        OA::debug(sprintf("    - Result: %0.4f",
-            $result
+        OA::debug(sprintf(
+            "    - Result: %0.4f",
+            $result,
         ), PEAR_LOG_DEBUG);
 
         return $result;
@@ -1273,10 +1281,10 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
      * @param Date $oDate The current date/time.
      * @return string Report on the campaigns activated/deactivated.
      */
-    function manageCampaigns($oDate)
+    public function manageCampaigns($oDate)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oServiceLocator = &OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $oEmail = &$oServiceLocator->get('OA_Email');
         if ($oEmail === false) {
             $oEmail = new OA_Email();
@@ -1345,7 +1353,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 ca.clientid = cl.clientid
                 AND
                 ((
-                    ca.status = ".$this->oDbh->quote(OA_ENTITY_STATUS_RUNNING, 'integer')." AND
+                    ca.status = " . $this->oDbh->quote(OA_ENTITY_STATUS_RUNNING, 'integer') . " AND
                     (
                         ca.expire_time IS NOT NULL
                         OR
@@ -1358,7 +1366,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                         )
                     )
                 ) OR (
-                    ca.status = ".$this->oDbh->quote(OA_ENTITY_STATUS_AWAITING, 'integer')." AND
+                    ca.status = " . $this->oDbh->quote(OA_ENTITY_STATUS_AWAITING, 'integer') . " AND
                     (
                         ca.activate_time <= " . $this->oDbh->quote($oNowDate->getDate(DATE_FORMAT_ISO), 'timestamp') . "
                         AND
@@ -1380,7 +1388,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         OA::debug('- Requesting campaigns to test for activation/deactivation', PEAR_LOG_DEBUG);
         $rsResult = $this->oDbh->query($query);
         if (PEAR::isError($rsResult)) {
-            return MAX::raiseError($rsResult, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+            MAX::raiseError($rsResult, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
         }
         OA::debug('- Found ' . $rsResult->numRows() . ' campaigns to test for activation/deactivation', PEAR_LOG_DEBUG);
         while ($aCampaign = $rsResult->fetchRow()) {
@@ -1391,7 +1399,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 if (($aCampaign['targetimpressions'] > 0) ||
                     ($aCampaign['targetclicks'] > 0) ||
                     ($aCampaign['targetconversions'] > 0)) {
-                    OA::debug('  - Selecting impressions, clicks and conversions for this running campaign ID = '.$aCampaign['campaign_id'], PEAR_LOG_DEBUG);
+                    OA::debug('  - Selecting impressions, clicks and conversions for this running campaign ID = ' . $aCampaign['campaign_id'], PEAR_LOG_DEBUG);
                     // The campaign has an impression, click and/or conversion target,
                     // so get the sum total statistics for the campaign
                     $query = "
@@ -1400,8 +1408,8 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                             SUM(dia.clicks) AS clicks,
                             SUM(dia.conversions) AS conversions
                         FROM
-                            ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['data_intermediate_ad'],true)." AS dia,
-                            ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['banners'],true)." AS b
+                            " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['data_intermediate_ad'], true) . " AS dia,
+                            " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['banners'], true) . " AS b
                         WHERE
                             dia.ad_id = b.bannerid
                             AND b.campaignid = {$aCampaign['campaign_id']}";
@@ -1410,18 +1418,12 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                     if ((isset($valuesRow['impressions'])) || (!is_null($valuesRow['clicks'])) || (!is_null($valuesRow['conversions']))) {
                         // There were impressions, clicks and/or conversions for this
                         // campaign, so find out if campaign targets have been passed
-                        if (!isset($valuesRow['impressions'])) {
-                            // No impressions
-                            $valuesRow['impressions'] = 0;
-                        }
-                        if (!isset($valuesRow['clicks'])) {
-                            // No clicks
-                            $valuesRow['clicks'] = 0;
-                        }
-                        if (!isset($valuesRow['conversions'])) {
-                            // No conversions
-                            $valuesRow['conversions'] = 0;
-                        }
+                        // No impressions
+                        $valuesRow['impressions'] ??= 0;
+                        // No clicks
+                        $valuesRow['clicks'] ??= 0;
+                        // No conversions
+                        $valuesRow['conversions'] ??= 0;
                         if ($aCampaign['targetimpressions'] > 0) {
                             if ($aCampaign['targetimpressions'] <= $valuesRow['impressions']) {
                                 // The campaign has an impressions target, and this has been
@@ -1455,14 +1457,14 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                             $doCampaigns->fetch();
                             $doCampaigns->status = OA_ENTITY_STATUS_EXPIRED;
                             $result = $doCampaigns->update();
-                            if ($result == false) {
-                                return MAX::raiseError($rows, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+                            if (false === $result) {
+                                MAX::raiseError("Could not update campaign {$aCampaign['campaign_id']}", MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
                             }
                             phpAds_userlogSetUser(phpAds_userMaintenance);
                             phpAds_userlogAdd(phpAds_actionDeactiveCampaign, $aCampaign['campaign_id']);
                         } else {
-                            // The campaign didn't have a diable reason,
-                            // it *might* possibly be diabled "soon"...
+                            // The campaign didn't have a disable reason,
+                            // it *might* possibly be disabled "soon"...
                             $canExpireSoon = true;
                         }
                     }
@@ -1485,8 +1487,8 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                         $doCampaigns->fetch();
                         $doCampaigns->status = OA_ENTITY_STATUS_EXPIRED;
                         $result = $doCampaigns->update();
-                        if ($result == false) {
-                            return MAX::raiseError($rows, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+                        if (false === $result) {
+                            MAX::raiseError("Could not update campaign {$aCampaign['campaign_id']}", MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
                         }
                         phpAds_userlogSetUser(phpAds_userMaintenance);
                         phpAds_userlogAdd(phpAds_actionDeactiveCampaign, $aCampaign['campaign_id']);
@@ -1506,20 +1508,20 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                             alt AS alt,
                             url AS url
                         FROM
-                            ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['banners'],true)."
+                            " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['banners'], true) . "
                         WHERE
                             campaignid = {$aCampaign['campaign_id']}";
                     OA::debug("  - Getting the advertisements for campaign ID {$aCampaign['campaign_id']}", PEAR_LOG_DEBUG);
                     $rsResultAdvertisement = $this->oDbh->query($query);
                     if (PEAR::isError($rsResultAdvertisement)) {
-                        return MAX::raiseError($rsResultAdvertisement, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+                        MAX::raiseError($rsResultAdvertisement, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
                     }
                     while ($advertisementRow = $rsResultAdvertisement->fetchRow()) {
-                        $advertisements[$advertisementRow['advertisement_id']] = array(
+                        $advertisements[$advertisementRow['advertisement_id']] = [
                             $advertisementRow['description'],
                             $advertisementRow['alt'],
-                            $advertisementRow['url']
-                        );
+                            $advertisementRow['url'],
+                        ];
                     }
                     if ($aCampaign['send_activate_deactivate_email'] == 't') {
                         OA::debug("  - Sending campaign deactivated email ", PEAR_LOG_DEBUG);
@@ -1535,7 +1537,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                         $oEnd->addSpan(new Date_Span('1-0-0-0'));
                         $oEmail->sendCampaignDeliveryEmail($aAdvertiser, $oStart, $oEnd, $aCampaign['campaign_id']);
                     }
-                } else if ($canExpireSoon) {
+                } elseif ($canExpireSoon) {
                     // The campaign has NOT been deactivated - test to see if it will
                     // be deactivated "soon", and send email(s) warning of this as required
                     OA::debug("  - Sending campaign 'soon deactivated' email ", PEAR_LOG_DEBUG);
@@ -1548,20 +1550,20 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 // Find out if there are any impression, click or conversion targets for
                 // the campaign (i.e. if the target values are > 0)
                 $remainingImpressions = 0;
-                $remainingClicks      = 0;
+                $remainingClicks = 0;
                 $remainingConversions = 0;
                 if (($aCampaign['targetimpressions'] > 0) ||
                     ($aCampaign['targetclicks'] > 0) ||
                     ($aCampaign['targetconversions'] > 0)) {
-                    OA::debug("  - The campaign ID ".$aCampaign['campaign_id']." has an impression, click and/or conversion target, requesting impressions so far", PEAR_LOG_DEBUG);
+                    OA::debug("  - The campaign ID " . $aCampaign['campaign_id'] . " has an impression, click and/or conversion target, requesting impressions so far", PEAR_LOG_DEBUG);
                     $query = "
                         SELECT
                             SUM(dia.impressions) AS impressions,
                             SUM(dia.clicks) AS clicks,
                             SUM(dia.conversions) AS conversions
                         FROM
-                            ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['data_intermediate_ad'],true)." AS dia,
-                            ".$this->oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['banners'],true)." AS b
+                            " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['data_intermediate_ad'], true) . " AS dia,
+                            " . $this->oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['banners'], true) . " AS b
                         WHERE
                             dia.ad_id = b.bannerid
                             AND b.campaignid = {$aCampaign['campaign_id']}";
@@ -1569,7 +1571,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                     $valuesRow = $rsResultInner->fetchRow();
                     // Set the remaining impressions, clicks and conversions for the campaign
                     $remainingImpressions = $aCampaign['targetimpressions'] - $valuesRow['impressions'];
-                    $remainingClicks      = $aCampaign['targetclicks']      - $valuesRow['clicks'];
+                    $remainingClicks = $aCampaign['targetclicks'] - $valuesRow['clicks'];
                     $remainingConversions = $aCampaign['targetconversions'] - $valuesRow['conversions'];
                 }
                 // In order for the campaign to be activated, need to test:
@@ -1580,7 +1582,7 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                 // 3) That there is no conversion target (<= 0), or, if there is a conversion target (> 0),
                 //    then there must be remaining conversions to deliver (> 0)
                 if ((($aCampaign['targetimpressions'] <= 0) || (($aCampaign['targetimpressions'] > 0) && ($remainingImpressions > 0))) &&
-                    (($aCampaign['targetclicks']      <= 0) || (($aCampaign['targetclicks']      > 0) && ($remainingClicks      > 0))) &&
+                    (($aCampaign['targetclicks'] <= 0) || (($aCampaign['targetclicks'] > 0) && ($remainingClicks > 0))) &&
                     (($aCampaign['targetconversions'] <= 0) || (($aCampaign['targetconversions'] > 0) && ($remainingConversions > 0)))) {
                     $message = "- Passed campaign start time of '" . $oStartDate->getDate() . " UTC" .
                                "': Activating campaign ID {$aCampaign['campaign_id']}: {$aCampaign['campaign_name']}";
@@ -1592,13 +1594,13 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
                     $doCampaigns->fetch();
                     $doCampaigns->status = OA_ENTITY_STATUS_RUNNING;
                     $result = $doCampaigns->update();
-                    if ($result == false) {
-                        return MAX::raiseError($rows, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+                    if (false === $result) {
+                        MAX::raiseError("Could not update campaign {$aCampaign['campaign_id']}", MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
                     }
                     phpAds_userlogSetUser(phpAds_userMaintenance);
                     phpAds_userlogAdd(phpAds_actionActiveCampaign, $aCampaign['campaign_id']);
                     if ($aCampaign['send_activate_deactivate_email'] == 't') {
-                        OA::debug("  - Sending activation email for campaign ID ". $aCampaign['campaign_id'], PEAR_LOG_DEBUG);
+                        OA::debug("  - Sending activation email for campaign ID " . $aCampaign['campaign_id'], PEAR_LOG_DEBUG);
                         $oEmail->sendCampaignActivatedDeactivatedEmail($aCampaign['campaign_id']);
                     }
                 }
@@ -1606,5 +1608,3 @@ abstract class OX_Dal_Maintenance_Statistics extends MAX_Dal_Common
         }
     }
 }
-
-?>

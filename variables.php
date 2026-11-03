@@ -26,6 +26,8 @@
  *   existing files.
  */
 
+require_once 'polyfills.php';
+
 /**
  * Setup common variables - used by both delivery and admin part as well
  *
@@ -55,14 +57,18 @@ function setupConfigVariables()
     }
 
     // Maximum random number (use default if doesn't exist - eg the case when application is upgraded)
-    $GLOBALS['_MAX']['MAX_RAND'] = isset($GLOBALS['_MAX']['CONF']['priority']['randmax']) ?
-        $GLOBALS['_MAX']['CONF']['priority']['randmax'] : 2147483647;
+    $GLOBALS['_MAX']['MAX_RAND'] = $GLOBALS['_MAX']['CONF']['priority']['randmax'] ?? 2147483647;
 
-	list($micro_seconds, $seconds) = explode(" ", microtime());
-	$GLOBALS['_MAX']['NOW_ms'] = round(1000 *((float)$micro_seconds + (float)$seconds));
+    [$micro_seconds, $seconds] = explode(" ", microtime());
+    $GLOBALS['_MAX']['NOW_ms'] = round(1000 * ((float) $micro_seconds + (float) $seconds));
+
+    if (!empty($GLOBALS['_MAX']['CONF']['cookie']['disabled'])) {
+        // No cookies means no conversion tracking
+        $GLOBALS['_MAX']['CONF']['logging']['trackerImpressions'] = false;
+    }
 
     // Always use UTC when outside the installer
-    if (substr($_SERVER['SCRIPT_NAME'], -11) != 'install.php') {
+    if (!str_ends_with($_SERVER['SCRIPT_NAME'], 'install.php')) {
         // Save server timezone for auto-maintenance
         $GLOBALS['serverTimezone'] = date_default_timezone_get();
         OA_setTimeZoneUTC();
@@ -92,7 +98,7 @@ function setupServerVariables()
 function setupDeliveryConfigVariables()
 {
     if (!defined('MAX_PATH')) {
-        define('MAX_PATH', dirname(__FILE__));
+        define('MAX_PATH', __DIR__);
     }
     if (!defined('OX_PATH')) {
         define('OX_PATH', MAX_PATH);
@@ -101,13 +107,11 @@ function setupDeliveryConfigVariables()
         define('RV_PATH', MAX_PATH);
     }
     if (!defined('LIB_PATH')) {
-        define('LIB_PATH', MAX_PATH. DIRECTORY_SEPARATOR. 'lib'. DIRECTORY_SEPARATOR. 'OX');
+        define('LIB_PATH', MAX_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'OX');
     }
     // Ensure that the initialisation has not been run before
-    if ( !(isset($GLOBALS['_MAX']['CONF']))) {
-        // Parse the Max configuration file
-        $GLOBALS['_MAX']['CONF'] = parseDeliveryIniFile();
-    }
+    // Parse the Max configuration file
+    $GLOBALS['_MAX']['CONF'] ??= parseDeliveryIniFile();
 
     // Set up the common configuration variables
     setupConfigVariables();
@@ -147,7 +151,7 @@ function OA_setTimeZoneUTC()
  */
 function OA_setTimeZoneLocal()
 {
-    $tz = !empty($GLOBALS['_MAX']['PREF']['timezone']) ? $GLOBALS['_MAX']['PREF']['timezone'] : 'GMT';
+    $tz = empty($GLOBALS['_MAX']['PREF']['timezone']) ? 'UTC' : $GLOBALS['_MAX']['PREF']['timezone'];
     OA_setTimeZone($tz);
 }
 
@@ -161,9 +165,9 @@ function OX_getHostName()
     if (!empty($_SERVER['HTTP_HOST'])) {
         $host = explode(':', $_SERVER['HTTP_HOST']);
         $host = $host[0];
-    } else if (!empty($_SERVER['SERVER_NAME'])) {
+    } elseif (!empty($_SERVER['SERVER_NAME'])) {
         $host = explode(':', $_SERVER['SERVER_NAME']);
-    	$host = $host[0];
+        $host = $host[0];
     }
     return $host;
 }
@@ -177,8 +181,8 @@ function OX_getHostNameWithPort()
 {
     if (!empty($_SERVER['HTTP_HOST'])) {
         $host = $_SERVER['HTTP_HOST'];
-    } else if (!empty($_SERVER['SERVER_NAME'])) {
-    	$host = $_SERVER['SERVER_NAME'];
+    } elseif (!empty($_SERVER['SERVER_NAME'])) {
+        $host = $_SERVER['SERVER_NAME'];
     }
     return $host;
 }

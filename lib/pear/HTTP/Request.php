@@ -75,17 +75,7 @@ define('HTTP_REQUEST_HTTP_VER_1_0', '1.0', true);
 define('HTTP_REQUEST_HTTP_VER_1_1', '1.1', true);
 /**#@-*/
 
-if (extension_loaded('mbstring') && (2 & ini_get('mbstring.func_overload'))) {
-   /**
-    * Whether string functions are overloaded by their mbstring equivalents
-    */
-    define('HTTP_REQUEST_MBSTRING', true);
-} else {
-   /**
-    * @ignore
-    */
-    define('HTTP_REQUEST_MBSTRING', false);
-}
+define('HTTP_REQUEST_MBSTRING', false);
 
 /**
  * Class for performing HTTP requests
@@ -739,7 +729,7 @@ class HTTP_Request
             $this->disconnect();
         // Store the connected socket in "static" property
         } elseif (empty($sockets[$sockKey]) || empty($sockets[$sockKey]->fp)) {
-            $sockets[$sockKey] =& $this->_sock;
+            $sockets[$sockKey] = $this->_sock;
         }
 
         // Check for redirection
@@ -757,7 +747,7 @@ class HTTP_Request
                 $this->_url = new Net_URL($redirect);
                 $this->addHeader('Host', $this->_generateHostHeader());
             // Absolute path
-            } elseif ($redirect{0} == '/') {
+            } elseif ($redirect[0] == '/') {
                 $this->_url->path = $redirect;
 
             // Relative path
@@ -911,7 +901,7 @@ class HTTP_Request
             // "normal" POST request
             if (!isset($boundary)) {
                 $postdata = implode('&', array_map(
-                    create_function('$a', 'return $a[0] . \'=\' . $a[1];'),
+                    function ($a) { return $a[0] = $a[1]; },
                     $this->_flattenArray('', $this->_postData)
                 ));
 

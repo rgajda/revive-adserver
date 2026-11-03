@@ -20,7 +20,7 @@
  * @param string  $source       The "source" parameter passed into the adcall
  * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
  * @param int     $withText     Should "text below banner" be appended to the generated code
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
  * @param boolean $logView      Should this view be logged (views in admin should not be logged
  *                              also - 3rd party callback logging should not be logged at view time)
  * @param boolean $useAlt       Should the backup file be used for this code
@@ -37,33 +37,6 @@ function Plugin_BannerTypeHTML_{GROUP}_{GROUP}Component_delivery(&$aBanner, $zon
     $append = !empty($aBanner['append']) ? $aBanner['append'] : '';
     $code = !empty($aBanner['htmlcache']) ? $aBanner['htmlcache'] : '';
     $aBanner['bannerContent'] = $aBanner['htmltemplate'];
-
-    // Parse PHP code
-    if ($conf['delivery']['execPhp'])
-    {
-        if (preg_match ("#(\<\?php(.*)\?\>)#isU", $code, $parser_regs))
-        {
-            // Extract PHP script
-            $parser_php     = $parser_regs[2];
-            $parser_result     = '';
-
-            // Replace output function
-            $parser_php = preg_replace ("#echo([^;]*);#i", '$parser_result .=\\1;', $parser_php);
-            $parser_php = preg_replace ("#print([^;]*);#i", '$parser_result .=\\1;', $parser_php);
-            $parser_php = preg_replace ("#printf([^;]*);#i", '$parser_result .= sprintf\\1;', $parser_php);
-
-            // Split the PHP script into lines
-            $parser_lines = explode (";", $parser_php);
-            for ($parser_i = 0; $parser_i < sizeof($parser_lines); $parser_i++)
-            {
-                if (trim ($parser_lines[$parser_i]) != '')
-                    eval (trim ($parser_lines[$parser_i]).';');
-            }
-
-            // Replace the script with the result
-            $code = str_replace ($parser_regs[1], $parser_result, $code);
-        }
-    }
 
     // Get the text below the banner
     $bannerText = !empty($aBanner['bannertext']) ? "$clickTag{$aBanner['bannertext']}$clickTagEnd" : '';

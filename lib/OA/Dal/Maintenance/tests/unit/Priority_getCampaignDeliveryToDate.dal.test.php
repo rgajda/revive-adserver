@@ -23,15 +23,6 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
 class Test_OA_Dal_Maintenance_Priority_getCampaignDeliveryToDate extends UnitTestCase
 {
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-
-    /**
      * Method to test the getCampaignDeliveryToDate method.
      *
      * Requirements:
@@ -41,7 +32,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignDeliveryToDate extends UnitTes
      *
      * @TODO Incomplete test!
      */
-    function testGetCampaignDeliveryToDate()
+    public function testGetCampaignDeliveryToDate()
     {
         /**
          * @TODO Locate where clean up doesn't happen before this test, and fix!
@@ -49,7 +40,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignDeliveryToDate extends UnitTes
         TestEnv::restoreEnv();
 
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
         $oNow = new Date();
@@ -71,7 +62,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignDeliveryToDate extends UnitTes
         $doCampaigns->updated = $oNow->format('%Y-%m-%d %H:%M:%S');
         $idCampaign = DataGenerator::generateOne($doCampaigns, true);
 
-        $doBanners   = OA_Dal::factoryDO('banners');
+        $doBanners = OA_Dal::factoryDO('banners');
         $doBanners->campaignid = $idCampaign;
         $doBanners->active = 1;
         $doBanners->status = OA_ENTITY_STATUS_RUNNING;
@@ -79,7 +70,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignDeliveryToDate extends UnitTes
         $doBanners->updated = $oNow->format('%Y-%m-%d %H:%M:%S');
         $idBanner = DataGenerator::generateOne($doBanners);
 
-        $doInterAd   = OA_Dal::factoryDO('data_intermediate_ad');
+        $doInterAd = OA_Dal::factoryDO('data_intermediate_ad');
         $doInterAd->operation_interval = 60;
         $doInterAd->operation_interval_id = 0;
         $doInterAd->ad_id = $idBanner;
@@ -114,7 +105,4 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignDeliveryToDate extends UnitTes
         // Test 3
         DataGenerator::cleanUp();
     }
-
 }
-
-?>

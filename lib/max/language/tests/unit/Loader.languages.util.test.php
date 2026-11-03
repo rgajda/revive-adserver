@@ -14,8 +14,32 @@ require_once(MAX_PATH . '/lib/max/language/Loader.php');
 
 class MAX_Language_LoaderTest extends UnitTestCase
 {
-    function testLoad()
+    public function testResolveLanguage()
     {
+        $savedPreferences = $GLOBALS['_MAX']['PREF'] ?? [];
+        $savedConfig = $GLOBALS['_MAX']['CONF'];
+
+        try {
+            $GLOBALS['_MAX']['PREF'] = [];
+            $GLOBALS['_MAX']['CONF']['max']['language'] = 'polish';
+            $this->assertEqual('pl', Language_Loader::resolveLanguage());
+
+            $GLOBALS['_MAX']['PREF']['language'] = 'de';
+            $this->assertEqual('de', Language_Loader::resolveLanguage());
+            $this->assertEqual('fr', Language_Loader::resolveLanguage('fr'));
+
+            $GLOBALS['_MAX']['PREF']['language'] = 'invalid';
+            $this->assertEqual('pl', Language_Loader::resolveLanguage());
+        } finally {
+            $GLOBALS['_MAX']['PREF'] = $savedPreferences;
+            $GLOBALS['_MAX']['CONF'] = $savedConfig;
+        }
+    }
+
+    public function testLoad()
+    {
+        $PRODUCT_NAME = $PRODUCT_DOCSURL = 'FOO';
+
         //prepare expected value
         include MAX_PATH . '/lib/max/language/en/default.lang.php';
         $aExpected['en']['default']['strHome'] = $GLOBALS['strHome'];
@@ -23,7 +47,7 @@ class MAX_Language_LoaderTest extends UnitTestCase
         $aExpected['pl']['default']['strHome'] = $GLOBALS['strHome'];
         include MAX_PATH . '/lib/max/language/ru/default.lang.php';
         $aExpected['ru']['default']['strHome'] = $GLOBALS['strHome'];
-        
+
         include MAX_PATH . '/lib/max/language/ko/settings.lang.php';
         $aExpected['ko']['settings']['strInstall'] = $GLOBALS['strInstall'];
         include MAX_PATH . '/lib/max/language/en/settings.lang.php';
@@ -32,60 +56,59 @@ class MAX_Language_LoaderTest extends UnitTestCase
         $aExpected['de']['settings']['strInstall'] = $GLOBALS['strInstall'];
         include MAX_PATH . '/lib/max/language/pl/settings.lang.php';
         $aExpected['pl']['settings']['strInstall'] = $GLOBALS['strInstall'];
-        
+
         unset($GLOBALS['strHome']);
         unset($GLOBALS['strInstall']);
-        
-        // Try to load file that not exist 
+
+        // Try to load file that not exist
         Language_Loader::load('notexist');
-        $this->assertNull($GLOBALS['strHome']);
-        
+        $this->assertFalse(isset($GLOBALS['strHome']));
+
         // Test default load when empty $GLOBALS['_MAX']['CONF'] and  $GLOBALS['_MAX']['PREF']
-        Language_Loader::load();       
+        Language_Loader::load();
         $this->assertEqual($aExpected['en']['default']['strHome'], $GLOBALS['strHome']);
-        
-        // Test load language file by user pref settings 
+
+        // Test load language file by user pref settings
         $GLOBALS['_MAX']['PREF']['language'] = 'pl';
         Language_Loader::load();
         $this->assertEqual($aExpected['pl']['default']['strHome'], $GLOBALS['strHome']);
 
         // Test load language file by parameter (overwriting user pref settings)
-        Language_Loader::load('default','ru');
+        Language_Loader::load('default', 'ru');
         $this->assertEqual($aExpected['ru']['default']['strHome'], $GLOBALS['strHome']);
-        
+
         // Test load 'en' again (detect problems with switching languages back)
-        Language_Loader::load('default','en');
+        Language_Loader::load('default', 'en');
         $this->assertEqual($aExpected['en']['default']['strHome'], $GLOBALS['strHome']);
-        
+
         // Test load language file by config settings when user language file not exist
         unset($GLOBALS['strHome']);
-        unset($GLOBALS['strInstall']); 
+        unset($GLOBALS['strInstall']);
         $GLOBALS['_MAX']['PREF']['language'] = 'xyz';
         $GLOBALS['_MAX']['CONF']['max']['language'] = 'ko';
         Language_Loader::load('settings');
         $this->assertEqual($aExpected['ko']['settings']['strInstall'], $GLOBALS['strInstall']);
-        
+
         // Test that language is loaded based on user preferences
         unset($GLOBALS['strInstall']);
         $GLOBALS['_MAX']['PREF']['language'] = 'de';
         $GLOBALS['_MAX']['CONF']['max']['language'] = 'polish';
         Language_Loader::load('settings');
         $this->assertEqual($aExpected['de']['settings']['strInstall'], $GLOBALS['strInstall']);
-        
-        // Test that language is loaded based on config file and laguage name is long (like in 2.4)  
+
+        // Test that language is loaded based on config file and laguage name is long (like in 2.4)
         unset($GLOBALS['strInstall']);
         unset($GLOBALS['_MAX']['PREF']['language']);
         $GLOBALS['_MAX']['CONF']['max']['language'] = 'polish';
         Language_Loader::load('settings');
         $this->assertEqual($aExpected['pl']['settings']['strInstall'], $GLOBALS['strInstall']);
-        
+
         // Test load language by PREF setting, CONF should be ignored
         $GLOBALS['_MAX']['PREF']['language'] = 'de';
         Language_Loader::load('settings');
         $this->assertEqual($aExpected['de']['settings']['strInstall'], $GLOBALS['strInstall']);
         // Test load language by parameter, PREF and CONF setting should be ignored
-        Language_Loader::load('settings','en');
+        Language_Loader::load('settings', 'en');
         $this->assertEqual($aExpected['en']['settings']['strInstall'], $GLOBALS['strInstall']);
     }
 }
-?>

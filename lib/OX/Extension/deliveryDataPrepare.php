@@ -10,20 +10,10 @@
 +---------------------------------------------------------------------------+
 */
 
-require_once(LIB_PATH.'/Extension/ExtensionDelivery.php');
+require_once(LIB_PATH . '/Extension/ExtensionDelivery.php');
 
 /**
  * @package    OpenXExtension
  * @subpackage DeliveryDataPrepare
  */
-class OX_Extension_deliveryDataPrepare extends OX_Extension_Delivery
-{
-
-    function __construct()
-    {
-
-    }
-
-}
-
-?>
+class OX_Extension_deliveryDataPrepare extends OX_Extension_Delivery {}

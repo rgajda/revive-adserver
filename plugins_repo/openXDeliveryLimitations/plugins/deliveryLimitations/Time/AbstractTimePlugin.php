@@ -31,16 +31,15 @@ require_once LIB_PATH . '/Extension/deliveryLimitations/DeliveryLimitationsComma
  * @package    OpenXPlugin
  * @subpackage DeliveryLimitations
  */
-class Plugins_DeliveryLimitations_AbstractTimePlugin extends Plugins_DeliveryLimitations_CommaSeparatedData
+abstract class Plugins_DeliveryLimitations_AbstractTimePlugin extends Plugins_DeliveryLimitations_CommaSeparatedData
 {
     /**
      * Initializes the object with range $min - $max.
      *
      * @param int $min
      * @param int $max
-     * @return Plugins_DeliveryLimitations_Time_Base
      */
-    function Plugins_DeliveryLimitations_Time_Base($min, $max)
+    public function __construct($min, $max)
     {
         parent::__construct();
         $this->setAValues(range($min, $max));
@@ -51,7 +50,7 @@ class Plugins_DeliveryLimitations_AbstractTimePlugin extends Plugins_DeliveryLim
      *
      * @return string
      */
-    function getStoredTz()
+    public function getStoredTz()
     {
         $offset = strpos($this->data, '@');
         if ($offset !== false) {
@@ -65,23 +64,17 @@ class Plugins_DeliveryLimitations_AbstractTimePlugin extends Plugins_DeliveryLim
      *
      * @return string
      */
-    function _getCurrentTz()
+    public function _getCurrentTz()
     {
-        if (isset($GLOBALS['_MAX']['PREF']['timezone'])) {
-            $tz = $GLOBALS['_MAX']['PREF']['timezone'];
-        } else {
-            $tz = 'UTC';
-        }
-
-        return $tz;
+        return $GLOBALS['_MAX']['PREF']['timezone'] ?? 'UTC';
     }
 
-    function _flattenData($data = null)
+    public function _flattenData($data = null)
     {
-        return parent::_flattenData($data).'@'.$this->_getCurrentTz();
+        return parent::_flattenData($data) . '@' . $this->_getCurrentTz();
     }
 
-    function _expandData($data = null)
+    public function _expandData($data = null)
     {
         if (!empty($data) && is_string($data)) {
             $offset = strpos($data, '@');

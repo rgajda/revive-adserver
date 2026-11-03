@@ -181,8 +181,7 @@ class PEAR_Downloader extends PEAR_Common
                 if (!count($unused)) {
                     continue;
                 }
-                $strtolower = create_function('$a','return strtolower($a);');
-                array_walk($this->_installed[$key], $strtolower);
+                array_walk($this->_installed[$key], 'strtolower');
             }
         }
     }
@@ -1132,7 +1131,7 @@ class PEAR_Downloader extends PEAR_Common
             if (OS_WINDOWS && preg_match('/^[a-z]:/i', $path)) {
                 if (preg_match('/^[a-z]:/i', $prepend)) {
                     $prepend = substr($prepend, 2);
-                } elseif ($prepend{0} != '\\') {
+                } elseif ($prepend[0] != '\\') {
                     $prepend = "\\$prepend";
                 }
                 $path = substr($path, 0, 2) . $prepend . substr($path, 2);

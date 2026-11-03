@@ -34,11 +34,33 @@ class OA_Dll_Banner extends OA_Dll
     /**
      * @var OA_Creative_File
      */
-    var $oImage;
+    public $oImage;
     /**
      * @var OA_Creative_File
      */
-    var $oBackupImage;
+    public $oBackupImage;
+
+    public static function getAllowedStorageTypes(): array
+    {
+        $allowedBanners = $GLOBALS['_MAX']['CONF']['allowedBanners'];
+        $allowedBanners['txt'] = $allowedBanners['text'];
+        unset($allowedBanners['text']);
+
+        return array_keys(array_filter($allowedBanners));
+    }
+
+    /**
+     * Check banner storage configuration, allowing existing banners to retain their type.
+     */
+    public static function isStorageTypeAllowed($storageType, $currentStorageType = null): bool
+    {
+        if (!is_string($storageType) || $storageType === '') {
+            return false;
+        }
+
+        return $storageType === $currentStorageType
+            || in_array($storageType, self::getAllowedStorageTypes(), true);
+    }
 
     /**
      * This method sets BannerInfo from a data array.
@@ -50,23 +72,25 @@ class OA_Dll_Banner extends OA_Dll
      *
      * @return boolean
      */
-    function _setBannerDataFromArray(&$oBanner, $bannerData)
+    public function _setBannerDataFromArray(&$oBanner, $bannerData)
     {
-        $bannerData['htmlTemplate']     = $bannerData['htmltemplate'];
-        $bannerData['imageURL']         = $bannerData['imageurl'];
-        $bannerData['storageType']      = $bannerData['storagetype'];
-        $bannerData['bannerName']       = $bannerData['description'];
-        $bannerData['campaignId']       = $bannerData['campaignid'];
-        $bannerData['bannerId']         = $bannerData['bannerid'];
-        $bannerData['bannerText']       = $bannerData['bannertext'];
-        $bannerData['sessionCapping']   = $bannerData['session_capping'];
+        $bannerData['htmlTemplate'] = $bannerData['htmltemplate'];
+        $bannerData['imageURL'] = $bannerData['imageurl'];
+        $bannerData['storageType'] = $bannerData['storagetype'];
+        $bannerData['bannerName'] = $bannerData['description'];
+        $bannerData['campaignId'] = $bannerData['campaignid'];
+        $bannerData['bannerId'] = $bannerData['bannerid'];
+        $bannerData['bannerText'] = $bannerData['bannertext'];
+        $bannerData['sessionCapping'] = $bannerData['session_capping'];
 
         $oBanner->readDataFromArray($bannerData);
-        return  true;
+        return true;
     }
 
-    function _validateImage($aImage, &$oImage)
+    public function _validateImage($aImage, &$oImage)
     {
+        $maxFilesize = (int) ($GLOBALS['_MAX']['CONF']['store']['maxFilesize'] ?? 0);
+
         if (empty($aImage['filename'])) {
             $this->raiseError("Image filename empty");
             return false;
@@ -95,10 +119,8 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean  Returns false if fields are not valid and true if valid.
      *
      */
-    function _validate(&$oBanner)
+    public function _validate(&$oBanner)
     {
-        $aConf = $GLOBALS['_MAX']['CONF'];
-
         // Clean up
         $this->oImage = null;
         $this->oBackupImage = null;
@@ -110,11 +132,9 @@ class OA_Dll_Banner extends OA_Dll
                 !$this->checkIdExistence('banners', $oBanner->bannerId)) {
                 return false;
             }
-        } else {
+        } elseif (!$this->checkStructureRequiredIntegerField($oBanner, 'campaignId')) {
             // When adding a banner, check that the required field 'campaignId' is correct.
-            if (!$this->checkStructureRequiredIntegerField($oBanner, 'campaignId')) {
-                return false;
-            }
+            return false;
         }
 
         if (isset($oBanner->campaignId) &&
@@ -122,21 +142,11 @@ class OA_Dll_Banner extends OA_Dll
             return false;
         }
 
-        // Prepare list of allowed storage types from allowed banners list
-        $aAllowedBanners = $aConf['allowedBanners'];
-        $aAllowedBanners['txt'] = $aAllowedBanners['text'];
-        unset($aAllowedBanners['text']);
-        foreach($aAllowedBanners as $type => $allowed) {
-            if (!$allowed) {
-                unset($aAllowedBanners[$type]);
-            }
-        }
-
         // Check that storage type is allowed
         if (!isset($oBanner->bannerId)) {
-            if (!isset($oBanner->storageType) || empty($aAllowedBanners[$oBanner->storageType])) {
-                $storageTypes = array_keys($aAllowedBanners);
-                $this->raiseError('Field \'storageType\' must be one of the enum: '.join(', ', $storageTypes));
+            if (!self::isStorageTypeAllowed($oBanner->storageType ?? null)) {
+                $storageTypes = self::getAllowedStorageTypes();
+                $this->raiseError('Field \'storageType\' must be one of the enum: ' . implode(', ', $storageTypes));
                 return false;
             }
             $contentType = '';
@@ -157,43 +167,23 @@ class OA_Dll_Banner extends OA_Dll
                 $this->raiseError('Field \'aImage\' must not be empty');
                 return false;
             }
-            if ($contentType == 'swf') {
-                if (isset($oBanner->aBackupImage)) {
-                    // Get backup image
-                    if (!$this->_validateImage($oBanner->aBackupImage, $this->oBackupImage)) {
-                        return false;
-                    }
-                }
-            } else {
-                // Remove backup gif
-                $oBanner->aBackupImage = array(
-                    'filename' => null,
-                    'content' =>  ''
-                );
-            }
         }
-
-        if (!$this->checkStructureNotRequiredStringField($oBanner,  'bannerName', 255) ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'imageURL', 255) ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'htmlTemplate') ||
+        return !(!$this->checkStructureNotRequiredStringField($oBanner, 'bannerName', 255) ||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'imageURL', 255) ||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'htmlTemplate') ||
             !$this->checkStructureNotRequiredIntegerField($oBanner, 'width') ||
             !$this->checkStructureNotRequiredIntegerField($oBanner, 'height') ||
             !$this->checkStructureNotRequiredIntegerField($oBanner, 'weight') ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'target') ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'url') ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'bannerText') ||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'target') ||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'url') ||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'bannerText') ||
             !$this->checkStructureNotRequiredBooleanField($oBanner, 'active') ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'adserver')||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'adserver') ||
             !$this->checkStructureNotRequiredIntegerField($oBanner, 'capping') ||
             !$this->checkStructureNotRequiredIntegerField($oBanner, 'sessionCapping') ||
             !$this->checkStructureNotRequiredIntegerField($oBanner, 'block') ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'comments') ||
-            !$this->checkStructureNotRequiredStringField($oBanner,  'alt')
-            ) {
-            return false;
-        }
-
-        return true;
+            !$this->checkStructureNotRequiredStringField($oBanner, 'comments') ||
+            !$this->checkStructureNotRequiredStringField($oBanner, 'alt'));
     }
 
     /**
@@ -208,14 +198,9 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean
      *
      */
-    function _validateForStatistics($bannerId, $oStartDate, $oEndDate)
+    public function _validateForStatistics($bannerId, $oStartDate, $oEndDate)
     {
-        if (!$this->checkIdExistence('banners', $bannerId) ||
-            !$this->checkDateOrder($oStartDate, $oEndDate)) {
-            return false;
-        }
-
-        return true;
+        return $this->checkIdExistence('banners', $bannerId) && $this->checkDateOrder($oStartDate, $oEndDate);
     }
 
     /**
@@ -227,15 +212,13 @@ class OA_Dll_Banner extends OA_Dll
      *
      * @return boolean  False if access is denied and true if allowed.
      */
-    function checkStatisticsPermissions($bannerId)
+    public function checkStatisticsPermissions($bannerId)
     {
-       if (!$this->checkPermissions(
-            array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER, OA_ACCOUNT_ADVERTISER),
-            'banners', $bannerId)) {
-            return false;
-        } else {
-            return true;
-        }
+        return $this->checkPermissions(
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER, OA_ACCOUNT_ADVERTISER],
+            'banners',
+            $bannerId,
+        );
     }
 
     /**
@@ -256,102 +239,71 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean  True if the operation was successful
      *
      */
-    function modify(&$oBanner)
+    public function modify(&$oBanner)
     {
         if (!isset($oBanner->bannerId)) {
             // Add
             $oBanner->setDefaultForAdd();
-            if (!$this->checkPermissions($this->aAllowAdvertiserAndAbovePerm,
-                 'campaigns', $oBanner->campaignId, OA_PERM_BANNER_EDIT)) {
-
-                return false;
-            }
-        } else {
+        } elseif (!$this->checkPermissions(
+            $this->aAllowAdvertiserAndAbovePerm,
+            'banners',
+            $oBanner->bannerId,
+            OA_PERM_BANNER_EDIT,
+        )) {
             // Edit
-            if (!$this->checkPermissions($this->aAllowAdvertiserAndAbovePerm,
-                 'banners', $oBanner->bannerId, OA_PERM_BANNER_EDIT)) {
-
-                return false;
-            }
+            return false;
         }
 
-        $bannerData =  (array) $oBanner;
+        if ((!isset($oBanner->bannerId) || isset($oBanner->campaignId)) && !$this->checkPermissions(
+            $this->aAllowAdvertiserAndAbovePerm,
+            'campaigns',
+            $oBanner->campaignId,
+            OA_PERM_BANNER_ADD,
+        )) {
+            return false;
+        }
+
+        $bannerData = (array) $oBanner;
 
         // Name
-        $bannerData['bannerid']     = $oBanner->bannerId;
-        $bannerData['campaignid']   = $oBanner->campaignId;
-        $bannerData['description']  = $oBanner->bannerName;
-        $bannerData['storagetype']  = $oBanner->storageType;
-        $bannerData['imageurl']     = $oBanner->imageURL;
+        $bannerData['bannerid'] = $oBanner->bannerId;
+        $bannerData['campaignid'] = $oBanner->campaignId;
+        $bannerData['description'] = $oBanner->bannerName;
+        $bannerData['storagetype'] = $oBanner->storageType;
+        $bannerData['imageurl'] = $oBanner->imageURL;
         $bannerData['htmltemplate'] = $oBanner->htmlTemplate;
-        $bannerData['alt']          = $oBanner->alt;
+        $bannerData['alt'] = $oBanner->alt;
 
-        $bannerData['capping']          = $oBanner->capping > 0
-                                        ? $oBanner->capping
-                                        : 0;
-        $bannerData['session_capping']  = $oBanner->sessionCapping > 0
-                                        ? $oBanner->sessionCapping
-                                        : 0;
-        $bannerData['block']            = $oBanner->block > 0
-                                        ? $oBanner->block
-                                        : 0;
+        $bannerData['capping'] = max($oBanner->capping, 0);
+        $bannerData['session_capping'] = max($oBanner->sessionCapping, 0);
+        $bannerData['block'] = max($oBanner->block, 0);
 
         if ($this->_validate($oBanner)) {
             $bannerData['storagetype'] = $oBanner->storageType;
+            $bannerData['bannertext'] = $oBanner->bannerText;
 
             // Set iframe friendliness only for new html banners
             if (!isset($oBanner->bannerId)) {
                 $bannerData['iframe_friendly'] = $bannerData['storagetype'] === 'html';
             }
 
-            switch($bannerData['storagetype']) {
+            switch ($bannerData['storagetype']) {
                 case 'html':
-                    $bannerData['contenttype']    = $bannerData['storagetype'];
-                    $bannerData['bannertext']     = $oBanner->bannerText;
+                    $bannerData['contenttype'] = $bannerData['storagetype'];
                     $bannerData['ext_bannertype'] = 'bannerTypeHtml:oxHtml:genericHtml';
                     break;
                 case 'txt':
-                    $bannerData['contenttype']    = $bannerData['storagetype'];
-                    $bannerData['bannertext']     = $oBanner->bannerText;
+                    $bannerData['contenttype'] = $bannerData['storagetype'];
                     $bannerData['ext_bannertype'] = 'bannerTypeText:oxText:genericText';
                     break;
                 case 'sql':
                 case 'web':
                     if (!empty($oBanner->aImage)) {
-                        // Hardcoded link conversion
-                        $bannerData['parameters'] = '';
-                        if ($this->oImage->contentType == 'swf' && !empty($oBanner->aImage['editswf'])) {
-                            $aLinks = array_keys($this->oImage->hardcodedLinks);
-                            list($result, $params) = phpAds_SWFConvert($this->oImage->content, true, $aLinks);
-                            if ($result != $this->oImage->content) {
-                                $this->oImage->content = $result;
-                                $bannerData['parameters'] = array('swf' => array());
-                                foreach ($params as $key) {
-                                    $bannerData['parameters']['swf'][$key] = array(
-                                        'link' => $this->oImage->hardcodedLinks[$key][0],
-                                        'tar'  => $this->oImage->hardcodedLinks[$key][1]
-                                    );
-                                }
-                                $bannerData['parameters'] = serialize($bannerData['parameters']);
-                                $bannerData['url']        = $this->oImage->hardcodedLinks[1][0];
-                                $bannerData['target']     = $this->oImage->hardcodedLinks[1][1];
-                            }
-                        }
                         $this->oImage->store($bannerData['storagetype']);
                         $bannerData['contenttype'] = $this->oImage->contentType;
-                        $bannerData['filename']   = $this->oImage->fileName;
-                        $bannerData['width']      = $this->oImage->width;
-                        $bannerData['height']     = $this->oImage->height;
-                    }
-                    if (!empty($oBanner->aBackupImage)) {
-                        if (isset($this->oBackupImage)) {
-                            $this->oBackupImage->store($bannerData['storagetype']);
-                            $bannerData['alt_contenttype'] = $this->oBackupImage->contentType;
-                            $bannerData['alt_filename']   = $this->oBackupImage->fileName;
-                        } elseif (!isset($oBanner->aBackupImage['filename'])) {
-                            $bannerData['alt_contenttype'] = '';
-                            $bannerData['alt_filename']   = '';
-                        }
+                        $bannerData['filename'] = $this->oImage->fileName;
+                        $bannerData['width'] = $this->oImage->width;
+                        $bannerData['height'] = $this->oImage->height;
                     }
                     break;
                 case 'url':
@@ -369,9 +321,8 @@ class OA_Dll_Banner extends OA_Dll
                 $doBanner->update();
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -384,15 +335,19 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean  True if the operation was successful
      *
      */
-    function delete($bannerId)
+    public function delete($bannerId)
     {
         if (!$this->checkPermissions(
-            array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-            'banners', $bannerId)) {
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+            'banners',
+            $bannerId,
+            null,
+            OA_Permission::OPERATION_DELETE,
+        )) {
             return false;
         }
 
-       if (isset($bannerId)) {
+        if (isset($bannerId)) {
             $doBanner = OA_Dal::factoryDO('banners');
             $doBanner->bannerid = $bannerId;
             $result = $doBanner->delete();
@@ -402,10 +357,9 @@ class OA_Dll_Banner extends OA_Dll
 
         if ($result) {
             return true;
-        } else {
-            $this->raiseError('Unknown bannerId Error');
-            return false;
         }
+        $this->raiseError('Unknown bannerId Error');
+        return false;
     }
 
     /**
@@ -418,7 +372,7 @@ class OA_Dll_Banner extends OA_Dll
      *
      * @return boolean
      */
-    function getBanner($bannerId, &$oBanner)
+    public function getBanner($bannerId, &$oBanner)
     {
         if ($this->checkIdExistence('banners', $bannerId)) {
             if (!$this->checkPermissions(null, 'banners', $bannerId, null, $operationAccessType = OA_Permission::OPERATION_VIEW)) {
@@ -432,22 +386,19 @@ class OA_Dll_Banner extends OA_Dll
 
             $this->_setBannerDataFromArray($oBanner, $bannerData);
             return true;
-
-        } else {
-
-            $this->raiseError('Unknown bannerId Error');
-            return false;
         }
+        $this->raiseError('Unknown bannerId Error');
+        return false;
     }
 
 
-    function getBannerTargeting($bannerId, &$aBannerList)
+    public function getBannerTargeting($bannerId, &$aBannerList)
     {
         if ($this->checkIdExistence('banners', $bannerId)) {
             if (!$this->checkPermissions(null, 'banners', $bannerId)) {
                 return false;
             }
-            $aBannerList = array();
+            $aBannerList = [];
 
             $doBannerTargeting = OA_Dal::factoryDO('acls');
             $doBannerTargeting->bannerid = $bannerId;
@@ -463,26 +414,22 @@ class OA_Dll_Banner extends OA_Dll
             }
 
             return true;
-
-        } else {
-
-            $this->raiseError('Unknown bannerId Error');
-            return false;
         }
+        $this->raiseError('Unknown bannerId Error');
+        return false;
     }
 
-    function _validateTargeting($oTargeting)
+    public function _validateTargeting($oTargeting)
     {
         if (!isset($oTargeting->data)) {
             $this->raiseError('Field \'data\' in structure does not exists');
             return false;
         }
 
-        if (!$this->checkStructureRequiredStringField($oTargeting,  'logical', 255) ||
-            !$this->checkStructureRequiredStringField($oTargeting,  'type', 255) ||
-            !$this->checkStructureRequiredStringField($oTargeting,  'comparison', 255) ||
-            !$this->checkStructureNotRequiredStringField($oTargeting,  'data')) {
-
+        if (!$this->checkStructureRequiredStringField($oTargeting, 'logical', 255) ||
+            !$this->checkStructureRequiredStringField($oTargeting, 'type', 255) ||
+            !$this->checkStructureRequiredStringField($oTargeting, 'comparison', 255) ||
+            !$this->checkStructureNotRequiredStringField($oTargeting, 'data')) {
             return false;
         }
 
@@ -496,18 +443,18 @@ class OA_Dll_Banner extends OA_Dll
         return true;
     }
 
-    function setBannerTargeting($bannerId, &$aTargeting)
+    public function setBannerTargeting($bannerId, &$aTargeting)
     {
         if ($this->checkIdExistence('banners', $bannerId)) {
             if (!$this->checkPermissions(null, 'banners', $bannerId)) {
                 return false;
             }
 
+            $aTargetingArray = [];
             foreach ($aTargeting as $executionOrder => $oTargeting) {
-
                 // Prepend "deliveryLimitations:" to any component-identifiers
                 // (for 2.6 backwards compatibility)
-                if (substr($oTargeting->type, 0, 20) != 'deliveryLimitations:') {
+                if (!str_starts_with($oTargeting->type, 'deliveryLimitations:')) {
                     $aTargeting[$executionOrder]->type = 'deliveryLimitations:' .
                         $aTargeting[$executionOrder]->type;
                 }
@@ -515,14 +462,11 @@ class OA_Dll_Banner extends OA_Dll
                 if (!$this->_validateTargeting($oTargeting)) {
                     return false;
                 }
-            }
 
-            $aTargetingArray = array();
-            foreach ($aTargeting as $oTargeting) {
                 $aTargetingArray[] = $oTargeting->toArray();
             }
 
-            $res = OX_AclCheckInputsFields($aTargetingArray, false);
+            $res = OX_AclCheckInputsFields($aTargetingArray, 'banner-acl.php');
             if ($res !== true) {
                 $this->raiseError($res[0]);
                 return false;
@@ -535,7 +479,7 @@ class OA_Dll_Banner extends OA_Dll
 
             // Create the new targeting options
             $executionOrder = 0;
-            $aAcls = array();
+            $aAcls = [];
             foreach ($aTargetingArray as $bannerTargetingData) {
                 $doAcl = OA_Dal::factoryDO('acls');
                 $doAcl->setFrom($bannerTargetingData);
@@ -555,10 +499,9 @@ class OA_Dll_Banner extends OA_Dll
             $doBanner->update();
 
             return true;
-        } else {
-            $this->raiseError('Unknown bannerId Error');
-            return false;
         }
+        $this->raiseError('Unknown bannerId Error');
+        return false;
     }
 
     /**
@@ -571,12 +514,12 @@ class OA_Dll_Banner extends OA_Dll
      *
      * @return boolean
      */
-    function getBannerListByCampaignId($campaignId, &$aBannerList)
+    public function getBannerListByCampaignId($campaignId, &$aBannerList)
     {
-        $aBannerList = array();
+        $aBannerList = [];
 
         if (!$this->checkIdExistence('campaigns', $campaignId)) {
-                return false;
+            return false;
         }
 
         if (!$this->checkPermissions(null, 'campaigns', $campaignId)) {
@@ -619,7 +562,7 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getBannerDailyStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getBannerDailyStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($bannerId)) {
             return false;
@@ -630,9 +573,44 @@ class OA_Dll_Banner extends OA_Dll
             $rsStatisticsData = $dalBanner->getBannerDailyStatistics($bannerId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
+        }
+        return false;
+    }
+
+    /**
+     * This method returns hourly statistics for a banner for a specified period.
+     *
+     * @access public
+     *
+     * @param integer $bannerId The ID of the banner to view statistics for
+     * @param date $oStartDate The date from which to get statistics (inclusive)
+     * @param date $oEndDate The date to which to get statistics (inclusive)
+     * @param bool $localTZ Should stats be using the manager TZ or UTC?
+     * @param array &$rsStatisticsData The data returned by the function
+     *   <ul>
+     *   <li><b>day date</b> The day
+     *   <li><b>requests integer</b> The number of requests for the day
+     *   <li><b>impressions integer</b> The number of impressions for the day
+     *   <li><b>clicks integer</b> The number of clicks for the day
+     *   <li><b>revenue decimal</b> The revenue earned for the day
+     *   </ul>
+     *
+     * @return boolean  True if the operation was successful and false if not.
+     *
+     */
+    public function getBannerHourlyStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    {
+        if (!$this->checkStatisticsPermissions($bannerId)) {
             return false;
         }
+
+        if ($this->_validateForStatistics($bannerId, $oStartDate, $oEndDate)) {
+            $dalBanner = new OA_Dal_Statistics_Banner();
+            $rsStatisticsData = $dalBanner->getBannerHourlyStatistics($bannerId, $oStartDate, $oEndDate, $localTZ);
+
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -657,7 +635,7 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getBannerPublisherStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getBannerPublisherStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($bannerId)) {
             return false;
@@ -668,9 +646,8 @@ class OA_Dll_Banner extends OA_Dll
             $rsStatisticsData = $dalBanner->getBannerPublisherStatistics($bannerId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -697,7 +674,7 @@ class OA_Dll_Banner extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getBannerZoneStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getBannerZoneStatistics($bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($bannerId)) {
             return false;
@@ -708,12 +685,7 @@ class OA_Dll_Banner extends OA_Dll
             $rsStatisticsData = $dalBanner->getBannerZoneStatistics($bannerId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
-
-
 }
-
-?>

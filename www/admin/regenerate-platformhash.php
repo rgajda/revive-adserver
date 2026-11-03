@@ -17,7 +17,6 @@ require_once '../../init.php';
 require_once MAX_PATH . '/lib/max/language/Loader.php';
 require_once MAX_PATH . '/lib/OA/Dal.php';
 require_once MAX_PATH . '/lib/OA/Dal/ApplicationVariables.php';
-require_once MAX_PATH . '/lib/RV/Sync.php';
 require_once MAX_PATH . '/www/admin/config.php';
 
 Language_Loader::load('settings');
@@ -38,10 +37,9 @@ phpAds_PageHeader('account-settings-index', $oHeaderModel);
 /*-------------------------------------------------------*/
 
 $platformHash = OA_Dal_ApplicationVariables::generatePlatformHash();
-if (OA_Dal_ApplicationVariables::set('platform_hash', $platformHash))
-{
-    echo $GLOBALS['strNewPlatformHash'] ." ". $platformHash;
-    $oSync = new RV_Sync();
+if (OA_Dal_ApplicationVariables::set('platform_hash', $platformHash)) {
+    echo $GLOBALS['strNewPlatformHash'] . " " . $platformHash;
+    $oSync = RV_getContainer()->get(\RV\Sync::class);
     RV::disableErrorHandling();
     $oSync->checkForUpdates();
     RV::enableErrorHandling();
@@ -55,6 +53,3 @@ if (OA_Dal_ApplicationVariables::set('platform_hash', $platformHash))
 /*-------------------------------------------------------*/
 
 phpAds_PageFooter();
-
-
-?>

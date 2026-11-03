@@ -20,7 +20,6 @@ $GLOBALS['strBtnContinue'] = "Continuar »";
 $GLOBALS['strBtnRecover'] = "Recuperar »";
 $GLOBALS['strBtnAgree'] = "Acepto »";
 $GLOBALS['strBtnRetry'] = "Reintentar";
-$GLOBALS['strWarningRegisterArgcArv'] = "La variable de configuración de PHP register_argc_argv necesita estar activa para ejecutar el mantenimiento desde la línea de comandos.";
 $GLOBALS['strTablesPrefix'] = "Prefijo del nombre de las tablas";
 $GLOBALS['strTablesType'] = "Tipo de tablas";
 
@@ -52,13 +51,12 @@ $GLOBALS['strUpgrade'] = "Actualización";
 /* ------------------------------------------------------- */
 
 // Global
-$GLOBALS['strChooseSection'] = "Elija la Sección";
+$GLOBALS['strChooseSection'] = "Elija la sección";
 $GLOBALS['strEditConfigNotPossible'] = "No es posible editar todas las configuraciones porque el archivo de configuración está bloqueado por motivos de seguridad. 
    Si desea realizar cambios, puede que necesite desbloquear primero el archivo de configuración para esta instalación.";
 $GLOBALS['strEditConfigPossible'] = "Es posible editar todas las configuraciones porque el archivo de configuración no está bloqueado, pero esto podría conducir a problemas de seguridad. 
    Si desea asegurar su sistema, necesitará bloquear el archivo de configuración para esta instalación.";
 $GLOBALS['strUnableToWriteConfig'] = "No se puede escribir los cambios al archivo config";
-$GLOBALS['strImageDirLockedDetected'] = "El servidor no puede escribir en el <b>Directorio de Imágenes</b> suministrado. <br>No puede continuar hasta que haya cambiado los permisos del directorio o haya creado otro directorio.";
 
 // Configuration Settings
 $GLOBALS['strConfigurationSettings'] = "Ajustes de configuración";
@@ -102,6 +100,8 @@ $GLOBALS['strQmailPatch'] = "parche qmail";
 $GLOBALS['strEmailHeader'] = "Encabezados de correo";
 $GLOBALS['strEmailLog'] = "Registro de correo electrónico";
 
+// Security settings
+
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Log Audit";
 $GLOBALS['strEnableAudit'] = "Habilitar Registro De Auditoría";
@@ -134,11 +134,6 @@ $GLOBALS['strTypeFTPErrorNoSupport'] = "Su instalación de PHP no soporta FTP.";
 $GLOBALS['strTypeFTPErrorUpload'] = "No se pudo subir el archivo al Servidor FTP, verífique que el directorio en el servidor tiene los permisos correctos";
 $GLOBALS['strTypeFTPErrorHost'] = "El FTP Host no es correcto";
 $GLOBALS['strDeliveryFilenames'] = "Nombres de Archivo de Entrega";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "URL de la imagen del banner global por defecto";
-$GLOBALS['strP3PSettings'] = "Políticas de Privacidad P3P";
-$GLOBALS['strUseP3P'] = "Usar Politicas P3P";
-$GLOBALS['strP3PCompactPolicy'] = "Politica Compacta P3P";
-$GLOBALS['strP3PPolicyLocation'] = "Ubicación de Politica P3P";
 
 // General Settings
 $GLOBALS['uiEnabled'] = "Habilitar Interface de Usuario ";
@@ -190,7 +185,7 @@ $GLOBALS['strWarnClient'] = "Enviar un aviso al anunciante cada vez que una camp
 
 // UI Settings
 $GLOBALS['strGuiSettings'] = "Opciones de la interfaz de usuario";
-$GLOBALS['strGeneralSettings'] = "Configuración General";
+$GLOBALS['strGeneralSettings'] = "Configuraci&oacute;n general";
 $GLOBALS['strAppName'] = "Nombre de la aplicación";
 $GLOBALS['strMyHeader'] = "Ubicación del archivo header";
 $GLOBALS['strMyFooter'] = "Ubicación del archivo footer";

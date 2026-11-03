@@ -1,4 +1,5 @@
 <?php
+
 /*
  *    Copyright (c) 2009 Bouncing Minds - Option 3 Ventures Limited
  *
@@ -31,12 +32,12 @@ require_once MAX_PATH . '/lib/max/Plugin/Common.php';
  */
 class Plugins_BannerTypeHTML_vastInlineBannerTypeHtml_vastInlineHtml extends Plugins_BannerTypeHTML_vastInlineBannerTypeHtml_vastBase
 {
-    function getBannerShortName()
+    public function getBannerShortName()
     {
         return 'Inline Video Ad';
     }
 
-    function getZoneToLinkShortName()
+    public function getZoneToLinkShortName()
     {
         return $this->getBannerShortName();
     }
@@ -47,14 +48,14 @@ class Plugins_BannerTypeHTML_vastInlineBannerTypeHtml_vastInlineHtml extends Plu
      *
      * @return string A string describing the type of plugin.
      */
-    function getOptionDescription()
+    public function getOptionDescription()
     {
-        return $this->translate($this->getBannerShortName().' (pre/mid/post-roll)');
+        return $this->translate($this->getBannerShortName() . ' (pre/mid/post-roll)');
     }
 
-    function getHelpAdTypeDescription()
+    public function getHelpAdTypeDescription()
     {
-        return 'An '.$this->getBannerShortName().' is a video ad that can be presented before, in the middle of, or after the video content and takes over the full view of the video. ';
+        return 'An ' . $this->getBannerShortName() . ' is a video ad that can be presented before, in the middle of, or after the video content and takes over the full view of the video. ';
     }
 
     /**
@@ -63,14 +64,14 @@ class Plugins_BannerTypeHTML_vastInlineBannerTypeHtml_vastInlineHtml extends Plu
      * @param object form
      * @param integer bannerId
      */
-    function buildForm(&$form, &$bannerRow)
+    public function buildForm(&$form, &$bannerRow)
     {
         parent::buildForm($form, $bannerRow);
-    	$selectableCompanions = $this->getPossibleCompanions($bannerRow);
-    	// for some bizarre reason $bannerid is all the fields
-    	$bannerRow = $this->getExtendedBannerInfo($bannerRow);
+        $selectableCompanions = $this->getPossibleCompanions($bannerRow);
+        // for some bizarre reason $bannerid is all the fields
+        $bannerRow = $this->getExtendedBannerInfo($bannerRow);
         $isNewBanner = false;
-        if ( !isset( $bannerRow['banner_vast_element_id']) ){
+        if (!isset($bannerRow['vast_element_type'])) {
             $isNewBanner = true;
         }
 
@@ -82,21 +83,6 @@ class Plugins_BannerTypeHTML_vastInlineBannerTypeHtml_vastInlineHtml extends Plu
         $this->addIntroductionInlineHelp($form);
         $this->addVastHardcodedDimensionsToForm($form, $bannerRow, VAST_INLINE_DIMENSIONS);
 
-        $isVideoUploadSupported = false;
-        if ($isVideoUploadSupported) {
-            addUploadGroup($form, $row,
-                array(
-                    'uploadName' => 'uploadalt',
-                    'radioName' => 'replacealtimage',
-                    'imageName'  => $altImageName,
-                    'fileSize'  => $altSize,
-                    'fileName'  => $row['alt_filename'],
-                    'newLabel'  => "select incomming video file",
-                    'updateLabel'  => "select replacement video file",
-                    'handleSWF' => false
-                  )
-            );
-        }
         $this->addVastParametersToForm($form, $bannerRow, $isNewBanner);
         $this->setElementIsRequired('vast_video_delivery', 'ext_bannertype', $this->getComponentIdentifier());
         $this->setElementIsRequired('vast_video_filename', 'ext_bannertype', $this->getComponentIdentifier());
@@ -107,10 +93,10 @@ class Plugins_BannerTypeHTML_vastInlineBannerTypeHtml_vastInlineHtml extends Plu
         $this->addVastCompanionsToForm($form, $selectableCompanions);
     }
 
-    function onEnable()
+    public function onEnable()
     {
-        $oSettings  = new OA_Admin_Settings();
-        $oSettings->settingChange('allowedBanners','video','1');
+        $oSettings = new OA_Admin_Settings();
+        $oSettings->settingChange('allowedBanners', 'video', '1');
         $oSettings->writeConfigChange();
         return true;
     }

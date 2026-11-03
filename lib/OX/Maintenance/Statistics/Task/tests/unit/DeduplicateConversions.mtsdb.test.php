@@ -12,7 +12,6 @@
 
 require_once MAX_PATH . '/lib/OA/ServiceLocator.php';
 
-require_once LIB_PATH . '/Dal/Maintenance/Statistics/Mysql.php';
 require_once LIB_PATH . '/Dal/Maintenance/Statistics/Mysqli.php';
 require_once LIB_PATH . '/Dal/Maintenance/Statistics/Pgsql.php';
 require_once LIB_PATH . '/Maintenance/Statistics.php';
@@ -26,19 +25,10 @@ require_once LIB_PATH . '/Maintenance/Statistics/Task/DeduplicateConversions.php
  */
 class Test_OX_Maintenance_Statistics_Task_DeduplicateConversions extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Test the creation of the class.
      */
-    function testCreate()
+    public function testCreate()
     {
         $oDeDuplicateConversions = new OX_Maintenance_Statistics_Task_DeduplicateConversions();
         $this->assertTrue(is_a($oDeDuplicateConversions, 'OX_Maintenance_Statistics_Task_DeduplicateConversions'));
@@ -47,12 +37,12 @@ class Test_OX_Maintenance_Statistics_Task_DeduplicateConversions extends UnitTes
     /**
      * A method to test the run() method.
      */
-    function testRun()
+    public function testRun()
     {
-        $oServiceLocator =& OA_ServiceLocator::instance();
-        $aConf           =& $GLOBALS['_MAX']['CONF'];
-        $className       = 'OX_Dal_Maintenance_Statistics_' . ucfirst(strtolower($aConf['database']['type']));
-        $mockClassName   = 'MockOX_Dal_Maintenance_Statistics_' . ucfirst(strtolower($aConf['database']['type']));
+        $oServiceLocator = OA_ServiceLocator::instance();
+        $aConf = &$GLOBALS['_MAX']['CONF'];
+        $className = 'OX_Dal_Maintenance_Statistics_' . ucfirst(strtolower($aConf['database']['type']));
+        $mockClassName = 'MockOX_Dal_Maintenance_Statistics_' . ucfirst(strtolower($aConf['database']['type']));
 
         $aConf['maintenance']['operationInterval'] = 60;
 
@@ -95,32 +85,29 @@ class Test_OX_Maintenance_Statistics_Task_DeduplicateConversions extends UnitTes
         $oDate->addSeconds(1);
         $oDal->expectOnce(
             'deduplicateConversions',
-            array(
+            [
                 $oDate,
-                new Date('2008-09-08 17:59:59')
-            )
+                new Date('2008-09-08 17:59:59'),
+            ],
         );
         $oDal->expectOnce(
             'rejectEmptyVarConversions',
-            array(
+            [
                 $oDate,
-                new Date('2008-09-08 17:59:59')
-            )
+                new Date('2008-09-08 17:59:59'),
+            ],
         );
         $oDal->__construct();
         $oServiceLocator->register('OX_Dal_Maintenance_Statistics', $oDal);
 
         // Set the controlling class' status and test
         $oDeDuplicateConversions = new OX_Maintenance_Statistics_Task_DeDuplicateConversions();
-        $oDeDuplicateConversions->oController->updateIntermediate        = true;
-        $oDeDuplicateConversions->oController->oLastDateIntermediate     = new Date('2008-09-08 16:59:59');
+        $oDeDuplicateConversions->oController->updateIntermediate = true;
+        $oDeDuplicateConversions->oController->oLastDateIntermediate = new Date('2008-09-08 16:59:59');
         $oDeDuplicateConversions->oController->oUpdateIntermediateToDate = new Date('2008-09-08 17:59:59');
         $oDeDuplicateConversions->run();
         $oDal->tally();
 
         TestEnv::restoreConfig();
     }
-
 }
-
-?>

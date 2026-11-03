@@ -17,31 +17,34 @@ require_once 'DB_DataObjectCommon.php';
 
 class DataObjects_Category extends DB_DataObjectCommon
 {
-    var $onDeleteCascade = true;
+    public $onDeleteCascade = true;
     ###START_AUTOCODE
     /* the code below is auto generated do not remove the above tag */
 
     public $__table = 'category';                        // table name
-    public $category_id;                     // INT(10) => openads_int => 129 
-    public $name;                            // VARCHAR(255) => openads_varchar => 2 
+    public $category_id;                     // INT(10) => openads_int => 129
+    public $name;                            // VARCHAR(255) => openads_varchar => 2
 
     /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGetFromClassName('DataObjects_Category',$k,$v); }
+    public static function staticGet($k, $v = null)
+    {
+        return DB_DataObject::staticGetFromClassName('DataObjects_Category', $k, $v);
+    }
 
     /* the code above is auto generated do not remove the tag below */
     ###END_AUTOCODE
 
-    function _auditEnabled()
+    public function _auditEnabled()
     {
         return false;
     }
 
-     function _getContextId()
+    public function _getContextId()
     {
         return $this->category_id;
     }
 
-    function _getContext()
+    public function _getContext()
     {
         return 'Category';
     }
@@ -52,11 +55,8 @@ class DataObjects_Category extends DB_DataObjectCommon
      * @param integer $actionid
      * @param array $aAuditFields
      */
-    function _buildAuditArray($actionid, &$aAuditFields)
+    public function _buildAuditArray($actionid, &$aAuditFields)
     {
-        $aAuditFields['key_desc']   = $this->name;
+        $aAuditFields['key_desc'] = $this->name;
     }
-
 }
-
-?>

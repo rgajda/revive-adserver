@@ -17,6 +17,7 @@ $GLOBALS['strChooseTypeOfInvocation'] = "Silakan pilih jenis invokasi banner";
 $GLOBALS['strChooseTypeOfBannerInvocation'] = "Silakan pilih jenis invokasi banner";
 
 // Measures
+$GLOBALS['strAbbrPixels'] = "px";
 $GLOBALS['strAbbrSeconds'] = "dtk";
 
 // Common Invocation Parameters
@@ -33,9 +34,7 @@ $GLOBALS['strInvocationComments'] = "Tambahkan komentar";
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "Memperbarui setelah";
-$GLOBALS['strIframeResizeToBanner'] = "Ubah ukuran iframe sesuai dimensi dari banner";
 $GLOBALS['strIframeMakeTransparent'] = "Ubah iframe menjadi transparan";
-$GLOBALS['strIframeIncludeNetscape4'] = "Masukkan ilayer yang kompatibel dengan Netscape 4";
 
 // PopUp
 $GLOBALS['strPopUpStyle'] = "Jenis Pop-up";
@@ -47,24 +46,16 @@ $GLOBALS['strAutoCloseAfter'] = "Tutup secara otomatis setelah";
 $GLOBALS['strPopUpTop'] = "Posisi asal (atas)";
 $GLOBALS['strPopUpLeft'] = "Posisi asal (kiri)";
 $GLOBALS['strWindowOptions'] = "Pilihan Jendela";
+$GLOBALS['strShowToolbars'] = "Toolbar";
 $GLOBALS['strShowLocation'] = "Lokasi";
+$GLOBALS['strShowMenubar'] = "Menubar";
 $GLOBALS['strShowStatus'] = "Keadaan";
 $GLOBALS['strWindowResizable'] = "Ukuran dabat diubah";
-
-// XML-RPC
-$GLOBALS['strXmlRpcLanguage'] = "Bahasa yang digunakan pada Host";
-$GLOBALS['strXmlRpcProtocol'] = "Gunakan HTTPS untuk menghubungi XML-RPC Server";
-$GLOBALS['strXmlRpcTimeout'] = "XML-RPC Timeout (detik)";
-
-// Support for 3rd party server clicktracking
-$GLOBALS['str3rdPartyTrack'] = "Dukungan untuk pelacakan klik dari Server pihak ketiga";
+$GLOBALS['strShowScrollbars'] = "Scrollbars";
 
 // Support for cachebusting code
 $GLOBALS['strCacheBuster'] = "Menambahkan kode Cache-Busting";
 
 // IMG invocation selected for tracker with appended code
-$GLOBALS['strWarning'] = "Perhatian";
+$GLOBALS['strWarning'] = "Peringatan";
 $GLOBALS['strImgWithAppendWarning'] = "Pelacak ini mengandung kode tempelan. Kode tempelan <strong>hanya</strong> berfungsi dengan JavaScript tags";
-
-// Local Invocation
-

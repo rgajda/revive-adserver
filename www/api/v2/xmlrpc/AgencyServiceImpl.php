@@ -31,13 +31,13 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @var OA_Dll_Agency $_dllAgency
      */
-    var $_dllAgency;
+    public $_dllAgency;
 
     /**
      *
      * The AgencyServiceImpl method is the constructor for the AgencyServiceImpl class.
      */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->_dllAgency = new OA_Dll_Agency();
@@ -52,14 +52,13 @@ class AgencyServiceImpl extends BaseServiceImpl
      * @param boolean $result
      * @return boolean
      */
-    function _validateResult($result)
+    public function _validateResult($result)
     {
         if ($result) {
             return true;
-        } else {
-            $this->raiseError($this->_dllAgency->getLastError());
-            return false;
         }
+        $this->raiseError($this->_dllAgency->getLastError());
+        return false;
     }
 
     /**
@@ -75,17 +74,12 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function addAgency($sessionId, &$oAgency)
+    public function addAgency($sessionId, &$oAgency)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult($this->_dllAgency->modify($oAgency));
-
-        } else {
-
-            return false;
         }
-
+        return false;
     }
 
     /**
@@ -102,25 +96,16 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function modifyAgency($sessionId, &$oAgency)
+    public function modifyAgency($sessionId, &$oAgency)
     {
         if ($this->verifySession($sessionId)) {
-
             if (isset($oAgency->agencyId)) {
-
                 return $this->_validateResult($this->_dllAgency->modify($oAgency));
-
-            } else {
-
-                $this->raiseError("Field 'agencyId' in structure does not exists");
-                return false;
             }
-
-        } else {
-
+            $this->raiseError("Field 'agencyId' in structure does not exists");
             return false;
         }
-
+        return false;
     }
 
     /**
@@ -134,16 +119,12 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function deleteAgency($sessionId, $agencyId)
+    public function deleteAgency($sessionId, $agencyId)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult($this->_dllAgency->delete($agencyId));
-
-        } else {
-
-            return false;
         }
+        return false;
     }
 
     /**
@@ -161,17 +142,51 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyDailyStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$aData)
+    public function getAgencyDailyStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$aData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllAgency->getAgencyDailyStatistics(
-                    $agencyId, $oStartDate, $oEndDate, $localTZ, $aData));
-        } else {
-
-            return false;
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $aData,
+                ),
+            );
         }
+        return false;
+    }
+
+    /**
+     * The getAgencyHourlyStatistics method returns hourly statistics for an
+     * agency for a specified period.
+     *
+     * @access public
+     *
+     * @param string $sessionId
+     * @param integer $agencyId
+     * @param date $oStartDate
+     * @param date $oEndDate
+     * @param bool $localTZ
+     * @param array &$aData  return data
+     *
+     * @return boolean
+     */
+    public function getAgencyHourlyStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$aData)
+    {
+        if ($this->verifySession($sessionId)) {
+            return $this->_validateResult(
+                $this->_dllAgency->getAgencyHourlyStatistics(
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $aData,
+                ),
+            );
+        }
+        return false;
     }
 
     /**
@@ -189,17 +204,20 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyAdvertiserStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAgencyAdvertiserStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllAgency->getAgencyAdvertiserStatistics(
-                    $agencyId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -217,17 +235,20 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyCampaignStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAgencyCampaignStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllAgency->getAgencyCampaignStatistics(
-                    $agencyId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -245,17 +266,20 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyBannerStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAgencyBannerStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllAgency->getAgencyBannerStatistics(
-                    $agencyId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -273,17 +297,20 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyPublisherStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAgencyPublisherStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllAgency->getAgencyPublisherStatistics(
-                    $agencyId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -301,17 +328,20 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyZoneStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAgencyZoneStatistics($sessionId, $agencyId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllAgency->getAgencyZoneStatistics(
-                    $agencyId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $agencyId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -325,16 +355,14 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgency($sessionId, $agencyId, &$oAgency)
+    public function getAgency($sessionId, $agencyId, &$oAgency)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
-                $this->_dllAgency->getAgency($agencyId, $oAgency));
-        } else {
-
-            return false;
+                $this->_dllAgency->getAgency($agencyId, $oAgency),
+            );
         }
+        return false;
     }
 
     /**
@@ -347,18 +375,13 @@ class AgencyServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getAgencyList($sessionId, &$aAgencyList)
+    public function getAgencyList($sessionId, &$aAgencyList)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
-                $this->_dllAgency->getAgencyList($aAgencyList));
-        } else {
-
-            return false;
+                $this->_dllAgency->getAgencyList($aAgencyList),
+            );
         }
+        return false;
     }
 }
-
-
-?>

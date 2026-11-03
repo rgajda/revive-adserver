@@ -53,11 +53,11 @@ class HTML_Template_Flexy_Compiler_Flexy_Tag {
     * @param   object   HTML_Template_Flexy_Compiler
     *
     *
-    * @return    object    tag compiler
+    * @return    object|false    tag compiler
     * @access   public
     */
 
-    function &factory($type,&$compiler) {
+    public static function factory($type,&$compiler) {
         if (!$type) {
             $type = 'Tag';
         }
@@ -95,7 +95,7 @@ class HTML_Template_Flexy_Compiler_Flexy_Tag {
     * @return    boolean  true if it is in there.
     * @access   public
     */
-    function fileExistsInPath($filename) {
+    public static function fileExistsInPath($filename) {
         if (isset($GLOBALS['_'.__CLASS__]['cache'][$filename])) {
             return $GLOBALS['_'.__CLASS__]['cache'][$filename];
         }
@@ -170,7 +170,7 @@ class HTML_Template_Flexy_Compiler_Flexy_Tag {
 
         // spit ou the tag and attributes.
 
-        if ($element->oTag{0} == '?') {
+        if ($element->oTag[0] == '?') {
             $ret .= '<?php echo "<"; ?>';
         } else {
             $ret .= "<";
@@ -430,7 +430,7 @@ class HTML_Template_Flexy_Compiler_Flexy_Tag {
         // allow if="!somevar"
         $ifnegative = '';
 
-        if ($if{0} == '!') {
+        if ($if[0] == '!') {
             $ifnegative = '!';
             $if = substr($if,1);
         }
@@ -460,12 +460,12 @@ class HTML_Template_Flexy_Compiler_Flexy_Tag {
             // this is nasty... - we need to check for quotes = eg. # at beg. & end..
             $args_clean = array();
             for ($i=0; $i<count($args); $i++) {
-                if ($args[$i]{0} != '#') {
+                if ($args[$i][0] != '#') {
                     $args_clean[] = $args[$i];
                     continue;
                 }
                 // single # - so , must be inside..
-                if ((strlen($args[$i]) > 1) && ($args[$i]{strlen($args[$i])-1}=='#')) {
+                if ((strlen($args[$i]) > 1) && ($args[$i][strlen($args[$i])-1]=='#')) {
                     $args_clean[] = $args[$i];
                     continue;
                 }

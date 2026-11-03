@@ -23,14 +23,6 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
 class Test_OA_Dal_Maintenance_Priority_getAdZoneAssociationsByAds extends UnitTestCase
 {
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * A method to test the getAdZoneAssociationsByAds method.
      *
      * Test 1: Test with bad input, and ensure that an empty array is retuend.
@@ -38,10 +30,10 @@ class Test_OA_Dal_Maintenance_Priority_getAdZoneAssociationsByAds extends UnitTe
      * Test 3: Test with one ad/zone link, and ensure the correct data is returned.
      * Test 4: Test with a more complex set of data.
      */
-    function testGetAdZoneAssociationsByAds()
+    public function testGetAdZoneAssociationsByAds()
     {
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oDal = new OA_Dal_Maintenance_Priority();
 
         // Test 1
@@ -50,7 +42,7 @@ class Test_OA_Dal_Maintenance_Priority_getAdZoneAssociationsByAds extends UnitTe
         $this->assertEqual(count($result), 0);
 
         // Test 2
-        $aAdIds = array(1);
+        $aAdIds = [1];
         $result = $oDal->getAdZoneAssociationsByAds($aAdIds);
         $this->assertTrue(is_array($result));
         $this->assertEqual(count($result), 0);
@@ -65,7 +57,7 @@ class Test_OA_Dal_Maintenance_Priority_getAdZoneAssociationsByAds extends UnitTe
         $doAdZone->link_type = 1;
         $idAdZone = DataGenerator::generateOne($doAdZone);
 
-        $aAdIds = array(1);
+        $aAdIds = [1];
         $result = $oDal->getAdZoneAssociationsByAds($aAdIds);
         $this->assertTrue(is_array($result));
         $this->assertEqual(count($result), 1);
@@ -119,7 +111,7 @@ class Test_OA_Dal_Maintenance_Priority_getAdZoneAssociationsByAds extends UnitTe
         $doAdZone->link_type = 1;
         $idAdZone = DataGenerator::generateOne($doAdZone);
 
-        $aAdIds = array(1, 2, 3);
+        $aAdIds = [1, 2, 3];
         $result = $oDal->getAdZoneAssociationsByAds($aAdIds);
         $this->assertTrue(is_array($result));
         $this->assertEqual(count($result), 3);
@@ -155,7 +147,4 @@ class Test_OA_Dal_Maintenance_Priority_getAdZoneAssociationsByAds extends UnitTe
         $this->assertEqual($result[3][1]['zone_id'], $zoneId4);
         DataGenerator::cleanUp();
     }
-
 }
-
-?>

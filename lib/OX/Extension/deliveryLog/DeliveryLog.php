@@ -22,13 +22,12 @@ require_once LIB_PATH . '/Plugin/Component.php';
  */
 abstract class Plugins_DeliveryLog extends OX_Component
 {
-
     // @todo - add database specific mapping in db layer
-    const TIMESTAMP_WITHOUT_ZONE = 'timestamp without time zone';
-    const INTEGER = 'integer';
-    const CHAR = 'char';
+    public const TIMESTAMP_WITHOUT_ZONE = 'timestamp without time zone';
+    public const INTEGER = 'integer';
+    public const CHAR = 'char';
 
-    const COUNT_COLUMN = 'count';
+    public const COUNT_COLUMN = 'count';
 
     /**
      * The type of bucket data that is stored, either
@@ -50,7 +49,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
     /**
      * The class constructor method, to be used by child implementations.
      */
-    function __construct()
+    public function __construct()
     {
         // Set the bucket processing strategy, based on the type.
         $dbType = $GLOBALS['_MAX']['CONF']['database']['type'];
@@ -64,93 +63,26 @@ abstract class Plugins_DeliveryLog extends OX_Component
     }
 
     /**
-     * Carry on any additional post-installs actions
-     * (for example install postgres specific stored procedures)
+     * Carry on any additional post-installs
+     *
+     * @deprecated
      *
      * @return boolean True on success, false otherwise.
      */
     public function onInstall()
     {
-        $oDbLayer = $this->_factoryDBLayer();
-        if (!$oDbLayer || !$oDbLayer->install($this)) {
-            return false;
-        }
         return true;
     }
 
     /**
      * Carry on any additional post-uninstalls actions
-     * (for example uninstall postgres specific stored procedures)
+     *
+     * @deprecated
      *
      * @return boolean True on success, false otherwise.
      */
     public function onUninstall()
     {
-        return true;
-    }
-
-    /**
-     * A private factory method to create the required OX_Extension_DeliveryLog_DB_Common
-     * database layer class used in installing components that utilise the deliveryLog
-     * extension.
-     *
-     * @param string $dbType Optional database type, eg. "mysql" or "pgsql". By default,
-     *                       the database type will be taken from the database connection
-     *                       defined in the OpenX installation.
-     * @return mixed The boolean false on error, class of type
-     *               OX_Extension_DeliveryLog_DB_Common on success.
-     */
-    private function _factoryDBLayer($dbType = null)
-    {
-        if (is_null($dbType)) {
-            $oDbh = OA_DB::singleton();
-            $dbType = $oDbh->dsn['phptype'];
-        }
-        // Include the required database layer file for the deliveryLog extension
-        if (!$this->_includeDbLayerFile($oDbh->dsn['phptype'])) {
-            $message = 'Error when including the required database layer file ' .
-                       "for the deliveryLog extension, for the '$dbType' database type.";
-            $this->_logError($message);
-            return false;
-        }
-        // Generate the class name expected for the deliveryLog extension database layer
-        $className = 'OX_Extension_DeliveryLog_DB_' . ucfirst(strtolower($oDbh->dsn['phptype']));
-        if (!class_exists($className)) {
-            // Class name does not exist, use the default class name instead
-            $className = 'OX_Extension_DeliveryLog_DB_Common';
-            if (!class_exists($className)) {
-                $message = "Expected class of '$className' not located in the deliveryLog extension " .
-                           "database layer file, for the '$dbType' database type.";
-                $this->_logError($message);
-                return false;
-            }
-        }
-        // Instantiate and return the deliveryLog extenion database layer support class
-        return new $className();
-    }
-
-    /**
-     * A private method to include the appropriate deliveryLog extension
-     * database layer class.
-     *
-     * @access private
-     * @param string $dbType The database type, eg "mysql" or "pgsql".
-     * @return boolean True on success (correct inclusion of the file),
-     *                 false otherwise.
-     */
-    private function _includeDbLayerFile($dbType)
-    {
-        // Prepare the path to the database layer support class file for the
-        // deliveryLog extension
-        $fileName = LIB_PATH . '/Extension/deliveryLog/DB/' . ucfirst(strtolower($dbType)) . '.php';
-        if (!file_exists($fileName)) {
-            // The file could not be found - use the default class instead
-            $fileName = LIB_PATH . '/Extension/deliveryLog/DB/Common.php';
-            if (!file_exists($fileName)) {
-                return false;
-            }
-        }
-        @include_once $fileName;
         return true;
     }
 
@@ -162,14 +94,14 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *
      * @return array  Format: array(componentId => array(depends on componentId, ...), ...)
      */
-    abstract function getDependencies();
+    abstract public function getDependencies();
 
     /**
      * Returns the bucket table name
      *
      * @return string The bucket table bucket name without prefix.
      */
-    abstract function getBucketName();
+    abstract public function getBucketName();
 
     /**
      * Returns the bucket table name.
@@ -196,7 +128,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *
      * @return string The statistics table name without prefix.
      */
-    abstract function getStatisticsName();
+    abstract public function getStatisticsName();
 
     /**
      * Returns the bucket's destination statistics table, that is, the
@@ -233,7 +165,6 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *    "groupDestination" columns names used in ALL of the components
      *    MUST be IDENTICAL between the components.
      *
-     * @abstract
      * @return array The array describing how the bucket data should
      *               be migrated to the final statistics table. There
      *               are three possible formats, described below:
@@ -370,7 +301,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                         relevant (and which will be used to limit which
      *                         data are migrated to the statistics table).
      */
-    abstract function getStatisticsMigration();
+    abstract public function getStatisticsMigration();
 
     /**
      * A public method to test the returned migration map array from
@@ -392,11 +323,14 @@ abstract class Plugins_DeliveryLog extends OX_Component
         }
         if ($aMap['method'] == 'aggregate') {
             return $this->_testStatisticsMigrationAggregate($aMap);
-        } else if ($aMap['method'] == 'raw') {
+        }
+        if ($aMap['method'] == 'raw') {
             return $this->_testStatisticsMigrationRaw($aMap);
-        } else if ($aMap['method'] == 'rawSupplementary') {
+        }
+        if ($aMap['method'] == 'rawSupplementary') {
             return $this->_testStatisticsMigrationRawSupplementary($aMap);
-        } else if ($aMap['method'] == 'custom') {
+        }
+        if ($aMap['method'] == 'custom') {
             return $this->_testStatisticsMigrationCustom($aMap);
         }
         return false;
@@ -412,7 +346,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                    getStatisticsMigration();
      * @return boolean True on the map being valid, false otherwise.
      */
-    final private function _testStatisticsMigrationAggregate($aMap)
+    private function _testStatisticsMigrationAggregate($aMap)
     {
         // Must have a valid "bucketTable" value
         if (!$this->_testMigrationValidTableOrColumn($aMap['bucketTable'])) {
@@ -451,15 +385,10 @@ abstract class Plugins_DeliveryLog extends OX_Component
         if (!$this->_testValidArrayKeys($aMap['sumSource'], $aMap['sumDestination'])) {
             return false;
         }
-
         // There must be the same number of entries in the "sumSource" and "sumDefault"
         // arrays, and the indexes used should match
-        if (!$this->_testValidArrayKeys($aMap['sumSource'], $aMap['sumDefault'])) {
-            return false;
-        }
-
         // Everything looks okay!
-        return true;
+        return $this->_testValidArrayKeys($aMap['sumSource'], $aMap['sumDefault']);
     }
 
     /**
@@ -472,7 +401,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                    getStatisticsMigration();
      * @return boolean True on the map being valid, false otherwise.
      */
-    final private function _testStatisticsMigrationRaw($aMap)
+    private function _testStatisticsMigrationRaw($aMap)
     {
         // Must have a valid "bucketTable" value
         if (!$this->_testMigrationValidTableOrColumn($aMap['bucketTable'])) {
@@ -505,15 +434,10 @@ abstract class Plugins_DeliveryLog extends OX_Component
         if (!$this->_testValidArray($aMap['extrasValue'])) {
             return false;
         }
-
         // There must be the same number of entries in the "extrasDestination" and "extrasValue"
         // arrays, and the indexes used should match
-        if (!$this->_testValidArrayKeys($aMap['extrasDestination'], $aMap['extrasValue'])) {
-            return false;
-        }
-
         // Everything looks okay!
-        return true;
+        return $this->_testValidArrayKeys($aMap['extrasDestination'], $aMap['extrasValue']);
     }
 
     /**
@@ -526,7 +450,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                    getStatisticsMigration();
      * @return boolean True on the map being valid, false otherwise.
      */
-    final private function _testStatisticsMigrationRawSupplementary($aMap)
+    private function _testStatisticsMigrationRawSupplementary($aMap)
     {
         // Must have a valid "masterTable" value
         if (!$this->_testMigrationValidTableOrColumn($aMap['masterTable'])) {
@@ -578,16 +502,10 @@ abstract class Plugins_DeliveryLog extends OX_Component
         if (!$this->_testValidNotNullArray($aMap['destination'])) {
             return false;
         }
-
         // There must be the same number of entries in the "source" and "destination"
         // arrays, and the indexes used should match
-        if (!$this->_testValidArrayKeys($aMap['source'], $aMap['destination'])) {
-            return false;
-        }
-
         // Everything looks okay!
-        return true;
-
+        return $this->_testValidArrayKeys($aMap['source'], $aMap['destination']);
     }
 
     /**
@@ -600,20 +518,15 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                    getStatisticsMigration();
      * @return boolean True on the map being valid, false otherwise.
      */
-    final private function _testStatisticsMigrationCustom($aMap)
+    private function _testStatisticsMigrationCustom($aMap)
     {
         // Must have a valid "bucketTable" value
         if (!$this->_testMigrationValidTableOrColumn($aMap['bucketTable'])) {
             return false;
         }
-
         // Must have a valid "dateTimeColumn" value
-        if (!$this->_testMigrationValidTableOrColumn($aMap['dateTimeColumn'])) {
-            return false;
-        }
-
         // Everything looks okay!
-        return true;
+        return $this->_testMigrationValidTableOrColumn($aMap['dateTimeColumn']);
     }
 
     /**
@@ -626,12 +539,9 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                 table or column name - but does not test if the
      *                 table or column actually exists!
      */
-    final private function _testMigrationValidTableOrColumn($value)
+    private function _testMigrationValidTableOrColumn($value)
     {
-        if (is_null($value) || !is_string($value)) {
-            return false;
-        }
-        return true;
+        return !is_null($value) && is_string($value);
     }
 
     /**
@@ -642,15 +552,12 @@ abstract class Plugins_DeliveryLog extends OX_Component
      * @param array $aArray The array of columns.
      * @return boolean True if the array is valid, false otherwise.
      */
-    final private function _testValidNotNullArray($aArray)
+    private function _testValidNotNullArray($aArray)
     {
         if (!$this->_testValidArray($aArray)) {
             return false;
         }
-        if (empty($aArray)) {
-            return false;
-        }
-        return true;
+        return !empty($aArray);
     }
 
     /**
@@ -661,7 +568,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      * @param array $aArray The array of columns.
      * @return boolean True if the array is valid, false otherwise.
      */
-    final private function _testValidArray($aArray)
+    private function _testValidArray($aArray)
     {
         if (is_null($aArray) || !is_array($aArray)) {
             return false;
@@ -689,25 +596,18 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *                 items, and when the index keys are the same;
      *                 false otherwise.
      */
-    final private function _testValidArrayKeys($aArray1, $aArray2)
+    private function _testValidArrayKeys($aArray1, $aArray2)
     {
         if (count($aArray1) != count($aArray2)) {
             return false;
         }
-        $aKeys1 = array();
-        foreach ($aArray1 as $key => $value) {
-            $aKeys1[] = $key;
-        }
-        $aKeys2 = array();
-        foreach ($aArray2 as $key => $value) {
-            $aKeys2[] = $key;
-        }
+        $aKeys1 = [];
+        $aKeys1 = array_keys($aArray1);
+        $aKeys2 = [];
+        $aKeys2 = array_keys($aArray2);
         asort($aKeys1);
         asort($aKeys2);
-        if ($aKeys1 !== $aKeys2) {
-            return false;
-        }
-        return true;
+        return $aKeys1 === $aKeys2;
     }
 
     /**
@@ -716,7 +616,7 @@ abstract class Plugins_DeliveryLog extends OX_Component
      * @param string $msg  Debugging message
      * @param int $err  Type of message (PEAR_LOG_INFO, PEAR_LOG_ERR, PEAR_LOG_WARN)
      */
-    function _logMessage($msg, $err=PEAR_LOG_INFO)
+    public function _logMessage($msg, $err = PEAR_LOG_INFO)
     {
         OA::debug($msg, $err);
     }
@@ -726,9 +626,8 @@ abstract class Plugins_DeliveryLog extends OX_Component
      *
      * @param string $msg  Debugging message
      */
-    function _logError($msg)
+    public function _logError($msg)
     {
-        $this->aErrors[] = $msg;
         $this->_logMessage($msg, PEAR_LOG_ERR);
     }
 
@@ -749,12 +648,15 @@ abstract class Plugins_DeliveryLog extends OX_Component
         // Test to ensure that the "$sDateTimeColumn" column really
         // is in the plugin group's bucket table, and if it's not,
         // return null
-        $aColumns = $this->getBucketTableColumns();
+        $aColumns = $this->getBucketTableColumns() ?? [];
         if (!array_key_exists($sDateTimeColumn, $aColumns)) {
             return null;
         }
         // Obtain the DB_DataObject for the plugin group's bucket table
         $sBucketName = $this->getBucketName();
+        if (empty($sBucketName)) {
+            return null;
+        }
         $doBucket = OA_Dal::factoryDO($sBucketName);
         if (!$doBucket) {
             return null;
@@ -797,7 +699,4 @@ abstract class Plugins_DeliveryLog extends OX_Component
     {
         return $this->oProcessingStrategy->pruneBucket($this, $oEnd, $oStart);
     }
-
 }
-
-?>

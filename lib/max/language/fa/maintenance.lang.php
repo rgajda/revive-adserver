@@ -91,6 +91,8 @@ $GLOBALS['strStorageExplaination'] = "	تصاویر مورد استفاده تو
 اگر شما در تصاویر را ذخیره داخل
 یک دایرکتوری بار بر روی پایگاه داده کاهش خواهد یافت و این به افزایش در سرعت منجر شود.";
 
+// Security
+
 // Encoding
 $GLOBALS['strEncoding'] = "
 رمز گذاری";
@@ -110,8 +112,13 @@ $GLOBALS['strDownloadZip'] = "دانلود (.zip)";
 $GLOBALS['strDownloadGZip'] = "دانلود (.tar.gz)";
 
 $GLOBALS['strUpdateAlert'] = "
-نسخه جدید {$PRODUCT_NAME} در دسترس است.                 \n\nآیا شما می خواهید اطلاعات بیشتری را دریافت کنید \nدر مورد این به روز رسانی?";
-$GLOBALS['strUpdateAlertSecurity'] = "نسخه جدید {$PRODUCT_NAME} در دسترس است.                 \n\nبسیار توصیه می شود برای ارتقاء \nدر اسرع وقت,چرا که این \n
+نسخه جدید {$PRODUCT_NAME} در دسترس است.
+
+آیا شما می خواهید اطلاعات بیشتری را دریافت کنید
+در مورد این به روز رسانی?";
+$GLOBALS['strUpdateAlertSecurity'] = "نسخه جدید {$PRODUCT_NAME} در دسترس است.
+
+بسیار توصیه می شود برای ارتقاء \\nدر اسرع وقت,چرا که این
 نسخه شامل یک یا چند اصلاحات امنیتی می باشد.";
 
 $GLOBALS['strUpdateServerDown'] = "
@@ -148,6 +155,7 @@ $GLOBALS['strAndPlain'] = "و";
 
 //  Deliver Limitations
 $GLOBALS['strErrorsFound'] = "خطاهایی پیدا شد ";
+$GLOBALS['strRepairCompiledLimitations'] = "برخی از تناقضات بالا پیدا شد، شما می توانید این با استفاده از دکمه زیر تعمیر، این محدودیت کامپایلر برای هر بنر / کانال در سیستم کامپایل را<br />";
 $GLOBALS['strRecompile'] = "کامپایل مجدد";
 
 //  Append codes
@@ -159,10 +167,12 @@ $GLOBALS['strAppendCodesResult'] = "
 $GLOBALS['strAppendCodesValid'] = "تمام کدهای ردیاب کامپایل الحاق معتبر هستند";
 $GLOBALS['strRepairAppenedCodes'] = "برخی از تناقضات بالا پیدا شد، شما می توانید تعمیر این با استفاده از دکمه زیر تعمیر کنید ، این کد اضافه برای هر ردیاب در سیستم کامپایل مجدد خوانده می شود . ";
 
-$GLOBALS['strPlugins'] = "پلاگین";
+$GLOBALS['strPlugins'] = "افزونه ها";
 $GLOBALS['strPluginsPrecis'] = "
 تشخیص و تعمیر مشکلات با پلاگین {$PRODUCT_NAME}";
 
 $GLOBALS['strMenus'] = "منوها";
 $GLOBALS['strMenusPrecis'] = "بازسازی کش منو";
 $GLOBALS['strMenusCachedOk'] = "کش منو بازسازی شده است";
+
+// Users

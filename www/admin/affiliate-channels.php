@@ -20,7 +20,7 @@ require_once MAX_PATH . '/lib/max/other/html.php';
 
 
 // Register input variables
-phpAds_registerGlobal ('acl', 'action', 'submit');
+phpAds_registerGlobal('acl', 'action', 'submit');
 
 
 /*-------------------------------------------------------*/
@@ -37,7 +37,8 @@ if (!empty($affiliateid) && !OA_Permission::hasAccessToObject('affiliates', $aff
 /*-------------------------------------------------------*/
 //get websites and set the current one
 $aWebsites = getWebsiteMap();
-if (empty($affiliateid)) { //if it's empty
+if (empty($affiliateid)) {
+    //if it's empty
     if ($session['prefs']['inventory_entities'][OA_Permission::getEntityId()]['affiliateid']) {
         //try previous one from session
         $sessionWebsiteId = $session['prefs']['inventory_entities'][OA_Permission::getEntityId()]['affiliateid'];
@@ -47,14 +48,12 @@ if (empty($affiliateid)) { //if it's empty
     }
     if (empty($affiliateid)) { //was empty, is still empty - just pick one, no need for redirect
         $ids = array_keys($aWebsites);
-        $affiliateid = !empty($ids) ? $ids[0] : -1; //if no websites set to non-existent id
+        $affiliateid = empty($ids) ? -1 : $ids[0]; //if no websites set to non-existent id
     }
-}
-else {
-    if (!isset($aWebsites[$affiliateid])) { //bad id, redirect
-        $page = basename($_SERVER['SCRIPT_NAME']);
-        OX_Admin_Redirect::redirect($page);
-    }
+} elseif (!isset($aWebsites[$affiliateid])) {
+    //bad id, redirect
+    $page = basename($_SERVER['SCRIPT_NAME']);
+    OX_Admin_Redirect::redirect($page);
 }
 
 
@@ -62,7 +61,7 @@ else {
 /* HTML framework                                        */
 /*-------------------------------------------------------*/
 
-$oHeaderModel = buildHeaderModel($affiliateid);
+$oHeaderModel = buildAffiliateChannelsHeaderModel($affiliateid);
 phpAds_PageHeader(null, $oHeaderModel);
 
 
@@ -74,10 +73,10 @@ require_once MAX_PATH . '/lib/OA/Admin/Template.php';
 
 $oTpl = new OA_Admin_Template('channel-index.html');
 
-$channels = Admin_DA::getChannels(array('publisher_id' => $affiliateid), true);
-$aChannels = array();
+$channels = Admin_DA::getChannels(['publisher_id' => $affiliateid], true);
+$aChannels = [];
 foreach ($channels as $channelId => $channel) {
-	$aChannels[$channelId] = $channel;
+    $aChannels[$channelId] = $channel;
 }
 
 $oTpl->assign('aChannels', $aChannels);
@@ -102,7 +101,7 @@ $oTpl->display();
 phpAds_PageFooter();
 
 
-function buildHeaderModel($websiteId)
+function buildAffiliateChannelsHeaderModel($websiteId)
 {
     $doAffiliates = OA_Dal::factoryDO('affiliates');
     if ($doAffiliates->get($websiteId)) {
@@ -115,13 +114,13 @@ function buildHeaderModel($websiteId)
     }
 
     $builder = new OA_Admin_UI_Model_InventoryPageHeaderModelBuilder();
-    $oHeaderModel = $builder->buildEntityHeader(array(
-        array ('name' => $websiteName, 'url' => $websiteEditUrl,
-               'id' => $websiteId, 'entities' => getWebsiteMap(),
-               'htmlName' => 'affiliateid'
-              ),
-        array('name' => '')
-    ), 'channels', 'list');
+    $oHeaderModel = $builder->buildEntityHeader([
+        ['name' => $websiteName, 'url' => $websiteEditUrl,
+            'id' => $websiteId, 'entities' => getWebsiteMap(),
+            'htmlName' => 'affiliateid',
+        ],
+        ['name' => ''],
+    ], 'channels', 'list');
 
     return $oHeaderModel;
 }
@@ -136,16 +135,14 @@ function getWebsiteMap()
     if (OA_Permission::isAccount(OA_ACCOUNT_TRAFFICKER)) {
         $doAffiliates->agencyid = OA_Permission::getEntityId();
     }
-    $doAffiliates->addSessionListOrderBy($sortPageName);
+    $doAffiliates->addSessionListOrderBy('affiliate-channels.php');
     $doAffiliates->find();
 
-    $aWebsiteMap = array();
+    $aWebsiteMap = [];
     while ($doAffiliates->fetch() && $row = $doAffiliates->toArray()) {
-        $aWebsiteMap[$row['affiliateid']] = array('name' => $row['name'],
-            'url' => "affiliate-edit.php?affiliateid=".$row['affiliateid']);
+        $aWebsiteMap[$row['affiliateid']] = ['name' => $row['name'],
+            'url' => "affiliate-edit.php?affiliateid=" . $row['affiliateid']];
     }
 
     return $aWebsiteMap;
 }
-
-?>

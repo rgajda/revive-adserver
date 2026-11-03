@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "Fortsæt »";
 $GLOBALS['strBtnRecover'] = "Genskab »";
 $GLOBALS['strBtnAgree'] = "Jeg acceptere »";
 $GLOBALS['strBtnRetry'] = "Forsøg igen";
-$GLOBALS['strWarningRegisterArgcArv'] = "PHP konfigurator variable register_argc_argv skal tændes for at kunne køre vedligeholdelse fra kommando linien.";
+$GLOBALS['strTablesPrefix'] = "Tabel navne prefix";
 $GLOBALS['strTablesType'] = "Tabel type";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Dit tidligere forsøg på at upgradere udløste en fejl";
@@ -45,10 +45,8 @@ $GLOBALS['strAdminUrlPrefix'] = "Administrator interface URL";
 $GLOBALS['strChooseSection'] = "Vælg sektion";
 $GLOBALS['strUnableToWriteConfig'] = "Ude af stand til at skrive ændringer til config filen";
 $GLOBALS['strUnableToWritePrefs'] = "Ude af stand til at binde referencer til databasen";
-$GLOBALS['strImageDirLockedDetected'] = "Den leverede <b>Billede Mappe</b> er ikke skrivebar af serveren. <br>Du kan ikke fortsætte indtil du enten ændrer adgangstilladdelse til mappen eller opretter mappen.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Konfigurations opsætning";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Administrator  brugernavn";
@@ -77,6 +75,8 @@ $GLOBALS['strCantConnectToDb'] = "Kan ikke tilslutte til databasen";
 $GLOBALS['strEmailSettings'] = "Email Indstillinger";
 $GLOBALS['strEmailHeader'] = "Email Titel";
 $GLOBALS['strEmailLog'] = "Email Log";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Handlings Log Indstillinger";
@@ -112,7 +112,6 @@ $GLOBALS['strDeliveryFilenamesAdLayer'] = "Tilføj Layer";
 $GLOBALS['strDeliveryFilenamesAdLog'] = "Tilføj Log";
 $GLOBALS['strDeliveryFilenamesAdPopup'] = "Tilføj Popup";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Lokal Invocation";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Flash Inkluderet (Kan være fuldt URL)";
 $GLOBALS['strDeliveryCaching'] = "Banner Levering Cache Indstillinger";
 $GLOBALS['strDeliveryCacheLimit'] = "Tid imellem Banner Cache Updatering (sekunder)";
 

@@ -89,11 +89,14 @@ $GLOBALS['strCollectedThisMonth'] = "Τρέχον Μήνας";
 $GLOBALS['strCollectedLastMonth'] = "Προηγούμενος Μήνας";
 $GLOBALS['strCollectedLast7Days'] = "Τελευταίες 7 ημέρες";
 $GLOBALS['strCollectedSpecificDates'] = "Συγκεκριμένες ημερομηνίες";
+$GLOBALS['strValue'] = "Τιμή";
 $GLOBALS['strWarning'] = "Προειδοποίηση";
 $GLOBALS['strNotice'] = "Σημείωση";
 
 // Dashboard
 // Dashboard Errors
+$GLOBALS['strDashboardErrorCode'] = "κώδικας";
+$GLOBALS['strDashboardSystemMessage'] = "Μήνυμα συστήματος";
 
 // Priority
 $GLOBALS['strPriority'] = "Προτεραιότητα";
@@ -121,6 +124,7 @@ $GLOBALS['strAuthentification'] = "Επικύρωση Στοιχείων";
 $GLOBALS['strWelcomeTo'] = "Καλώς ήλθατε στο";
 $GLOBALS['strEnterUsername'] = "Παρακαλώ εισάγετε το όνομα χρήστη και τον κωδικό σας για να συνδεθειτε";
 $GLOBALS['strEnterBoth'] = "Παρακαλώ εισάγετε και το όνομα χρήστη αλλά και τον κωδικό σας. Και τα δύο.";
+$GLOBALS['strEnableCookies'] = "Πρέπει να ενεργοποιήσετε τα cookies πριν χρησιμοποιήσετε το {$PRODUCT_NAME}";
 $GLOBALS['strLogin'] = "Σύνδεση";
 $GLOBALS['strLogout'] = "Αποσύνδεση";
 $GLOBALS['strUsername'] = "Όνομα Χρήστη";
@@ -161,7 +165,7 @@ $GLOBALS['strDayOfWeek'] = "Ημέρα της εβδομάδας";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
 $GLOBALS['strDayFullNames'][0] = 'Κυριακή';
 $GLOBALS['strDayFullNames'][1] = 'Δευτέρα';
@@ -172,8 +176,9 @@ $GLOBALS['strDayFullNames'][5] = 'Παρασκευή';
 $GLOBALS['strDayFullNames'][6] = 'Σάββατο';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
+$GLOBALS['strDayShortCuts'][6] = 'Σα';
 
 $GLOBALS['strHour'] = "Ώρα";
 $GLOBALS['strSeconds'] = "δευτερόλεπτα";
@@ -228,6 +233,7 @@ $GLOBALS['strTrackerProperties'] = "Ιδιότητες Ζώνης";
 $GLOBALS['strStatus'] = "Κατάσταση";
 $GLOBALS['strUniqueWindow'] = "Μοναδικό παράθυρο";
 $GLOBALS['strView'] = "Προβολή";
+$GLOBALS['strImpression'] = "Εντυπώσεις";
 
 // Banners (General)
 $GLOBALS['strAddBanner'] = "Προσθήκη νέου banner";
@@ -243,24 +249,23 @@ $GLOBALS['strWeight'] = "Ύψος";
 
 // Banner (advanced)
 
-// Banner (swf)
-
 // Display Delviery Rules
 $GLOBALS['strAND'] = "ΚΑΙ";                          // logical operator
 $GLOBALS['strOR'] = "Ή";                         // logical operator
+$GLOBALS['strTime'] = "Ώρα";
 $GLOBALS['strSource'] = "Πηγή";
 
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 
 // Website
@@ -304,6 +309,7 @@ $GLOBALS['strSelectPlacement'] = "Επιλέξτε Καμπάνια";
 $GLOBALS['strSelectAd'] = "Επιλέξτε Banner";
 $GLOBALS['strStatusDuplicate'] = "Αντιγραφή";
 $GLOBALS['strConnectionType'] = "Τύπος";
+$GLOBALS['strConnTypeSale'] = "Αποθήκευση";
 
 // Statistics
 $GLOBALS['strStats'] = "Στατιστικά";
@@ -317,6 +323,8 @@ $GLOBALS['strBreakdownByHour'] = "Ώρα";
 $GLOBALS['strCampaignStop'] = "Ιστορικό Καμπάνιας";
 
 // Reports
+$GLOBALS['strStartDate'] = "Ημερομηνία Έναρξης";
+$GLOBALS['strEndDate'] = "Ημερομηνία Ολοκλήρωσης";
 
 // Admin_UI_Fields
 $GLOBALS['strAllAdvertisers'] = "Όλοι οι διαφημιζόμενοι";
@@ -329,7 +337,6 @@ $GLOBALS['strAllAvailZones'] = "Όλες οι διαθέσιμες ζώνες";
 $GLOBALS['strAction'] = "Ενέργεια";
 
 // Code generation
-
 
 // Errors
 
@@ -381,6 +388,7 @@ $GLOBALS['strAgency'] = "Λογαριασμός";
 $GLOBALS['strAddAgency_Key'] = "Προσθήκη <u>ν</u>έας ζώνης";
 $GLOBALS['strTotalAgencies'] = "Σύνολο λογαριασμών";
 $GLOBALS['strAgencyProperties'] = "Ιδιότητες λογαριασμού";
+$GLOBALS['strAgencyStatusInactive'] = "ενεργό";
 
 // Channels
 $GLOBALS['strChannelToWebsite'] = "Όλες οι ιστοσελίδες";
@@ -389,6 +397,15 @@ $GLOBALS['strChannelToWebsite'] = "Όλες οι ιστοσελίδες";
 $GLOBALS['strVariableDescription'] = "Περιγραφή";
 
 // Password recovery
+
+// Password recovery - Default
+
+
+// Password recovery - Welcome email
+
+// Password recovery - Hash update
+
+// Password reset warning
 
 // Audit
 
@@ -410,6 +427,21 @@ $GLOBALS['strVariableDescription'] = "Περιγραφή";
 
 
 // Report error messages
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

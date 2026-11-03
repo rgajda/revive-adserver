@@ -14,95 +14,98 @@ define('OX_PLUGIN_ERROR_PARSE', -1);
 define('OX_PLUGIN_DEPENDENCY_NOTFOUND', -1);
 define('OX_PLUGIN_DEPENDENCY_BADVERSION', -2);
 
-define('OX_PLUGIN_PLUGINPATH','{PLUGINPATH}');
-define('OX_PLUGIN_GROUPPATH','{GROUPPATH}');
-define('OX_PLUGIN_MODULEPATH','{MODULEPATH}');
-define('OX_PLUGIN_ADMINPATH' ,'{ADMINPATH}' );
+define('OX_PLUGIN_PLUGINPATH', '{PLUGINPATH}');
+define('OX_PLUGIN_GROUPPATH', '{GROUPPATH}');
+define('OX_PLUGIN_MODULEPATH', '{MODULEPATH}');
+define('OX_PLUGIN_ADMINPATH', '{ADMINPATH}');
 
-define('OX_PLUGIN_PLUGINPATH_REX','/^\{PLUGINPATH\}/');
-define('OX_PLUGIN_GROUPPATH_REX','/^\{GROUPPATH\}/');
-define('OX_PLUGIN_MODULEPATH_REX','/^\{MODULEPATH\}/');
-define('OX_PLUGIN_ADMINPATH_REX' ,'/^\{ADMINPATH\}/' );
+define('OX_PLUGIN_PLUGINPATH_REX', '/^\{PLUGINPATH\}/');
+define('OX_PLUGIN_GROUPPATH_REX', '/^\{GROUPPATH\}/');
+define('OX_PLUGIN_MODULEPATH_REX', '/^\{MODULEPATH\}/');
+define('OX_PLUGIN_ADMINPATH_REX', '/^\{ADMINPATH\}/');
 
 
 // Required files
-require_once LIB_PATH.'/Plugin/ParserComponentGroup.php';
-require_once(MAX_PATH.'/lib/OA/Upgrade/VersionController.php');
-require_once(MAX_PATH.'/lib/OA/Upgrade/UpgradeAuditor.php');
-require_once(MAX_PATH.'/lib/OA/DB/Table.php');
-require_once(MAX_PATH.'/lib/OA/Dal.php');
-require_once(MAX_PATH.'/lib/OA/Cache.php');
-require_once LIB_PATH.'/Plugin/UpgradeComponentGroup.php';
-require_once LIB_PATH.'/Plugin/Component.php';
-require_once(MAX_PATH.'/lib/OA/Admin/Menu.php');
+require_once LIB_PATH . '/Plugin/ParserComponentGroup.php';
+require_once(MAX_PATH . '/lib/OA/Upgrade/VersionController.php');
+require_once(MAX_PATH . '/lib/OA/Upgrade/UpgradeAuditor.php');
+require_once(MAX_PATH . '/lib/OA/DB/Table.php');
+require_once(MAX_PATH . '/lib/OA/Dal.php');
+require_once(MAX_PATH . '/lib/OA/Cache.php');
+require_once LIB_PATH . '/Plugin/UpgradeComponentGroup.php';
+require_once LIB_PATH . '/Plugin/Component.php';
+require_once(MAX_PATH . '/lib/OA/Admin/Menu.php');
+require_once(MAX_PATH . '/lib/OA/Permission.php');
 
 class OX_Plugin_ComponentGroupManager
 {
-    var $pathPackages;
-    var $pathPlugins;
-    var $pathPluginsAdmin;
-    var $pathDataObjects;
+    public $basePath;
 
-    var $oAuditor;
-    var $oUpgrader;
+    public $pathPackages;
+    public $pathPlugins;
+    public $pathPluginsAdmin;
+    public $pathDataObjects;
 
-    var $aMenuObjects;
+    public $oAuditor;
+    public $oUpgrader;
 
-    var $aWarnings;
-    var $aErrors;
+    public $aMenuObjects;
 
-    function __construct()
+    public $aWarnings = [];
+    public $aErrors = [];
+    /** @var bool */
+    protected $configLocked;
+
+    public function __construct()
     {
-        $this->aErrors  = array();
-        $this->aWarnings = array();
         $this->init();
     }
 
-    function init()
+    public function init()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $this->pathPackages     = $aConf['pluginPaths']['packages'];
-        $this->pathPlugins   = $aConf['pluginPaths']['plugins'];
+        $this->pathPackages = $aConf['pluginPaths']['packages'];
+        $this->pathPlugins = $aConf['pluginPaths']['plugins'];
         $this->pathPluginsAdmin = $aConf['pluginPaths']['admin'];
-        $this->pathDataObjects  = $aConf['pluginPaths']['var'] . 'DataObjects/';
+        $this->pathDataObjects = $aConf['pluginPaths']['var'] . 'DataObjects/';
         // Attempt to increase the memory limit when using the plugin manager
         OX_increaseMemoryLimit(OX_getMinimumRequiredMemory('plugin'));
         $this->basePath = MAX_PATH;
         $this->configLocked = !OA_Admin_Settings::isConfigWritable();
     }
 
-    function countErrors()
+    public function countErrors()
     {
         return count($this->aErrors);
     }
 
-    function clearErrors()
+    public function clearErrors()
     {
-        $this->aErrors = array();
+        $this->aErrors = [];
     }
 
-    function clearWarnings()
+    public function clearWarnings()
     {
-        $this->aWarnings = array();
+        $this->aWarnings = [];
     }
 
-    function countWarnings()
+    public function countWarnings()
     {
         return count($this->aWarnings);
     }
 
-    function _logMessage($msg, $err=PEAR_LOG_INFO)
+    public function _logMessage($msg, $err = PEAR_LOG_INFO)
     {
         OA::debug($msg, $err);
     }
 
-    function _logWarning($msg)
+    public function _logWarning($msg)
     {
         $this->aWarnings[] = $msg;
         $this->_logMessage($msg, PEAR_LOG_WARNING);
     }
 
-    function _logError($msg)
+    public function _logError($msg)
     {
         if (!empty($msg)) {
             $this->aErrors[] = $msg;
@@ -114,47 +117,39 @@ class OX_Plugin_ComponentGroupManager
      * instantiate audit object if not exists
      *
      */
-    function _auditInit()
+    public function _auditInit()
     {
-        if (!$this->oAuditor)
-        {
+        if (!$this->oAuditor) {
             $this->oAuditor = $this->_instantiateClass('OA_UpgradeAuditor');
             $this->oAuditor->init(OA_DB::singleton());
         }
     }
 
-    function _auditSetKeys($aParams, $dbAuditor=false)
+    public function _auditSetKeys($aParams, $dbAuditor = false)
     {
         $this->_auditInit();
-        if (!$dbAuditor)
-        {
+        if (!$dbAuditor) {
             $this->oAuditor->setKeyParams($aParams);
-        }
-        else
-        {
+        } else {
             $this->oAuditor->oDBAuditor->setKeyParams($aParams);
         }
         return true;
     }
 
-    function _auditStart($aParams, $dbAuditor=false)
+    public function _auditStart($aParams, $dbAuditor = false)
     {
-        if (!$dbAuditor)
-        {
+        if (!$dbAuditor) {
             return $this->oAuditor->logAuditAction($aParams);
         }
-        else
-        {
-            return $this->oAuditor->oDBAuditor->logAuditAction($aParams);
-        }
+        return $this->oAuditor->oDBAuditor->logAuditAction($aParams);
     }
 
-    function _auditUpdate($aParams)
+    public function _auditUpdate($aParams)
     {
         return $this->oAuditor->updateAuditAction($aParams);
     }
 
-    function _auditSetID()
+    public function _auditSetID()
     {
         $this->oAuditor->setUpgradeActionId();
     }
@@ -167,42 +162,40 @@ class OX_Plugin_ComponentGroupManager
      */
     public function isEnabled($name)
     {
-        return ($GLOBALS['_MAX']['CONF']['pluginGroupComponents'][$name] ? true : false);
+        return ((bool) $GLOBALS['_MAX']['CONF']['pluginGroupComponents'][$name]);
     }
 
-    function &_getOX_Plugin_UpgradeComponentGroup(&$aGroup, $oSender)
+    public function &_getOX_Plugin_UpgradeComponentGroup(&$aGroup, $oSender)
     {
-
         return new OX_Plugin_UpgradeComponentGroup($aGroup, $this);
     }
 
-    function _canUpgradeComponentGroup(&$aGroup)
+    public function _canUpgradeComponentGroup(&$aGroup)
     {
         $this->oUpgrader = $this->_getOX_Plugin_UpgradeComponentGroup($aGroup, $this);
         $this->oUpgrader->canUpgrade();
         $aGroup['status'] = $this->oUpgrader->existing_installation_status;
-        switch ($aGroup['status'])
-        {
+        switch ($aGroup['status']) {
             case OA_STATUS_PLUGIN_CAN_UPGRADE:
-                    $this->_logMessage('Plugin can be upgraded '.$aGroup['name']);
-                    $result = true;
-                    break;
+                $this->_logMessage('Plugin can be upgraded ' . $aGroup['name']);
+                $result = true;
+                break;
             case OA_STATUS_PLUGIN_NOT_INSTALLED:
-                    $this->_logError('Plugin is not yet installed '.$aGroup['name']);
-                    $result = true;
-                    break;
+                $this->_logError('Plugin is not yet installed ' . $aGroup['name']);
+                $result = true;
+                break;
             case OA_STATUS_PLUGIN_CURRENT_VERSION:
-                    $this->_logMessage('Plugin is up to date '.$aGroup['name']);
-                    $result = true;
-                    break;
+                $this->_logMessage('Plugin is up to date ' . $aGroup['name']);
+                $result = true;
+                break;
             case OA_STATUS_PLUGIN_VERSION_FAILED:
-                    $this->_logError('Bad version, cannot upgrade '.$aGroup['name']);
-                    $result = false;
-                    break;
+                $this->_logError('Bad version, cannot upgrade ' . $aGroup['name']);
+                $result = false;
+                break;
             case OA_STATUS_PLUGIN_DBINTEG_FAILED:
-                    $this->_logError('Plugin failed schema integrity check '.$aGroup['name']);
-                    $result = false;
-                    break;
+                $this->_logError('Plugin failed schema integrity check ' . $aGroup['name']);
+                $result = false;
+                break;
         }
         return $result;
     }
@@ -210,22 +203,20 @@ class OX_Plugin_ComponentGroupManager
     public function upgradeComponentGroup(&$aGroup)
     {
         $this->oUpgrader = $this->_getOX_Plugin_UpgradeComponentGroup($aGroup, $this);
-        if ($this->oUpgrader->canUpgrade())
-        {
-            if (!$this->oUpgrader->upgrade())
-            {
-                $this->_logError('Failed to upgrade '.$aGroup['name']);
+        if ($this->oUpgrader->canUpgrade()) {
+            if (!$this->oUpgrader->upgrade()) {
+                $this->_logError('Failed to upgrade ' . $aGroup['name']);
                 return UPGRADE_ACTION_UPGRADE_FAILED;
             }
         }
         return UPGRADE_ACTION_UPGRADE_SUCCEEDED;
     }
 
-    public function diagnoseComponentGroup(&$aGroup)
+    public function diagnoseComponentGroup($aGroup)
     {
         $aTaskList = $this->getDiagnosticTasks($aGroup);
 
-        return $this->_runTasks($aGroup['name'], $aTaskList, array(), true);
+        return $this->_runTasks($aGroup['name'], $aTaskList, [], true);
     }
 
     /**
@@ -262,60 +253,52 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aGroup
      * @return array
      */
-    function getDiagnosticTasks(&$aGroup)
+    public function getDiagnosticTasks($aGroup)
     {
-        $aTaskList[] = array(
-                            'method' =>'_checkOpenXCompatibility',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['oxversion'],
-                                             )
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkSystemEnvironment',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['syscheck']['php'],
-                                             )
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkDatabaseEnvironment',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['syscheck']['dbms']
-                                             )
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkDependenciesForInstallOrEnable',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['syscheck']['depends']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkFiles',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['files']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_verifyDataObjects',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['schema']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkNavigationCheckers',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['navigation']['checkers'],
-                                              $aGroup['install']['files']
-                                             ),
-                            );
-        // settings, preferences
-        return $aTaskList;
+        return [[
+            'method' => '_checkOpenXCompatibility',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['oxversion'],
+            ],
+        ], [
+            'method' => '_checkSystemEnvironment',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['syscheck']['php'],
+            ],
+        ], [
+            'method' => '_checkDatabaseEnvironment',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['syscheck']['dbms'],
+            ],
+        ], [
+            'method' => '_checkDependenciesForInstallOrEnable',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['syscheck']['depends'],
+            ],
+        ], [
+            'method' => '_checkFiles',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['files'],
+            ],
+        ], [
+            'method' => '_verifyDataObjects',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['schema'],
+            ],
+        ], [
+            'method' => '_checkNavigationCheckers',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['navigation']['checkers'] ?? [],
+                $aGroup['install']['files'],
+            ],
+        ]];
     }
 
     /**
@@ -324,109 +307,95 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aGroup
      * @return array
      */
-    function getInstallTasks(&$aGroup)
+    public function getInstallTasks($aGroup)
     {
-        $aTaskList[] = array(
-                            'method' =>'_checkOpenXCompatibility',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['oxversion'],
-                                             )
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkSystemEnvironment',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['syscheck']['php'],
-                                             )
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkDatabaseEnvironment',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['syscheck']['dbms']
-                                             )
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_runScript',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['prescript']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkDependenciesForInstallOrEnable',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['syscheck']['depends']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkFiles',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['files']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkNavigationCheckers',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['navigation']['checkers'],
-                                              $aGroup['install']['files']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_checkMenus',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['navigation'],
-                                              $aGroup['install']['files']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_registerSchema',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['schema']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_registerPreferences',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['conf']['preferences']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_registerSettings',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['conf']['settings']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'disableComponentGroup',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['extends']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_registerPluginVersion',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['version']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_runScript',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['postscript']
-                                             ),
-                            );
-        return $aTaskList;
+        return [[
+            'method' => '_checkOpenXCompatibility',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['oxversion'],
+            ],
+        ], [
+            'method' => '_checkSystemEnvironment',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['syscheck']['php'],
+            ],
+        ], [
+            'method' => '_checkDatabaseEnvironment',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['syscheck']['dbms'],
+            ],
+        ], [
+            'method' => '_runScript',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['prescript'],
+            ],
+        ], [
+            'method' => '_checkDependenciesForInstallOrEnable',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['syscheck']['depends'],
+            ],
+        ], [
+            'method' => '_checkFiles',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['files'],
+            ],
+        ], [
+            'method' => '_checkNavigationCheckers',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['navigation']['checkers'] ?? [],
+                $aGroup['install']['files'],
+            ],
+        ], [
+            'method' => '_checkMenus',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['navigation'],
+                $aGroup['install']['files'],
+            ],
+        ], [
+            'method' => '_registerSchema',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['schema'],
+            ],
+        ], [
+            'method' => '_registerPreferences',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['conf']['preferences'],
+            ],
+        ], [
+            'method' => '_registerSettings',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['conf']['settings'],
+            ],
+        ], [
+            'method' => 'disableComponentGroup',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['extends'],
+            ],
+        ], [
+            'method' => '_registerPluginVersion',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['version'],
+            ],
+        ], [
+            'method' => '_runScript',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['postscript'],
+            ],
+        ]];
     }
 
     /**
@@ -435,67 +404,54 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aGroup
      * @return array
      */
-    function getRollbackTasks(&$aGroup)
+    public function getRollbackTasks($aGroup)
     {
-        /*$aTaskList[] = array(
-                            'method' =>'_checkDependenciesForUninstallOrDisable',
-                            'params' => array(
-                                              $aGroup['name']
-                                             ),
-                            );*/
-        $aTaskList[] = array(
-                            'method' =>'_runScript',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['uninstall']['prescript']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_unregisterPluginVersion',
-                            'params' => array(
-                                              $aGroup['name']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_unregisterPreferences',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['conf']['preferences']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_unregisterSettings',
-                            'params' => array(
-                                              $aGroup['name']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_unregisterSchema',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['install']['schema']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_runScript',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['uninstall']['postscript']
-                                             ),
-                            );
-        $aTaskList[] = array(
-                            'method' =>'_removeFiles',
-                            'params' => array(
-                                              $aGroup['name'],
-                                              $aGroup['allfiles'],
-                                             ),
-                            );
-        return $aTaskList;
+        return [[
+            'method' => '_runScript',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['uninstall']['prescript'],
+            ],
+        ], [
+            'method' => '_unregisterPluginVersion',
+            'params' => [
+                $aGroup['name'],
+            ],
+        ], [
+            'method' => '_unregisterPreferences',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['conf']['preferences'],
+            ],
+        ], [
+            'method' => '_unregisterSettings',
+            'params' => [
+                $aGroup['name'],
+            ],
+        ], [
+            'method' => '_unregisterSchema',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['install']['schema'],
+            ],
+        ], [
+            'method' => '_runScript',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['uninstall']['postscript'],
+            ],
+        ], [
+            'method' => '_removeFiles',
+            'params' => [
+                $aGroup['name'],
+                $aGroup['allfiles'],
+            ],
+        ]];
     }
 
-    function upgrade()
+    public function upgrade()
     {
-        require_once LIB_PATH.'/Plugin/upgradeComponentGroup.php';
+        require_once LIB_PATH . '/Plugin/upgradeComponentGroup.php';
         //$oUpgrader =
     }
 
@@ -504,34 +460,31 @@ class OX_Plugin_ComponentGroupManager
      *
      * @param string $input_file
      * @param string $classname
-     * @return boolean
+     * @return array|false
      */
-    function parseXML($input_file, $classname='OX_ParserComponentGroup')
+    public function parseXML($input_file, $classname = 'OX_ParserComponentGroup')
     {
         //OA::logMem('enter parseXML');
-        if (!file_exists($input_file))
-        {
-            $this->_logError('file not found '.$input_file);
+        if (!file_exists($input_file)) {
+            $this->_logError('file not found ' . $input_file);
             return false;
         }
         $oParser = $this->_instantiateClass($classname);
-        if (!$oParser)
-        {
+        if (!$oParser) {
             return false;
         }
         $result = $oParser->setInputFile($input_file);
         if (PEAR::isError($result)) {
-            return $result;
-        }
-        $result = $oParser->parse();
-        if (PEAR::isError($result))
-        {
-            $this->_logError('problem parsing the file: '.$result->getMessage());
+            $this->_logError('problem setting the input file: ' . $result->getMessage());
             return false;
         }
-        if (PEAR::isError($oParser->error))
-        {
-            $this->_logError('problem parsing the file: '.$oParser->error);
+        $result = $oParser->parse();
+        if (PEAR::isError($result)) {
+            $this->_logError('problem parsing the file: ' . $result->getMessage());
+            return false;
+        }
+        if (PEAR::isError($oParser->error)) {
+            $this->_logError('problem parsing the file: ' . $oParser->error);
             return false;
         }
         $aResult = $oParser->aPlugin;
@@ -546,38 +499,23 @@ class OX_Plugin_ComponentGroupManager
      * r
      *
      * @param string $classname
-     * @return object
+     * @param array  $aParams
+     * @return object|false
      */
-    function &_instantiateClass($classname) // cannot take params //, $aParams=null)
+    public function _instantiateClass($classname, $aParams = [])
     {
-        if (!$classname)
-        {
+        if (!$classname) {
             $this->_logError('Cannot instantiate null class');
             return false;
         }
-        if (!class_exists($classname))
-        {
-            $this->_logError('Class not found '.$classname);
+        if (!class_exists($classname)) {
+            $this->_logError('Class not found ' . $classname);
             return false;
         }
-        $oResult = new $classname();
-/*      newInstanceArgs() method not implemented until php 5.1.3
-        if (!$aParams)
-        {
-            $oResult = new $classname();
-        }
-        else
-        {
-            // use Reflection to create a new instance, using the $args
-            $oReflection = new ReflectionClass($classname);
-            $oResult = $oReflection->newInstanceArgs($aParams);
-        }*/
-        if (!is_a($oResult,$classname))
-        {
-            $this->_logError('Failed to instantiate class '.$classname);
-            return false;
-        }
-        return $oResult;
+
+        $oReflection = new ReflectionClass($classname);
+
+        return $oReflection->newInstanceArgs($aParams);
     }
 
     /**
@@ -588,7 +526,7 @@ class OX_Plugin_ComponentGroupManager
      */
     public function getComponentGroupSettingsArray($name)
     {
-        return $GLOBALS['_MAX']['CONF'][$name] ? $GLOBALS['_MAX']['CONF'][$name] : array();
+        return $GLOBALS['_MAX']['CONF'][$name] ?? [];
     }
 
     /**
@@ -598,9 +536,9 @@ class OX_Plugin_ComponentGroupManager
      * @param string $schema
      * @return boolean
      */
-    function getFilePathToMDB2Schema($plugin, $schema)
+    public function getFilePathToMDB2Schema($plugin, $schema)
     {
-        return $this->getPathToComponentGroup($plugin).'etc/'.$schema.'.xml';
+        return $this->getPathToComponentGroup($plugin) . 'etc/' . $schema . '.xml';
     }
 
     /**
@@ -609,14 +547,17 @@ class OX_Plugin_ComponentGroupManager
      * @param string $plugin
      * @return boolean
      */
-    function getFilePathToXMLInstall($plugin)
+    public function getFilePathToXMLInstall($plugin)
     {
-        $file = $this->getPathToComponentGroup($plugin).$plugin.'.xml';
+        $file = $this->getPathToComponentGroup($plugin) . $plugin . '.xml';
         if (file_exists($file)) {
             return $file;
-        } elseif (file_exists(str_replace('/plugins/', '/extensions/', $file))) {
+        }
+        if (file_exists(str_replace('/plugins/', '/extensions/', $file))) {
             return str_replace('/plugins/', '/extensions/', $file);
         }
+
+        return $file;
     }
 
     /**
@@ -625,9 +566,9 @@ class OX_Plugin_ComponentGroupManager
      * @param string $plugin
      * @return boolean
      */
-    function getPathToComponentGroup($plugin)
+    public function getPathToComponentGroup($plugin)
     {
-        return $this->basePath.$this->pathPackages.$plugin.'/';
+        return $this->basePath . $this->pathPackages . $plugin . '/';
     }
 
     /**
@@ -680,11 +621,10 @@ class OX_Plugin_ComponentGroupManager
      * @param boolean $enabled
      * @return boolean
      */
-    function _setPlugin($name, $enabled=0)
+    public function _setPlugin($name, $enabled = 0)
     {
         $oSettings = $this->_instantiateClass('OA_Admin_Settings');
-        if (!$oSettings)
-        {
+        if (!$oSettings) {
             return false;
         }
         $oSettings->settingChange('pluginGroupComponents', $name, $enabled);
@@ -698,11 +638,10 @@ class OX_Plugin_ComponentGroupManager
      * @param string $version
      * @return boolean
      */
-    function _registerPluginVersion($name, $version)
+    public function _registerPluginVersion($name, $version)
     {
         $oVerControl = $this->_getVersionController();
-        if (!$oVerControl)
-        {
+        if (!$oVerControl) {
             return false;
         }
         $result = $oVerControl->putApplicationVersion($version, $name);
@@ -716,14 +655,13 @@ class OX_Plugin_ComponentGroupManager
      * @param string $version
      * @return boolean
      */
-    function _registerSchemaVersion($name, $version)
+    public function _registerSchemaVersion($name, $version)
     {
         $oVerControl = $this->_getVersionController();
-        if (!$oVerControl)
-        {
+        if (!$oVerControl) {
             return false;
         }
-        $result = $oVerControl->putSchemaVersion($name,$version);
+        $result = $oVerControl->putSchemaVersion($name, $version);
         return ($result === $version);
     }
 
@@ -733,16 +671,14 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _unregisterSchemaVersion($name)
+    public function _unregisterSchemaVersion($name)
     {
         $oVerControl = $this->_getVersionController();
-        if (!$oVerControl)
-        {
+        if (!$oVerControl) {
             return false;
         }
-        if (!$oVerControl->removeVariable($name))
-        {
-            $this->_logError('Failed to remove schema version for '.$name);
+        if (!$oVerControl->removeVariable($name)) {
+            $this->_logError('Failed to remove schema version for ' . $name);
             return false;
         }
         return true;
@@ -754,16 +690,14 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _unregisterPluginVersion($name)
+    public function _unregisterPluginVersion($name)
     {
         $oVerControl = $this->_getVersionController();
-        if (!$oVerControl)
-        {
+        if (!$oVerControl) {
             return false;
         }
-        if (!$oVerControl->removeVersion($name))
-        {
-            $this->_logError('Failed to remove plugin version for '.$name);
+        if (!$oVerControl->removeVersion($name)) {
+            $this->_logError('Failed to remove plugin version for ' . $name);
             return false;
         }
         return true;
@@ -776,17 +710,14 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aSettings
      * @return boolean
      */
-    function _registerSettings($name, $aSettings=null)
+    public function _registerSettings($name, $aSettings = null)
     {
-        if ($aSettings)
-        {
-            $oSettings  = $this->_instantiateClass('OA_Admin_Settings');
-            foreach ($aSettings AS &$aSetting)
-            {
-                $oSettings->settingChange($name,$aSetting['key'],$aSetting['value']);
+        if ($aSettings) {
+            $oSettings = $this->_instantiateClass('OA_Admin_Settings');
+            foreach ($aSettings as $aSetting) {
+                $oSettings->settingChange($name, $aSetting['key'], $aSetting['value'] ?? null);
             }
-            if (!$oSettings->writeConfigChange())
-            {
+            if (!$oSettings->writeConfigChange()) {
                 $this->_logError('Failed to write configuration settings');
                 return false;
             }
@@ -801,20 +732,17 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _unregisterSettings($name, $self=true)
+    public function _unregisterSettings($name, $self = true)
     {
-        $oSettings  = $this->_instantiateClass('OA_Admin_Settings');
-        if (array_key_exists($name,$oSettings->aConf))
-        {
+        $oSettings = $this->_instantiateClass('OA_Admin_Settings');
+        if (array_key_exists($name, $oSettings->aConf)) {
             unset($oSettings->aConf[$name]);
         }
-        if ($self && array_key_exists($name,$oSettings->aConf['pluginGroupComponents']))
-        {
+        if ($self && array_key_exists($name, $oSettings->aConf['pluginGroupComponents'])) {
             unset($oSettings->aConf['pluginGroupComponents'][$name]);
         }
-        if (!$oSettings->writeConfigChange())
-        {
-            $this->_logError('Failed to remove configuration settings for '.$name);
+        if (!$oSettings->writeConfigChange()) {
+            $this->_logError('Failed to remove configuration settings for ' . $name);
             return false;
         }
         return true;
@@ -826,15 +754,12 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aPreferences
      * @return boolean
      */
-    function _registerPreferences($name, $aPreferences=null)
+    public function _registerPreferences($name, $aPreferences = null)
     {
-        if ($aPreferences)
-        {
+        if ($aPreferences) {
             $accountId = OA_Permission::getAccountId();
-            foreach ($aPreferences AS $k => &$aPreference)
-            {
-                if (!$this->_registerPreferenceOne($name, $aPreference, $accountId))
-                {
+            foreach ($aPreferences as $k => &$aPreference) {
+                if (!$this->_registerPreferenceOne($name, $aPreference, $accountId)) {
                     return false;
                 }
             }
@@ -842,27 +767,20 @@ class OX_Plugin_ComponentGroupManager
         return true;
     }
 
-    function _registerPreferenceOne($name, $aPreference, $accountId)
+    public function _registerPreferenceOne($name, $aPreference, $accountId)
     {
-        if ($aPreference)
-        {
-            $prefName = $name.'_'.$aPreference['name'];
+        if ($aPreference) {
+            $prefName = $name . '_' . $aPreference['name'];
             $doPreferences = OA_Dal::factoryDO('preferences');
             $doPreferences->preference_name = $prefName;
-            if ($doPreferences->find())
-            {
-                $this->_logError('Failed to write preference '.$prefName.' : duplicate found');
+            if ($doPreferences->find()) {
+                $this->_logError('Failed to write preference ' . $prefName . ' : duplicate found');
                 return false;
             }
             $doPreferences->account_type = empty($aPreference['permission']) ? '' : $aPreference['permission'];
             $preferenceId = $doPreferences->insert();
-            if ((!$preferenceId) || PEAR::isError($preferenceId))
-            {
-                $this->_logError('Failed to write preference '.$prefName.' '.$result->getUserInfo());
-                if (PEAR::isError($result))
-                {
-                    $this->_logError($result->getUserInfo());
-                }
+            if (false === $preferenceId) {
+                $this->_logError('Failed to write preference ' . $prefName);
                 return false;
             }
             $doAccount_Preference_Assoc = OA_Dal::factoryDO('account_preference_assoc');
@@ -881,29 +799,19 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _unregisterPreferences($name, $aPreferences)
+    public function _unregisterPreferences($name, $aPreferences)
     {
-        if ($aPreferences)
-        {
-            foreach ($aPreferences AS &$aPreference)
-            {
-                $prefName = $name.'_'.$aPreference['name'];
+        if ($aPreferences) {
+            foreach ($aPreferences as &$aPreference) {
+                $prefName = $name . '_' . $aPreference['name'];
                 $doPreferences = OA_Dal::factoryDO('preferences');
                 $doPreferences->preference_name = $prefName;
-                if (!$doPreferences->find())
-                {
-                    $this->_logMessage('Failed to find preference '.$aPreference['name']);
-                }
-                else
-                {
+                if (!$doPreferences->find()) {
+                    $this->_logMessage('Failed to find preference ' . $aPreference['name']);
+                } else {
                     $result = $doPreferences->delete(false, true);
-                    if ((!$result) || PEAR::isError($result))
-                    {
-                        $this->_logError('Failed to delete preference '.$prefName.' '.$result->getUserInfo());
-                        if (PEAR::isError($result))
-                        {
-                            $this->_logError($result->getUserInfo());
-                        }
+                    if (!$result) {
+                        $this->_logError('Failed to delete preference ' . $prefName);
                         return false;
                     }
                 }
@@ -918,42 +826,42 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _createTables($name, $aSchema)
+    public function _createTables($name, $aSchema)
     {
         $oTable = $this->_instantiateClass('OA_DB_Table');
-        if (!$oTable->init($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']),false))
-        {
-            $this->_logError('Failed to initialise table class for '.$name);
+        if (!$oTable->init($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']), false)) {
+            $this->_logError('Failed to initialise table class for ' . $name);
             return false;
         }
         $version = $oTable->aDefinition['version'];
-        $schema   = $oTable->aDefinition['name'];
-        foreach ($oTable->aDefinition['tables'] AS $table => &$aDef)
-        {
-            $this->_auditSetKeys(array( 'schema_name'   => $schema,
-                                        'version'       => $version,
-                                        'timing'        => DB_UPGRADE_TIMING_CONSTRUCTIVE_DEFAULT
-                                    ),
-                                 true
-                                );
-            if (!$oTable->createTable($table))
-            {
-                $this->_logError('Failed to create table for '.$table);
-                $this->_auditStart(array('info1'        => 'CREATE FAILED',
-                                         'tablename'    => $table,
-                                         'action'       => DB_UPGRADE_ACTION_UPGRADE_FAILED,
-                                         ),
-                                   true
-                                   );
+        $schema = $oTable->aDefinition['name'];
+        foreach ($oTable->aDefinition['tables'] as $table => &$aDef) {
+            $this->_auditSetKeys(
+                [ 'schema_name' => $schema,
+                    'version' => $version,
+                    'timing' => DB_UPGRADE_TIMING_CONSTRUCTIVE_DEFAULT,
+                ],
+                true,
+            );
+            if (!$oTable->createTable($table)) {
+                $this->_logError('Failed to create table for ' . $table);
+                $this->_auditStart(
+                    ['info1' => 'CREATE FAILED',
+                        'tablename' => $table,
+                        'action' => DB_UPGRADE_ACTION_UPGRADE_FAILED,
+                    ],
+                    true,
+                );
                 $this->_dropTables($name, $aSchema);
                 return false;
             }
-            $this->_auditStart(array('info1'    => 'CREATE SUCCEEDED',
-                                     'tablename'=> $table,
-                                     'action'   => DB_UPGRADE_ACTION_UPGRADE_TABLE_ADDED,
-                                     ),
-                                   true
-                               );
+            $this->_auditStart(
+                ['info1' => 'CREATE SUCCEEDED',
+                    'tablename' => $table,
+                    'action' => DB_UPGRADE_ACTION_UPGRADE_TABLE_ADDED,
+                ],
+                true,
+            );
         }
         return $version;
     }
@@ -965,49 +873,48 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _dropTables($name, $aSchema)
+    public function _dropTables($name, $aSchema)
     {
         $oTable = $this->_instantiateClass('OA_DB_Table');
-        if (!$oTable->init($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']),false))
-        {
-            $this->_logError('Failed to initialise table class for '.$name);
+        if (!$oTable->init($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']), false)) {
+            $this->_logError('Failed to initialise table class for ' . $name);
             return false;
         }
         $version = $oTable->aDefinition['version'];
-        $schema   = $oTable->aDefinition['name'];
-        foreach ($oTable->aDefinition['tables'] AS $table => &$aDef)
-        {
-            $this->_auditSetKeys(array( 'schema_name'   => $schema,
-                                        'version'       => $version,
-                                        'timing'        => DB_UPGRADE_TIMING_DESTRUCTIVE_DEFAULT
-                                      ),
-                                 true
-                                );
-            if (!$oTable->dropTable($oTable->_generateTableName($table)))
-            {
-                if ($this->_tableExists($table))
-                {
-                    $this->_auditStart(array('info1'    => 'DROP FAILED',
-                                         'tablename'    => $table,
-                                         'action'       => DB_UPGRADE_ACTION_ROLLBACK_FAILED,
-                                         ),
-                                   true
-                                   );
-                    $this->_logError('Failed to drop table '.$table);
+        $schema = $oTable->aDefinition['name'];
+        foreach ($oTable->aDefinition['tables'] as $table => &$aDef) {
+            $this->_auditSetKeys(
+                [ 'schema_name' => $schema,
+                    'version' => $version,
+                    'timing' => DB_UPGRADE_TIMING_DESTRUCTIVE_DEFAULT,
+                ],
+                true,
+            );
+            if (!$oTable->dropTable($oTable->_generateTableName($table))) {
+                if ($this->_tableExists($table)) {
+                    $this->_auditStart(
+                        ['info1' => 'DROP FAILED',
+                            'tablename' => $table,
+                            'action' => DB_UPGRADE_ACTION_ROLLBACK_FAILED,
+                        ],
+                        true,
+                    );
+                    $this->_logError('Failed to drop table ' . $table);
                     return false;
                 }
             }
-            $this->_auditStart(array('info1'        => 'DROP SUCCEEDED',
-                                     'tablename'    => $table,
-                                     'action'       => DB_UPGRADE_ACTION_ROLLBACK_TABLE_DROPPED,
-                                    ),
-                                   true
-                              );
+            $this->_auditStart(
+                ['info1' => 'DROP SUCCEEDED',
+                    'tablename' => $table,
+                    'action' => DB_UPGRADE_ACTION_ROLLBACK_TABLE_DROPPED,
+                ],
+                true,
+            );
         }
         return true;
     }
 
-    function _tableExists($table)
+    public function _tableExists($table)
     {
         return count(OA_DB_Table::listOATablesCaseSensitive($table));
     }
@@ -1019,63 +926,53 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _registerSchema($name, $aSchema)
+    public function _registerSchema($name, $aSchema)
     {
-        if (!$aSchema['mdb2schema'])
-        {
+        if (!$aSchema['mdb2schema']) {
             return true;
         }
-        if (!($schema_version = $this->_createTables($name, $aSchema)))
-        {
-            $this->_logError('Failed to create tables for '.$name);
+        if (!($schema_version = $this->_createTables($name, $aSchema))) {
+            $this->_logError('Failed to create tables for ' . $name);
             $this->_dropTables($name, $aSchema);
             return false;
         }
-        if (!$this->_registerSchemaVersion($aSchema['mdb2schema'], $schema_version))
-        {
-            $this->_logError('Failed to register schema version for '.$name);
+        if (!$this->_registerSchemaVersion($aSchema['mdb2schema'], $schema_version)) {
+            $this->_logError('Failed to register schema version for ' . $name);
             $this->_dropTables($name, $aSchema);
             return false;
         }
-        if (!$this->_putDataObjects($name, $aSchema))
-        {
-            $this->_logError('Failed to implement dataobjects for '.$name);
+        if (!$this->_putDataObjects($name, $aSchema)) {
+            $this->_logError('Failed to implement dataobjects for ' . $name);
             $this->_dropTables($name, $aSchema);
             return false;
         }
-        if (!$this->_cacheDataObjects($name, $aSchema))
-        {
-            $this->_logError('Failed to cache dataobject schema for '.$name);
+        if (!$this->_cacheDataObjects($name, $aSchema)) {
+            $this->_logError('Failed to cache dataobject schema for ' . $name);
             $this->_dropTables($name, $aSchema);
             return false;
         }
-        if (!$this->_verifyDataObjects($name, $aSchema))
-        {
-            $this->_logError('Failed to verify dataobjects for '.$name);
+        if (!$this->_verifyDataObjects($name, $aSchema)) {
+            $this->_logError('Failed to verify dataobjects for ' . $name);
             $this->_dropTables($name, $aSchema);
             return false;
         }
         return true;
     }
 
-    function _verifyDataObjects($name, $aSchema)
+    public function _verifyDataObjects($name, $aSchema)
     {
-        if (!$aSchema['mdb2schema'])
-        {
+        if (!$aSchema['mdb2schema']) {
             return true;
         }
         $oTable = $this->_instantiateClass('OA_DB_Table');
-        if (!$oTable->init($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']),false))
-        {
-            $this->_logError('Failed to initialise table class for '.$name);
+        if (!$oTable->init($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']), false)) {
+            $this->_logError('Failed to initialise table class for ' . $name);
             return false;
         }
-        foreach ($oTable->aDefinition['tables'] AS $table => &$aDef)
-        {
+        foreach ($oTable->aDefinition['tables'] as $table => &$aDef) {
             $dboTable = OA_Dal::factoryDO($table);
-            if (!$dboTable)
-            {
-                OA::debug('Failed to instantiate DataObject for table '.$table);
+            if (!$dboTable) {
+                OA::debug('Failed to instantiate DataObject for table ' . $table);
                 return false;
             }
         }
@@ -1089,63 +986,51 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _unregisterSchema($name, $aSchema)
+    public function _unregisterSchema($name, $aSchema)
     {
-        if ($aSchema['mdb2schema'])
-        {
-            if (!$this->_dropTables($name, $aSchema))
-            {
-                $this->_logError('Failed to drop tables for '.$name);
+        if ($aSchema['mdb2schema']) {
+            if (!$this->_dropTables($name, $aSchema)) {
+                $this->_logError('Failed to drop tables for ' . $name);
                 return false;
             }
-            if (!$this->_unregisterSchemaVersion($aSchema['mdb2schema']))
-            {
-                $this->_logError('Failed to remove schema version for '.$name);
+            if (!$this->_unregisterSchemaVersion($aSchema['mdb2schema'])) {
+                $this->_logError('Failed to remove schema version for ' . $name);
                 return false;
             }
-            if (!$this->_cacheDataObjects())
-            {
+            if (!$this->_cacheDataObjects()) {
                 $this->_logError('Failed to recreate old dataobject cache');
                 //return false;
             }
-            if (!$this->_removeDataObjects($name, $aSchema))
-            {
-                $this->_logError('Failed to remove dataobjects for '.$name);
+            if (!$this->_removeDataObjects($name, $aSchema)) {
+                $this->_logError('Failed to remove dataobjects for ' . $name);
                 //return false;
             }
         }
         return true;
     }
 
-    function _checkOpenXCompatibility($name, $minVersion)
+    public function _checkOpenXCompatibility($name, $minVersion)
     {
         return version_compare(VERSION, $minVersion, '>=');
     }
 
-    function _checkSystemEnvironment($name, $aPhp)
+    public function _checkSystemEnvironment($name, $aPhp)
     {
-        if (count($aPhp)>0)
-        {
-            require_once MAX_PATH.'/lib/OA/Upgrade/EnvironmentManager.php';
+        if (count($aPhp) > 0) {
+            require_once MAX_PATH . '/lib/OA/Upgrade/EnvironmentManager.php';
             $oEnvMgr = $this->_instantiateClass('OA_Environment_Manager');
             $oEnvMgr->aInfo['PHP']['actual'] = $oEnvMgr->getPHPInfo();
-            foreach ($aPhp AS $k => &$aItem)
-            {
+            foreach ($aPhp as $aItem) {
                 $oEnvMgr->aInfo['PHP']['expected'][$aItem['name']] = $aItem['value'];
             }
-            if ($oEnvMgr->_checkCriticalPHP() != OA_ENV_ERROR_PHP_NOERROR)
-            {
-                if (isset($oEnvMgr->aInfo['PHP']['warning']))
-                {
-                    foreach ($oEnvMgr->aInfo['PHP']['warning'] as $msg)
-                    {
+            if ($oEnvMgr->_checkCriticalPHP() != OA_ENV_ERROR_PHP_NOERROR) {
+                if (isset($oEnvMgr->aInfo['PHP']['warning'])) {
+                    foreach ($oEnvMgr->aInfo['PHP']['warning'] as $msg) {
                         $this->_logWarning($msg);
                     }
                 }
-                if (isset($oEnvMgr->aInfo['PHP']['error']))
-                {
-                    foreach ($oEnvMgr->aInfo['PHP']['error'] as $msg)
-                    {
+                if (isset($oEnvMgr->aInfo['PHP']['error'])) {
+                    foreach ($oEnvMgr->aInfo['PHP']['error'] as $msg) {
                         $this->_logError($msg);
                     }
                 }
@@ -1155,23 +1040,19 @@ class OX_Plugin_ComponentGroupManager
         return true;
     }
 
-    function _checkDatabaseEnvironment($name, $aDbms)
+    public function _checkDatabaseEnvironment($name, $aDbms)
     {
-        if (count($aDbms)>0)
-        {
+        if (count($aDbms) > 0) {
             $oDbh = OA_DB::singleton();
             $phptype = $oDbh->phptype;
             $supported = false;
-            foreach ($aDbms AS $k => &$aItem)
-            {
-                if ($aItem['name'] == $phptype)
-                {
-                	$aFound = $aItem;
+            foreach ($aDbms as $k => &$aItem) {
+                if ($aItem['name'] == $phptype) {
+                    $aFound = $aItem;
                 }
             }
-            if (!($aFound && $aFound['supported']))
-            {
-                $this->_logError($name.'does not support '.$phptype);
+            if (!$aFound || !$aFound['supported']) {
+                $this->_logError($name . 'does not support ' . $phptype);
                 return false;
             }
         }
@@ -1186,30 +1067,22 @@ class OX_Plugin_ComponentGroupManager
      * @param boolean $require_enabled : check that required plugins are enabled
      * @return boolean
      */
-    function _checkDependenciesForInstallOrEnable($name, $aDepends=null)
+    public function _checkDependenciesForInstallOrEnable($name, $aDepends = null)
     {
-        if ($aDepends)
-        {
+        if ($aDepends) {
             $aConf = $GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
-            foreach ($aDepends AS $i => &$aGroup)
-            {
-                if (!isset($aConf[$aGroup['name']]))
-                {
-                    $this->_logError('Dependency failure: '.$name.' depends on '.$aGroup['name'].' but '.$aGroup['name'].' is not installed');
+            foreach ($aDepends as $i => &$aGroup) {
+                if (!isset($aConf[$aGroup['name']])) {
+                    $this->_logError('Dependency failure: ' . $name . ' depends on ' . $aGroup['name'] . ' but ' . $aGroup['name'] . ' is not installed');
                     return false;
                 }
-                else
-                {
-                    $installedComponentGroupVersion = $this->getComponentGroupVersion($aGroup['name']);
-                    if (version_compare($installedComponentGroupVersion ,$aGroup['version'],'<'))
-                    {
-                        $this->_logError('Dependency failure: '.$name.' depends on version '.$aGroup['version'].' of '.$aGroup['name'].' but '.$aGroup['name'].' version '.$installedComponentGroupVersion.' is installed');
-                        return false;
-                    }
+                $installedComponentGroupVersion = $this->getComponentGroupVersion($aGroup['name']);
+                if (version_compare($installedComponentGroupVersion, $aGroup['version'], '<')) {
+                    $this->_logError('Dependency failure: ' . $name . ' depends on version ' . $aGroup['version'] . ' of ' . $aGroup['name'] . ' but ' . $aGroup['name'] . ' version ' . $installedComponentGroupVersion . ' is installed');
+                    return false;
                 }
-                if ($aGroup['enabled'] && (!$aConf[$aGroup['name']]))
-                {
-                    $this->_logError('Dependency failure: '.$name.' depends on '.$aGroup['name'].' but '.$aGroup['name'].' is not enabled');
+                if ($aGroup['enabled'] && (!$aConf[$aGroup['name']])) {
+                    $this->_logError('Dependency failure: ' . $name . ' depends on ' . $aGroup['name'] . ' but ' . $aGroup['name'] . ' is not enabled');
                     return false;
                 }
             }
@@ -1223,29 +1096,23 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _hasDependencies($name, $aExcludes=null)
+    public function _hasDependencies($name, $aExcludes = null)
     {
         $hasDependencies = false;
         $aDepends = $this->_loadDependencyArray();
-        if ($aDepends && isset($aDepends[$name]) && isset($aDepends[$name]['isDependedOnBy']) )
-        {
+        if ($aDepends && isset($aDepends[$name]) && isset($aDepends[$name]['isDependedOnBy'])) {
             $aConf = $GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
-            foreach ($aDepends[$name]['isDependedOnBy'] AS $i => &$group)
-            {
-                if (isset($aConf[$group]))
-                {
+            foreach ($aDepends[$name]['isDependedOnBy'] as $i => &$group) {
+                if (isset($aConf[$group])) {
                     $hasDependencies[] = $group;
-                }
-                else
-                {
+                } else {
                     // the dependency array lies!  the dependent plugin is not actually installed
                     // never mind, continue and the array will be regenerated after uninstall/disable
                 }
             }
         }
-        if ($hasDependencies && $aExcludes)
-        {
-            $hasDependencies = array_diff($hasDependencies, $aExcludes);
+        if ($hasDependencies && $aExcludes) {
+            return array_diff($hasDependencies, $aExcludes);
         }
         return $hasDependencies;
     }
@@ -1256,14 +1123,12 @@ class OX_Plugin_ComponentGroupManager
      * @param string $name
      * @return boolean
      */
-    function _checkFiles($name, $aFiles=array())
+    public function _checkFiles($name, $aFiles = [])
     {
-        foreach ($aFiles AS &$aFile)
-        {
-            $file = $this->basePath.$this->_expandFilePath($aFile['path'], $aFile['name'], $name);
-            if (!file_exists($file))
-            {
-                $this->_logError('File check failed to find '.$file);
+        foreach ($aFiles as &$aFile) {
+            $file = $this->basePath . $this->_expandFilePath($aFile['path'], $aFile['name'], $name);
+            if (!file_exists($file)) {
+                $this->_logError('File check failed to find ' . $file);
                 return false;
             }
         }
@@ -1281,27 +1146,25 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aFiles
      * @return boolean
      */
-    function _checkNavigationCheckers($name, $aCheckersList=array(), $aFiles=array())
+    public function _checkNavigationCheckers($name, $aCheckersList = [], $aFiles = [])
     {
-        if (is_array($aCheckersList) && !empty($aCheckersList))
-        {
+        if (is_array($aCheckersList) && !empty($aCheckersList)) {
             foreach ($aCheckersList as &$aChecker) {
                 $result = false;
-                foreach ($aFiles AS &$aFile)
-                {
+                foreach ($aFiles as &$aFile) {
                     if ($aFile['name'] == $aChecker['include']) {
                         if ($result == true) {
-                            $this->_logError('Navigation check found ambigious file name '.$aChecker['name'].', at least two files have the same name declared');
+                            $this->_logError('Navigation check found ambigious file name ' . $aChecker['name'] . ', at least two files have the same name declared');
                             return false;
                         }
-                        $file = $this->basePath.$this->_expandFilePath($aFile['path'], $aFile['name'], $name);
+                        $file = $this->basePath . $this->_expandFilePath($aFile['path'], $aFile['name'], $name);
                         if (file_exists($file) && @include_once $file) {
-                            if (!class_exists($aChecker['class'])){
-                                $this->_logError('Navigation check failed to find class '.$aChecker['class']);
+                            if (!class_exists($aChecker['class'])) {
+                                $this->_logError('Navigation check failed to find class ' . $aChecker['class']);
                                 return false;
                             }
-                            if(!in_array('OA_Admin_Menu_IChecker', class_implements($aChecker['class']))) {
-                                $this->_logError('Navigation check: Class '.$aChecker['class'].' doesn\'t implement OA_Admin_Menu_IChecker interface');
+                            if (!in_array('OA_Admin_Menu_IChecker', class_implements($aChecker['class']))) {
+                                $this->_logError('Navigation check: Class ' . $aChecker['class'] . ' doesn\'t implement OA_Admin_Menu_IChecker interface');
                                 return false;
                             }
                             $result = true;
@@ -1309,7 +1172,7 @@ class OX_Plugin_ComponentGroupManager
                     }
                 }
                 if ($result == false) {
-                    $this->_logError('Navigation check failed to find file '.$aChecker['include']);
+                    $this->_logError('Navigation check failed to find file ' . $aChecker['include']);
                     return false;
                 }
             }
@@ -1317,50 +1180,40 @@ class OX_Plugin_ComponentGroupManager
         return true;
     }
 
-    function _removeFiles($name, $aFiles)
+    public function _removeFiles($name, $aFiles)
     {
-        foreach ($aFiles AS &$aFile)
-        {
-            $file = $this->basePath.$this->_expandFilePath($aFile['path'], $aFile['name'], $name);
-            if (file_exists($file))
-            {
+        foreach ($aFiles as &$aFile) {
+            $file = $this->basePath . $this->_expandFilePath($aFile['path'], $aFile['name'], $name);
+            if (file_exists($file)) {
                 @unlink($file);
                 $folder = dirname($file);
-                if ($name) // its a group (no name = plugin package)
-                {
-                    if ( ($folder !=  $this->basePath.rtrim($this->pathPackages,'/')) &&
-                         ($folder !=  $this->basePath.rtrim($this->pathPlugins,'/')) &&
-                         ($folder !=  $this->basePath.rtrim($this->pathPluginsAdmin,'/')) )
-                     {
+                if ($name) { // its a group (no name = plugin package)
+                    if (!in_array($folder, [$this->basePath . rtrim($this->pathPackages, '/'), $this->basePath . rtrim($this->pathPlugins, '/'), $this->basePath . rtrim($this->pathPluginsAdmin, '/')])) {
                         @rmdir($folder);
-                     }
+                    }
                 }
             }
         }
-        if (!$name) // its a plugin package, won't have files outside the packages folder)
-        {
+        if (!$name) { // its a plugin package, won't have files outside the packages folder)
             return true;
         }
-        $pathPlugin = $this->basePath.$this->pathPackages.$name;
-        $pathEtc = $pathPlugin.'/etc/';
+        $pathPlugin = $this->basePath . $this->pathPackages . $name;
+        $pathEtc = $pathPlugin . '/etc/';
 
         // upgrade files : files in etc/changes are not declared in definition xml, just delete everything in folder
-        $pathChg = $pathEtc.'changes/';
+        $pathChg = $pathEtc . 'changes/';
         $dh = @opendir($pathChg);
-        if ($dh)
-        {
-            while (false !== ($file = readdir($dh)))
-            {
-                if (($file != '.') && ($file != '..'))
-                {
-                    @unlink($pathChg.$file);
+        if ($dh) {
+            while (false !== ($file = readdir($dh))) {
+                if (($file != '.') && ($file != '..')) {
+                    @unlink($pathChg . $file);
                 }
             }
             closedir($dh);
         }
         @rmdir($pathChg);
-        @rmdir($pathEtc.'_lang/');
-        @rmdir($pathEtc.'_lang/po/');
+        @rmdir($pathEtc . '_lang/');
+        @rmdir($pathEtc . '_lang/po/');
         @rmdir($pathEtc);
         @rmdir($pathPlugin);
         return true;
@@ -1374,33 +1227,31 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aFiles file section from xml file
      * @return boolean
      */
-    function _checkMenus($name, $aMenus=null, $aFiles=null)
+    public function _checkMenus($name, $aMenus = null, $aFiles = null)
     {
-        if (!$aMenus)
-        {
+        if (!$aMenus) {
             return true;
         }
-        $aCheckers = $this->_prepareMenuCheckers($name, $aMenus['checkers'], $aFiles);
-        foreach ($aMenus AS $accountType => &$aMenu)
-        {
-            if (!$this->aMenuObjects[$accountType])
-            {
-                $oMenu = $this->_getMenuObject($accountType);
+        $aCheckers = $this->_prepareMenuCheckers($name, $aMenus['checkers'] ?? [], $aFiles);
+        $firstMenu = null;
+        foreach ($aMenus as $accountType => &$aMenu) {
+            if ($accountType === 'checkers') {
+                continue;
             }
-            else
-            {
+            if (empty($this->aMenuObjects[$accountType])) {
+                $oMenu = $this->_getMenuObject($accountType);
+            } else {
                 $oMenu = $this->aMenuObjects[$accountType];
             }
-            foreach ($aMenu as $idx => &$aMenu)
-            {
-                if (!$this->_addMenuSection($oMenu, $aMenu, $aCheckers))
-                {
+            foreach ($aMenu as $idx => $aMenuPart) {
+                if (!$this->_addMenuSection($oMenu, $aMenuPart, $aCheckers)) {
                     return false;
                 }
             }
             $this->aMenuObjects[$accountType] = $oMenu;
-            return $oMenu;
+            $firstMenu ??= $oMenu;
         }
+        return $firstMenu ?? true;
     }
 
     /**
@@ -1412,13 +1263,12 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aFiles
      * @return array Menu checkers
      */
-    function _prepareMenuCheckers($name, $aMenuCheckers = null, $aFiles = null)
+    public function _prepareMenuCheckers($name, $aMenuCheckers = null, $aFiles = null)
     {
-        $aCheckers = array();
+        $aCheckers = [];
         if ($aMenuCheckers && $aFiles) {
-            foreach($aMenuCheckers as &$aChecker) {
-                foreach ($aFiles as &$aFile)
-                {
+            foreach ($aMenuCheckers as &$aChecker) {
+                foreach ($aFiles as $aFile) {
                     if ($aFile['name'] == $aChecker['include']) {
                         $aChecker['path'] = $this->_expandFilePath($aFile['path'], $aFile['name'], $name);
                         break;
@@ -1435,9 +1285,9 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return object of OA_Version_Controller
      */
-    function _getVersionController()
+    public function _getVersionController()
     {
-        $oVerControl   = $this->_instantiateClass('OA_Version_Controller');
+        $oVerControl = $this->_instantiateClass('OA_Version_Controller');
         $oVerControl->init(OA_DB::singleton());
         return $oVerControl;
     }
@@ -1453,71 +1303,57 @@ class OX_Plugin_ComponentGroupManager
      */
     public function checkDatabase($name, &$aGroup)
     {
-        $aResult = array();
-        require_once(MAX_PATH.'/lib/OA/Upgrade/DB_Upgrade.php');
-        $oDBUpgrader  = $this->_instantiateClass('OA_DB_Upgrade');
+        $aResult = [];
+        require_once(MAX_PATH . '/lib/OA/Upgrade/DB_Upgrade.php');
+        $oDBUpgrader = $this->_instantiateClass('OA_DB_Upgrade');
         $schema = $aGroup['schema_name'];
-        if ($schema)
-        {
+        if ($schema) {
             $oDBUpgrader->schema = $schema;
             $oDBUpgrader->file_schema = $this->getFilePathToMDB2Schema($name, $schema);
             $enabled = $this->isEnabled($name);
-            if (!$enabled)
-            {
+            if (!$enabled) {
                 $this->enableComponentGroup($name, $aGroup['extends']);
             }
             $oDBUpgrader->buildSchemaDefinition();
 
-            foreach ($oDBUpgrader->oTable->aDefinition['tables'] AS $table => &$aDef)
-            {
-                $aParams = array($oDBUpgrader->prefix.$table);
+            foreach ($oDBUpgrader->oTable->aDefinition['tables'] as $table => &$aDef) {
+                $aParams = [$oDBUpgrader->prefix . $table];
                 OA_DB::setCaseSensitive();
                 $aObjects[$name]['def'] = $oDBUpgrader->oSchema->getDefinitionFromDatabase($aParams);
                 OA_DB::disableCaseSensitive();
 
-                $aObjects[$name]['dif'] = $oDBUpgrader->oSchema->compareDefinitions(array('tables'=>array($table=>$aDef)), $aObjects[$name]['def']);
+                $aObjects[$name]['dif'] = $oDBUpgrader->oSchema->compareDefinitions(['tables' => [$table => $aDef]], $aObjects[$name]['def']);
                 $aObjects[$name]['dbo'] = OA_Dal::factoryDO($table);
-                if ( count($aObjects[$name]['dif']['tables']))
-                {
-                    $aResult[$table]['schema']      = 'ERROR: schema differences found, details in debug.log';
-                    $this->_logError(print_r($aObjects[$name]['dif']['tables'],true),PEAR_LOG_ERR);
+                if (count($aObjects[$name]['dif']['tables'])) {
+                    $aResult[$table]['schema'] = 'ERROR: schema differences found, details in debug.log';
+                    $this->_logError(print_r($aObjects[$name]['dif']['tables'], true), PEAR_LOG_ERR);
+                } else {
+                    $aResult[$table]['schema'] = 'OK';
                 }
-                else
-                {
-                    $aResult[$table]['schema']      = 'OK';
-                }
-                if ( (!is_a($aObjects[$name]['dbo'],'DataObjects_'.ucfirst($table)))
+                if ((!is_a($aObjects[$name]['dbo'], 'DataObjects_' . ucfirst($table)))
                      ||
-                     (!is_a($aObjects[$name]['dbo'],'DB_DataObjectCommon'))
-                   )
-                {
-                    $aResult[$table]['dataobject']      = 'ERROR: dataobject problems found, details in debug.log ';
-                    if (!is_a($aObjects[$name]['dbo'],'DataObjects_'.ucfirst($table)))
-                    {
-                        $this->_logError('Dataobject classname mismatch '.get_class($aObjects[$name]['dbo']).' should be DataObjects_'.ucfirst($table),PEAR_LOG_ERR);
+                     (!is_a($aObjects[$name]['dbo'], 'DB_DataObjectCommon'))
+                ) {
+                    $aResult[$table]['dataobject'] = 'ERROR: dataobject problems found, details in debug.log ';
+                    if (!is_a($aObjects[$name]['dbo'], 'DataObjects_' . ucfirst($table))) {
+                        $this->_logError('Dataobject classname mismatch ' . $aObjects[$name]['dbo']::class . ' should be DataObjects_' . ucfirst($table), PEAR_LOG_ERR);
                     }
-                    if (!is_a($aObjects[$name]['dbo'],'DB_DataObjectCommon'))
-                    {
-                        $this->_logError('Dataobject classtype mismatch '.get_class($aObjects[$name]['dbo']).' is not a DataObjectCommon',PEAR_LOG_ERR);
+                    if (!is_a($aObjects[$name]['dbo'], 'DB_DataObjectCommon')) {
+                        $this->_logError('Dataobject classtype mismatch ' . $aObjects[$name]['dbo']::class . ' is not a DataObjectCommon', PEAR_LOG_ERR);
                     }
+                } else {
+                    $aResult[$table]['dataobject'] = 'OK';
                 }
-                else
-                {
-                    $aResult[$table]['dataobject']      = 'OK';
-                }
-                foreach ($aObjects[$name]['def']['tables'][$table]['fields'] AS $field => &$aField)
-                {
-                    if (!property_exists($aObjects[$name]['dbo'],$field))
-                    {
-                        $aResult[$table]['dataobject']  = 'ERROR: dataobject problems found, details in debug.log ';
-                        $this->_logError('DataObject class definition mismatch '.get_class($aObjects[$name]['dbo']).'::'.$field.' not found',PEAR_LOG_ERR);
-                        $this->_logError(print_r($aObjects[$name]['dbo'],true),PEAR_LOG_ERR);
-                        $this->_logError(print_r($aField,true),PEAR_LOG_ERR);
+                foreach ($aObjects[$name]['def']['tables'][$table]['fields'] as $field => &$aField) {
+                    if (!property_exists($aObjects[$name]['dbo'], $field)) {
+                        $aResult[$table]['dataobject'] = 'ERROR: dataobject problems found, details in debug.log ';
+                        $this->_logError('DataObject class definition mismatch ' . $aObjects[$name]['dbo']::class . '::' . $field . ' not found', PEAR_LOG_ERR);
+                        $this->_logError(print_r($aObjects[$name]['dbo'], true), PEAR_LOG_ERR);
+                        $this->_logError(print_r($aField, true), PEAR_LOG_ERR);
                     }
                 }
             }
-            if (!$enabled)
-            {
+            if (!$enabled) {
                 $this->disableComponentGroup($name, $aGroup['extends']);
             }
         }
@@ -1534,21 +1370,17 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aUndoList
      * @return boolean
      */
-    function _runTasks($name, $aTaskList, $aUndoList=array(), $returnOnError=true)
+    public function _runTasks($name, $aTaskList, $aUndoList = [], $returnOnError = true)
     {
-        foreach ($aTaskList as &$aTask)
-        {
-            $this->_logMessage('Executing '.$aTask['method'].' for '.$name);
-            $result = call_user_func_array(array($this, $aTask['method']), $aTask['params']);
-            if (!$result)
-            {
-                $this->_logError('Task failed '.$aTask['method']);
-                if ($aUndoList)
-                {
+        foreach ($aTaskList as &$aTask) {
+            $this->_logMessage('Executing ' . $aTask['method'] . ' for ' . $name);
+            $result = call_user_func_array([$this, $aTask['method']], $aTask['params']);
+            if (!$result) {
+                $this->_logError('Task failed ' . $aTask['method']);
+                if ($aUndoList) {
                     $this->_runTasks($name, $aUndoList);
                 }
-                if ($returnOnError)
-                {
+                if ($returnOnError) {
                     return false;
                 }
             }
@@ -1562,57 +1394,52 @@ class OX_Plugin_ComponentGroupManager
      * @param string $file
      * @return boolean
      */
-    function _runScript($name, $file='')
+    public function _runScript($name, $file = '')
     {
         static $aClassNames;
 
-        if (!$file)
-        {
+        if (!$file) {
             //OA::debug('No file to run');
             return true;
         }
-        $file = $this->getPathToComponentGroup($name).'etc/'.$file;
-        if (!file_exists($file))
-        {
-            $this->_logError('File does not exist '.$path.$file);
+        $file = $this->getPathToComponentGroup($name) . 'etc/' . $file;
+        if (!file_exists($file)) {
+            $this->_logError('File does not exist ' . $file);
             return false;
         }
         $className = '';
-        if (!@require_once $path.$file)
-        {
-            $this->_logError('Failed to acquire file '.$path.$file);
+        $aParams = null;
+        if (!@require_once $file) {
+            $this->_logError('Failed to acquire file ' . $file);
             return false;
         }
         if (!empty($className)) {
-            $aClassNames[$path.$file] = $className;
+            $aClassNames[$file] = $className;
         } else {
-            $className = $aClassNames[$path.$file];
+            $className = $aClassNames[$file];
         }
         // $classname is declared in script
         $oScript = $this->_instantiateClass($className);
-        if (!$oScript)
-        {
+        if (!$oScript) {
             return false;
         }
-        if (!is_callable(array($oScript, 'execute')))
-        {
-            $this->_logError('Execute method not callable '.$className);
+        if (!is_callable([$oScript, 'execute'])) {
+            $this->_logError('Execute method not callable ' . $className);
             return false;
         }
-        if (property_exists($oScript, 'oManager'))
-        {
-            $oScript->oManager = & $this;
+        if (property_exists($oScript, 'oManager')) {
+            $oScript->oManager = $this;
         }
         if (!isset($aParams)) {
-            $ret = call_user_func(array($oScript, 'execute'));
+            $ret = $oScript->execute();
         } else {
             if (!is_array($aParams)) {
-                $aParams = array($aParams);
+                $aParams = [$aParams];
             }
-            $ret = call_user_func_array(array($oScript, 'execute'), $aParams);
+            $ret = $oScript->execute(...$aParams);
         }
         if (!$ret) {
-            $this->_logError('Failed to execute '.$className);
+            $this->_logError('Failed to execute ' . $className);
             return false;
         }
         return true;
@@ -1623,7 +1450,7 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return boolean
      */
-    function _cacheDependencies()
+    public function _cacheDependencies()
     {
         return $this->_saveDependencyArray($this->_buildDependencyArray());
     }
@@ -1637,41 +1464,32 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return array
      */
-    function _buildDependencyArray()
+    public function _buildDependencyArray()
     {
-        $aResult = array();
+        $aResult = [];
         $aConf = $GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
-        foreach ($aConf as $name => $enabled)
-        {
+        foreach ($aConf as $name => $enabled) {
             $file = $this->getFilePathToXMLInstall($name);
-            if (!file_exists($file))
-            {
-                $msg = 'PLUGIN DEPENDENCY PROBLEM: : unable to determine dependencies for '.$name.' - could not locate definition at '.$file;
+            if (!file_exists($file)) {
+                $msg = 'PLUGIN DEPENDENCY PROBLEM: : unable to determine dependencies for ' . $name . ' - could not locate definition at ' . $file;
                 $this->_logError($msg);
-            }
-            else
-            {
+            } else {
                 $aParse = $this->parseXML($file);
-                foreach ($aParse['install']['syscheck']['depends'] AS &$aDepends)
-                {
+                foreach ($aParse['install']['syscheck']['depends'] as &$aDepends) {
                     $aResult[$aDepends['name']]['isDependedOnBy'][] = $name;
-                    $installed  = (isset($aConf[$aDepends['name']]) ? true : false );
-                    if (!$installed)
-                    {
+                    $installed = (isset($aConf[$aDepends['name']]));
+                    if (!$installed) {
                         $aResult[$name]['dependsOn'][$aDepends['name']] = OX_PLUGIN_DEPENDENCY_NOTFOUND;
-                        $msg = 'PLUGIN DEPENDENCY PROBLEM: '.$name.' depends on '.$aDepends['name'].' but '.$aDepends['name'].' is not installed!';
+                        $msg = 'PLUGIN DEPENDENCY PROBLEM: ' . $name . ' depends on ' . $aDepends['name'] . ' but ' . $aDepends['name'] . ' is not installed!';
                         $this->_logError($msg);
-                    }
-                    else
-                    {
+                    } else {
                         $versionRequired = $aDepends['version'];
                         $version = $this->getComponentGroupVersion($aDepends['name']);
-                        $aResult[$name]['dependsOn'][$aDepends['name']] =  $versionRequired;
+                        $aResult[$name]['dependsOn'][$aDepends['name']] = $versionRequired;
 
-                        if (version_compare($version, $versionRequired,'<'))
-                        {
+                        if (version_compare($version, $versionRequired, '<')) {
                             $aResult[$name]['dependsOn'][$aDepends['name']] = OX_PLUGIN_DEPENDENCY_BADVERSION;
-                            $msg = 'PLUGIN DEPENDENCY PROBLEM: '.$name.' depends on '.$aDepends['name'].' version '.$versionRequired.' but '.$aDepends['name'].' is version '.$version;
+                            $msg = 'PLUGIN DEPENDENCY PROBLEM: ' . $name . ' depends on ' . $aDepends['name'] . ' version ' . $versionRequired . ' but ' . $aDepends['name'] . ' is version ' . $version;
                             $this->_logError($msg);
                         }
                     }
@@ -1681,7 +1499,7 @@ class OX_Plugin_ComponentGroupManager
         return $aResult;
     }
 
-    function _getOA_Cache($group, $id)
+    public function _getOA_Cache($group, $id)
     {
         $oCache = new OA_Cache($group, $id);
         return $oCache;
@@ -1693,7 +1511,7 @@ class OX_Plugin_ComponentGroupManager
      * @param array $aDepends
      * @return boolean
      */
-    function _saveDependencyArray($aDepends)
+    public function _saveDependencyArray($aDepends)
     {
         $oCache = $this->_getOA_Cache('Plugins', 'Dependencies');
         $oCache->setFileNameProtection(false);
@@ -1705,7 +1523,7 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return array
      */
-    function _loadDependencyArray()
+    public function _loadDependencyArray()
     {
         $oCache = $this->_getOA_Cache('Plugins', 'Dependencies');
         $oCache->setFileNameProtection(false);
@@ -1717,7 +1535,7 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return boolean
      */
-    function _clearDependencyCache()
+    public function _clearDependencyCache()
     {
         $oCache = $this->_getOA_Cache('Plugins', 'Dependencies');
         $oCache->setFileNameProtection(false);
@@ -1732,57 +1550,48 @@ class OX_Plugin_ComponentGroupManager
      * @param string $pathOutput
      * @return array | boolean false on error
      */
-    function _cacheDataObjects($newPluginName=null, $aNewSchema=null, $pathOutput=null)
+    public function _cacheDataObjects($newPluginName = null, $aNewSchema = null, $pathOutput = null)
     {
-        $aReturn    = array();
-        $pathOutput = (is_null($pathOutput) ? $this->basePath.$this->pathDataObjects : $pathOutput);
-        $aConf      = $GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
+        $aReturn = [];
+        $pathOutput ??= $this->basePath . $this->pathDataObjects;
+        $aConf = $GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
 
         $oConfigSchema = $this->_instantiateClass('Config');
-        $oConfigLinks  = $this->_instantiateClass('Config');
+        $oConfigLinks = $this->_instantiateClass('Config');
 
         // parse the installed plugin's schema configs
-        foreach ($aConf as $name => $enabled)
-        {
+        foreach ($aConf as $name => $enabled) {
             $aSchema = $this->_getDataObjectSchema($name);
-            if ($aSchema)
-            {
-                if (!$this->_parseDataObjectSchemaConfig($name, $aSchema, $oConfigSchema, $oConfigLinks))
-                {
+            if ($aSchema) {
+                if (!$this->_parseDataObjectSchemaConfig($name, $aSchema, $oConfigSchema, $oConfigLinks)) {
                     return false;
                 }
             }
         }
         // parse the new plugin's schema config
-        if ($newPluginName)
-        {
-            if (is_null($aNewSchema))
-            {
+        if ($newPluginName) {
+            if (is_null($aNewSchema)) {
                 // parse the xml to get new schema info
                 $aNewSchema = $this->_getDataObjectSchema($newPluginName);
-                if (is_null($aNewSchema))
-                {
+                if (is_null($aNewSchema)) {
                     return false;
                 }
             }
-            if (!$this->_parseDataObjectSchemaConfig($newPluginName, $aNewSchema, $oConfigSchema, $oConfigLinks))
-            {
+            if (!$this->_parseDataObjectSchemaConfig($newPluginName, $aNewSchema, $oConfigSchema, $oConfigLinks)) {
                 return false;
             }
         }
         // write the schema and links files
         $aReturn['schemas'] = $oConfigSchema->getRoot();
-        $aReturn['links']   = $oConfigLinks->getRoot();
-        $result = $oConfigSchema->writeConfig($pathOutput.'db_schema.ini', 'inifile');
-        if (PEAR::isError($result))
-        {
-            $this->_logError('Failed to write '.$pathOutput.'db_schema.ini');
+        $aReturn['links'] = $oConfigLinks->getRoot();
+        $result = $oConfigSchema->writeConfig($pathOutput . 'db_schema.ini', 'inifile');
+        if (PEAR::isError($result)) {
+            $this->_logError('Failed to write ' . $pathOutput . 'db_schema.ini');
             return false;
         }
-        $result = $oConfigLinks->writeConfig($pathOutput.'db_schema.links.ini', 'inifile');
-        if (PEAR::isError($result))
-        {
-            $this->_logError('Failed to write '.$pathOutput.'db_schema.links.ini');
+        $result = $oConfigLinks->writeConfig($pathOutput . 'db_schema.links.ini', 'inifile');
+        if (PEAR::isError($result)) {
+            $this->_logError('Failed to write ' . $pathOutput . 'db_schema.links.ini');
             return false;
         }
         return $aReturn;
@@ -1793,15 +1602,14 @@ class OX_Plugin_ComponentGroupManager
      * return only the schema portion of the array
      *
      * @param string $name
-     * @return array
+     * @return array|false
      */
-    function _getDataObjectSchema($name)
+    public function _getDataObjectSchema($name)
     {
         $file = $this->getFilePathToXMLInstall($name);
-        if (!file_exists($file))
-        {
-            $this->_logError('Unable to determine schema requirements for '.$name.' - could not locate definition at '.$file);
-            return $false;
+        if (!file_exists($file)) {
+            $this->_logError('Unable to determine schema requirements for ' . $name . ' - could not locate definition at ' . $file);
+            return false;
         }
         $aGroup = $this->parseXML($file, 'OX_ParserComponentGroup');
         return $aGroup['install']['schema'];
@@ -1817,24 +1625,20 @@ class OX_Plugin_ComponentGroupManager
      * @param object of Config $oConfigLinks
      * @return boolean
      */
-    function _parseDataObjectSchemaConfig($name, $aSchema, &$oConfigSchema, &$oConfigLinks)
+    public function _parseDataObjectSchemaConfig($name, $aSchema, &$oConfigSchema, &$oConfigLinks)
     {
-        if ($aSchema['dboschema'])
-        {
-            $schemaPath     = dirname($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']));
-            $fileIn = $schemaPath.'/DataObjects/'.$aSchema['dboschema'].'.ini';
-            if (!file_exists($fileIn))
-            {
-                $this->_logError('PLUGIN SCHEMA PROBLEM: : unable to determine schema requirements for '.$name.' - could not locate definition at '.$fileIn);
+        if ($aSchema['dboschema']) {
+            $schemaPath = dirname($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema']));
+            $fileIn = $schemaPath . '/DataObjects/' . $aSchema['dboschema'] . '.ini';
+            if (!file_exists($fileIn)) {
+                $this->_logError('PLUGIN SCHEMA PROBLEM: : unable to determine schema requirements for ' . $name . ' - could not locate definition at ' . $fileIn);
                 return false;
             }
             $oConfigSchema->parseConfig($fileIn, 'inifile');
-            if (!empty($aSchema['dbolinks']))
-            {
-                $fileIn  = $schemaPath.'/DataObjects/'.$aSchema['dbolinks'].'.ini';
-                if (!file_exists($fileIn))
-                {
-                    $this->_logError('PLUGIN SCHEMA PROBLEM: : unable to determine schema requirements for '.$name.' - could not locate definition at '.$fileIn);
+            if (!empty($aSchema['dbolinks'])) {
+                $fileIn = $schemaPath . '/DataObjects/' . $aSchema['dbolinks'] . '.ini';
+                if (!file_exists($fileIn)) {
+                    $this->_logError('PLUGIN SCHEMA PROBLEM: : unable to determine schema requirements for ' . $name . ' - could not locate definition at ' . $fileIn);
                     return false;
                 }
                 $oConfigLinks->parseConfig($fileIn, 'inifile');
@@ -1851,35 +1655,29 @@ class OX_Plugin_ComponentGroupManager
      * @param string $pathTarget
      * @return boolean
      */
-    function _putDataObjects($name=null, $aSchema=null, $pathTarget=null)
+    public function _putDataObjects($name = null, $aSchema = null, $pathTarget = null)
     {
-        if (empty($aSchema['dataobjects']))
-        {
-            $this->_logError('No dataobjects defined for '.$name, PEAR_LOG_ERR);
+        if (empty($aSchema['dataobjects'])) {
+            $this->_logError('No dataobjects defined for ' . $name, PEAR_LOG_ERR);
             return false;
         }
-        $pathTarget = (is_null($pathTarget) ? $this->basePath.$this->pathDataObjects : $pathTarget);
-        if (!file_exists($pathTarget))
-        {
-            $this->_logError('Invalid source path to plugin dataobjects '.$pathTarget, PEAR_LOG_ERR);
+        $pathTarget ??= $this->basePath . $this->pathDataObjects;
+        if (!file_exists($pathTarget)) {
+            $this->_logError('Invalid source path to plugin dataobjects ' . $pathTarget, PEAR_LOG_ERR);
             return false;
         }
-        $pathSource = dirname($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema'])).'/DataObjects/';
-        if (!file_exists($pathSource))
-        {
-            $this->_logError('Invalid target path for plugin dataobjects '.$pathSource, PEAR_LOG_ERR);
+        $pathSource = dirname($this->getFilePathToMDB2Schema($name, $aSchema['mdb2schema'])) . '/DataObjects/';
+        if (!file_exists($pathSource)) {
+            $this->_logError('Invalid target path for plugin dataobjects ' . $pathSource, PEAR_LOG_ERR);
             return false;
         }
-        foreach ($aSchema['dataobjects'] AS $idx => &$file)
-        {
-            if (!file_exists($pathSource.$file))
-            {
-                $this->_logError('Failed to find source file '.$pathSource.$file.' for '.$name, PEAR_LOG_ERR);
+        foreach ($aSchema['dataobjects'] as $idx => &$file) {
+            if (!file_exists($pathSource . $file)) {
+                $this->_logError('Failed to find source file ' . $pathSource . $file . ' for ' . $name, PEAR_LOG_ERR);
                 return false;
             }
-            if (!@copy($pathSource.$file, $pathTarget.$file))
-            {
-                $this->_logError('Failed to copy dataobject '.$pathSource.$file.' to '.$pathTarget.$file, PEAR_LOG_ERR);
+            if (!@copy($pathSource . $file, $pathTarget . $file)) {
+                $this->_logError('Failed to copy dataobject ' . $pathSource . $file . ' to ' . $pathTarget . $file, PEAR_LOG_ERR);
                 return false;
             }
         }
@@ -1894,57 +1692,46 @@ class OX_Plugin_ComponentGroupManager
      * @param string $pathTarget
      * @return boolean
      */
-    function _removeDataObjects($name=null, $aSchema=null, $pathTarget=null)
+    public function _removeDataObjects($name = null, $aSchema = null, $pathTarget = null)
     {
-        if (empty($aSchema['dataobjects']))
-        {
-            $this->_logError('No dataobjects defined for '.$name, PEAR_LOG_ERR);
+        if (empty($aSchema['dataobjects'])) {
+            $this->_logError('No dataobjects defined for ' . $name, PEAR_LOG_ERR);
             return false;
         }
-        $pathTarget = (is_null($pathTarget) ? $this->basePath.$this->pathDataObjects : $pathTarget);
-        if (!file_exists($pathTarget))
-        {
-            $this->_logError('Invalid source path to plugin dataobjects '.$pathTarget.' for '.$name, PEAR_LOG_ERR);
+        $pathTarget ??= $this->basePath . $this->pathDataObjects;
+        if (!file_exists($pathTarget)) {
+            $this->_logError('Invalid source path to plugin dataobjects ' . $pathTarget . ' for ' . $name, PEAR_LOG_ERR);
             return false;
         }
-        foreach ($aSchema['dataobjects'] AS $idx => &$file)
-        {
-            if (file_exists($pathTarget.$file))
-            {
-                if (!@unlink($pathTarget.$file))
-                {
-                    $this->_logError('Failed to remove dataobject '.$pathTarget.$file.' for '.$name, PEAR_LOG_ERR);
+        foreach ($aSchema['dataobjects'] as $idx => &$file) {
+            if (file_exists($pathTarget . $file)) {
+                if (!@unlink($pathTarget . $file)) {
+                    $this->_logError('Failed to remove dataobject ' . $pathTarget . $file . ' for ' . $name, PEAR_LOG_ERR);
                 }
             }
         }
         return true;
     }
 
-    function mergeMenu(&$oMenu, $accountType)
+    public function mergeMenu(&$oMenu, $accountType)
     {
         if (is_array($GLOBALS['_MAX']['CONF']['pluginGroupComponents'])) {
             $aGroups = $GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
         } else {
-            $aGroups = array();
+            $aGroups = [];
         }
 
-        foreach ($aGroups as $name => &$enabled)
-        {
-            if ($enabled)
-            {
+        foreach ($aGroups as $name => &$enabled) {
+            if ($enabled) {
                 $file = $this->getFilePathToXMLInstall($name);
-                if (!@file_exists ($file))
-                {
+                if (!@file_exists($file)) {
                     continue;
                 }
                 $aParse = $this->parseXML($file);
-                if (isset($aParse['install']['navigation'][$accountType]))
-                {
-                    $aCheckers = $this->_prepareMenuCheckers($name, $aParse['install']['navigation']['checkers'], $aParse['install']['files']);
-                    foreach ($aParse['install']['navigation'][$accountType] as $idx => &$aMenu)
-                    {
-                        if (!$this->_addMenuSection($oMenu, $aMenu, $aCheckers))
-                        {
+                if (isset($aParse['install']['navigation'][$accountType])) {
+                    $aCheckers = $this->_prepareMenuCheckers($name, $aParse['install']['navigation']['checkers'] ?? null, $aParse['install']['files'] ?? null);
+                    foreach ($aParse['install']['navigation'][$accountType] as $idx => &$aMenu) {
+                        if (!$this->_addMenuSection($oMenu, $aMenu, $aCheckers)) {
                             return false;
                         }
                     }
@@ -1957,104 +1744,90 @@ class OX_Plugin_ComponentGroupManager
     /**
      * add a section to a menu object
      *
-     * @param object of type OA_Admin_Menu $oMenu
+     * @param OA_Admin_Menu $oMenu
      * @param array $aMenu
      * @param array $aCheckers
      * @return boolean
      */
-    function _addMenuSection(&$oMenu, &$aMenu, &$aCheckers)
+    public function _addMenuSection($oMenu, $aMenu, $aCheckers)
     {
-        if (isset($aMenu['exclusive'])) {
-            if ($aMenu['exclusive'] == 'true' || $aMenu['exclusive'] == '1') {
-                $aMenu['exclusive'] = true;
-            } else {
-                $aMenu['exclusive'] = false;
-            }
-        }
-        if ($aMenu['add'])
-        {
-            if ($oMenu->get($aMenu['add'],false))
-            {
+        if (!empty($aMenu['add'])) {
+            if ($oMenu->get($aMenu['add'], false)) {
                 // menu already exists
-                $this->_logError('Menu already exists for '.$aMenu['add']);
+                $this->_logError('Menu already exists for ' . $aMenu['add']);
                 return false;
             }
-            $oMenuSection = new OA_Admin_Menu_Section($aMenu['add'], $aMenu['value'], $aMenu['link'], $aMenu['exclusive'], $aMenu['helplink']);
+            $oMenuSection = new OA_Admin_Menu_Section($aMenu['add'], $aMenu['value'], $aMenu['link'], $aMenu['exclusive'] ?? false, $aMenu['helplink'] ?? '');
             $oMenu->add($oMenuSection);
-        }
-        elseif ($aMenu['replace'])
-        {
-			if (!$oMenu->get($aMenu['replace'],false))
-			{
-			    $this->_logError('Menu to replace does not exist '.$aMenu['replace']);
-			    return false;
-			}
-			if( !empty($aMenu['index']) && $aMenu['index'] != $aMenu['replace'])
-			{
-			    $this->_logError('When replacing a menu, you can\'t define an \'index\' in the menu definition that is different from the menu index it is replacing.
-			    You can also simply remove the \'index='.$aMenu['index'].' from your menu definition file.');
-			    return false;
-			}
-			$oMenuSection = $oMenu->get($aMenu['replace'], false);
-			if($aMenu['value']) $oMenuSection->setNameKey($aMenu['value']);
-			if($aMenu['link']) $oMenuSection->setLink($aMenu['link']);
-			if($aMenu['exclusive']) $oMenuSection->setExclusive($aMenu['exclusive']);
-			if($aMenu['helplink']) $oMenuSection->setHelpLink($aMenu['helplink']);
-			$oMenuSection->setSectionHasBeenReplaced();
-        }
-        else
-		{
-            if ($oMenu->get($aMenu['index'],false))
-            {
-                $this->_logError('Menu already exists for '.$aMenu['index']);
+        } elseif (!empty($aMenu['replace'])) {
+            if (!$oMenu->get($aMenu['replace'], false)) {
+                $this->_logError('Menu to replace does not exist ' . $aMenu['replace']);
                 return false;
             }
-            $oMenuSection = new OA_Admin_Menu_Section($aMenu['index'], $aMenu['value'], $aMenu['link'], $aMenu['exclusive'], $aMenu['helplink']);
-            if ($aMenu['addto'])
-            {
-                if (!$oMenu->get($aMenu['addto'],false))
-                {
-                    $this->_logError('Parent menu does not exist for '.$aMenu['addto']);
+            if (!empty($aMenu['index']) && $aMenu['index'] != $aMenu['replace']) {
+                $this->_logError('When replacing a menu, you can\'t define an \'index\' in the menu definition that is different from the menu index it is replacing.
+			    You can also simply remove the \'index=' . $aMenu['index'] . ' from your menu definition file.');
+                return false;
+            }
+            $oMenuSection = $oMenu->get($aMenu['replace'], false);
+            if (!empty($aMenu['value'])) {
+                $oMenuSection->setNameKey($aMenu['value']);
+            }
+            if (!empty($aMenu['link'])) {
+                $oMenuSection->setLink($aMenu['link']);
+            }
+            if (!empty($aMenu['exclusive'])) {
+                $oMenuSection->setExclusive($aMenu['exclusive']);
+            }
+            if (!empty($aMenu['helplink'])) {
+                $oMenuSection->setHelpLink($aMenu['helplink']);
+            }
+            $oMenuSection->setSectionHasBeenReplaced();
+        } else {
+            if (!isset($aMenu['index'], $aMenu['value'], $aMenu['link'])) {
+                $this->_logError('Menu definition is missing index, value or link');
+                return false;
+            }
+            if ($oMenu->get($aMenu['index'], false)) {
+                $this->_logError('Menu already exists for ' . $aMenu['index']);
+                return false;
+            }
+            $oMenuSection = new OA_Admin_Menu_Section($aMenu['index'], $aMenu['value'], $aMenu['link'], $aMenu['exclusive'] ?? false, $aMenu['helplink'] ?? '');
+            if (!empty($aMenu['addto'])) {
+                if (!$oMenu->get($aMenu['addto'], false)) {
+                    $this->_logError('Parent menu does not exist for ' . $aMenu['addto']);
                     return false;
                 }
                 $oMenu->addTo($aMenu['addto'], $oMenuSection);
-            }
-            else if ($aMenu['insertafter'])
-            {
-                if (!$oMenu->get($aMenu['insertafter'],false))
-                {
-                    $this->_logError('Menu to insert after does not exist '.$aMenu['insertafter']);
+            } elseif (!empty($aMenu['insertafter'])) {
+                if (!$oMenu->get($aMenu['insertafter'], false)) {
+                    $this->_logError('Menu to insert after does not exist ' . $aMenu['insertafter']);
                     return false;
                 }
                 $oMenu->insertAfter($aMenu['insertafter'], $oMenuSection);
-            }
-            else if ($aMenu['insertbefore'])
-            {
-                if (!$oMenu->get($aMenu['insertbefore'],false))
-                {
-                    $this->_logError('Menu to insert before does not exist '.$aMenu['insertbefore']);
+            } elseif (!empty($aMenu['insertbefore'])) {
+                if (!$oMenu->get($aMenu['insertbefore'], false)) {
+                    $this->_logError('Menu to insert before does not exist ' . $aMenu['insertbefore']);
                     return false;
                 }
                 $oMenu->insertBefore($aMenu['insertbefore'], $oMenuSection);
             }
         }
-        if ($aMenu['checker'])
-        {
+        if (!empty($aMenu['checker'])) {
             $checkerClassName = $aMenu['checker'];
             @include_once MAX_PATH . $aCheckers[$checkerClassName]['path'];
-            if (class_exists($checkerClassName))
-            {
+            if (class_exists($checkerClassName)) {
                 $oMenu->addCheckerIncludePath($checkerClassName, $aCheckers[$checkerClassName]['path']);
-                $oChecker = new $checkerClassName;
+                $oChecker = new $checkerClassName();
                 $oMenuSection->setChecker($oChecker);
             }
         }
         return true;
     }
 
-    function &_getOA_Admin_Menu($accountType)
+    public function _getOA_Admin_Menu()
     {
-        return new OA_Admin_Menu($accountType);
+        return new OA_Admin_Menu();
     }
 
     /**
@@ -2063,26 +1836,23 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return object of type OA_Admin_Menu
      */
-    function _getMenuObject($accountType)
+    public function _getMenuObject($accountType)
     {
-        $oMenu = $this->_getOA_Admin_Menu($accountType);
-        if (empty($oMenu->aAllSections))
-        {
-            include_once MAX_PATH. '/lib/OA/Admin/Menu/config.php';
+        $oMenu = $this->_getOA_Admin_Menu();
+        if (empty($oMenu->aAllSections)) {
+            include_once MAX_PATH . '/lib/OA/Admin/Menu/config.php';
             $oMenu = _buildNavigation($accountType);
         }
         return $oMenu;
     }
 
-    public function getComponentGroupsList($aGroups=null)
+    public function getComponentGroupsList($aGroups = null)
     {
-        if (!$aGroups)
-        {
+        if (!$aGroups) {
             $aGroups = array_reverse(array_keys($GLOBALS['_MAX']['CONF']['pluginGroupComponents']));
         }
-        $aResult = array();
-        foreach ($aGroups as $k => &$v)
-        {
+        $aResult = [];
+        foreach ($aGroups as $k => &$v) {
             $aResult[] = $this->getComponentGroupInfo($v);
         }
         return $aResult;
@@ -2097,8 +1867,7 @@ class OX_Plugin_ComponentGroupManager
     public function getComponentGroupVersion($name)
     {
         $oVerControl = $this->_getVersionController();
-        if (!$oVerControl)
-        {
+        if (!$oVerControl) {
             return false;
         }
         return $oVerControl->getApplicationVersion($name);
@@ -2113,46 +1882,38 @@ class OX_Plugin_ComponentGroupManager
     public function getComponentGroupInfo($name)
     {
         $file = $this->getFilePathToXMLInstall($name);
-        $aGroup = array();
-        if (!@file_exists ($file))
-        {
-            return array();
+        $aGroup = [];
+        if (!@file_exists($file)) {
+            return [];
         }
-        $aParse = $this->parseXML($file,'OX_ParserComponentGroup');
+        $aParse = $this->parseXML($file, 'OX_ParserComponentGroup');
         $aConf = &$GLOBALS['_MAX']['CONF']['pluginGroupComponents'];
-        $aGroup['installed']   = (isset($aConf[$name]) ? true : false);
-        $aGroup['enabled']     = ($aGroup['installed'] && $aConf[$name] ? true : false);
-        $aGroup['settings']    = false;
+        $aGroup['installed'] = (isset($aConf[$name]));
+        $aGroup['enabled'] = ($aGroup['installed'] && $aConf[$name]);
+        $aGroup['settings'] = false;
         $aGroup['preferences'] = false;
-        foreach ($aParse AS $k => &$v)
-        {
-            if (!is_array($v))
-            {
+        foreach ($aParse as $k => &$v) {
+            if (!is_array($v)) {
                 $aGroup[$k] = $v;
-            }
-            else if ($k == 'install' && isset($v['conf']))
-            {
-                if (count($v['conf']['settings'])>0)
-                {
+            } elseif ($k == 'install' && isset($v['conf'])) {
+                if (count($v['conf']['settings']) > 0) {
                     foreach ($v['conf']['settings'] as $setting) {
                         if (!empty($setting['visible'])) {
                             $aGroup['settings'] = true;
                         }
                     }
                 }
-                if (count($v['conf']['preferences'])>0)
-                {
+                if (count($v['conf']['preferences']) > 0) {
                     $aGroup['preferences'] = true;
                 }
             }
         }
-        $schema_version = $this->getSchemaInfo($aParse['install']['schema']['mdb2schema']);
-        if ($schema_version)
-        {
-            $aGroup['schema_name']     = $aParse['install']['schema']['mdb2schema'];
-            $aGroup['schema_version']  = $schema_version;
+        $schema_version = $this->getSchemaInfo($aParse['install']['schema']['mdb2schema'] ?? null);
+        if ($schema_version) {
+            $aGroup['schema_name'] = $aParse['install']['schema']['mdb2schema'];
+            $aGroup['schema_version'] = $schema_version;
         }
-        $aGroup['components'] = $aParse['install']['components'];
+        $aGroup['components'] = $aParse['install']['components'] ?? null;
 
         unset($aGroup['upgrade']);
         return $aGroup;
@@ -2167,32 +1928,29 @@ class OX_Plugin_ComponentGroupManager
     public function getSchemaInfo($schema)
     {
         $oVerControl = $this->_getVersionController();
-        if (!$oVerControl)
-        {
+        if (!$oVerControl) {
             return false;
         }
         $version = $oVerControl->getSchemaVersion($schema);
-        if (!$version)
-        {
+        if (!$version) {
             return false;
         }
         return $version;
     }
 
-     /**
-     * parse a plugin xml file
-     * return only the configuration portion of the array
-     *
-     * @param string $name
-     * @return array
-     */
-    function _getComponentGroupConfiguration($name)
+    /**
+    * parse a plugin xml file
+    * return only the configuration portion of the array
+    *
+    * @param string $name
+    * @return array|false
+    */
+    public function _getComponentGroupConfiguration($name)
     {
         $file = $this->getFilePathToXMLInstall($name);
-        if (!file_exists($file))
-        {
-            $this->_logError('Unable to determine configuration requirements for '.$name.' - could not locate definition at '.$file);
-            return $false;
+        if (!file_exists($file)) {
+            $this->_logError('Unable to determine configuration requirements for ' . $name . ' - could not locate definition at ' . $file);
+            return false;
         }
         $aGroup = $this->parseXML($file);
         return $aGroup['install']['conf'];
@@ -2205,7 +1963,7 @@ class OX_Plugin_ComponentGroupManager
      *
      * @return array The array of settings for this component group
      */
-    function getComponentGroupSettings($name, $visibleOnly = false)
+    public function getComponentGroupSettings($name, $visibleOnly = false)
     {
         $aGroup = $this->_getComponentGroupConfiguration($name);
         $aSettings = $aGroup['settings'];
@@ -2216,27 +1974,27 @@ class OX_Plugin_ComponentGroupManager
                 }
             }
         }
-        return $aSettings;;
+        return $aSettings;
+        ;
     }
 
-    function getComponentGroupObjectsInfo($extends, $group)
+    public function getComponentGroupObjectsInfo($extends, $group)
     {
-        require_once LIB_PATH.'/Plugin/Component.php';
+        require_once LIB_PATH . '/Plugin/Component.php';
         $aComponents = OX_Component::getComponents($extends, $group, false, true, false);
-        foreach ($aComponents as &$obj)
-        {
-            $aResult[] = (array)$obj;
+        foreach ($aComponents as &$obj) {
+            $aResult[] = (array) $obj;
         }
         return $aResult;
         //$aGroupInfo['pluginGroupComponents'] = OX_Component::_getComponentFiles($aGroupInfo['extends'], $plugin);
     }
 
 
-    function _expandFilePath($path, $file, $groupname='', $pluginname='')
+    public function _expandFilePath($path, $file, $groupname = '', $pluginname = '')
     {
-        $aPattern   = array(OX_PLUGIN_PLUGINPATH_REX, OX_PLUGIN_GROUPPATH_REX, OX_PLUGIN_MODULEPATH_REX, OX_PLUGIN_ADMINPATH_REX);
-        $aReplace   = array($this->pathPackages, $this->pathPackages.$groupname, $this->pathPlugins, $this->pathPluginsAdmin.$groupname);
-        $result     = preg_replace($aPattern,$aReplace,$path.$file);
+        $aPattern = [OX_PLUGIN_PLUGINPATH_REX, OX_PLUGIN_GROUPPATH_REX, OX_PLUGIN_MODULEPATH_REX, OX_PLUGIN_ADMINPATH_REX];
+        $aReplace = [$this->pathPackages, $this->pathPackages . $groupname, $this->pathPlugins, $this->pathPluginsAdmin . $groupname];
+        $result = preg_replace($aPattern, $aReplace, $path . $file);
         return $result;
     }
 
@@ -2265,7 +2023,4 @@ class OX_Plugin_ComponentGroupManager
        if ($argstring) return eval("return new $classname($argstring);");
        return new $classname;
     } */
-
 }
-
-?>

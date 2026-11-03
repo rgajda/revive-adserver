@@ -30,14 +30,16 @@ require_once MAX_PATH . '/lib/max/Delivery/limitations.delivery.php';
  */
 class Plugins_DeliveryLimitations_Geo_Continent extends Plugins_DeliveryLimitations_CommaSeparatedData
 {
-    function __construct()
+    use \RV\Extension\DeliveryLimitations\GeoLimitationTrait;
+
+    public function __construct()
     {
         parent::__construct();
         $this->nameEnglish = 'Geo - Continent';
     }
 
 
-    function init($data)
+    public function init($data)
     {
         parent::init($data);
         $this->setAValues(array_keys($this->res));
@@ -49,10 +51,9 @@ class Plugins_DeliveryLimitations_Geo_Continent extends Plugins_DeliveryLimitati
      *
      * @return boolean
      */
-    function isAllowed($page = false)
+    public function isAllowed($page = false)
     {
-        return ((isset($GLOBALS['_MAX']['GEO_DATA']['country_code']))
-            || $GLOBALS['_MAX']['CONF']['geotargeting']['showUnavailable']);
+        return $this->hasCapability('continent');
     }
 
     /**
@@ -60,39 +61,16 @@ class Plugins_DeliveryLimitations_Geo_Continent extends Plugins_DeliveryLimitati
      *
      * @return void
      */
-    function displayArrayData()
+    public function displayArrayData()
     {
-        $tabindex =& $GLOBALS['tabindex'];
+        $tabindex = &$GLOBALS['tabindex'];
 
         echo "<div class='box'>";
-        foreach ($this->res as $continent => $countries) {
+        foreach ($this->res as $code => $name) {
             echo "<div class='boxrow'>";
-            echo "<input tabindex='".($tabindex++)."' ";
-            echo "type='checkbox' id='c_{$this->executionorder}_{$continent}' name='acl[{$this->executionorder}][data][]' value='{$continent}'".(in_array($continent, $this->data) ? ' checked="checked"' : '').">{$countries[0]}</div>";
+            echo "<input tabindex='" . ($tabindex++) . "' ";
+            echo "type='checkbox' id='c_{$this->executionorder}_{$code}' name='acl[{$this->executionorder}][data][]' value='{$code}'" . (in_array($code, $this->data) ? ' CHECKED' : '') . ">{$name}</div>";
         }
         echo "</div>";
     }
-
-
-    function compile()
-    {
-        $sData = $this->_preCompile($this->data);
-        return $this->compileData($sData);
-    }
-
-
-    function _preCompile($sData)
-    {
-        $aContinentCodes = MAX_limitationsGetAFromS($sData);
-        $aCountries = array();
-        foreach ($aContinentCodes as $continentCode) {
-            $aContinentCountries = $this->res[$continentCode];
-            unset($aContinentCountries[0]); // Remove the name of the continent
-            $aCountries = array_merge($aCountries, $aContinentCountries);
-        }
-        return parent::_preCompile(MAX_limitationsGetSFromA($aCountries));
-    }
-
 }
-
-?>

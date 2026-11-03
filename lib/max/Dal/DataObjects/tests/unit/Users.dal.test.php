@@ -22,17 +22,9 @@ require_once MAX_PATH . '/lib/max/Dal/tests/util/DalUnitTestCase.php';
  */
 class DataObjects_UsersTest extends DalUnitTestCase
 {
-    var $userId;
+    public $userId;
 
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    function setUp()
+    public function setUp()
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doUsers->contact_name = 'foo';
@@ -43,7 +35,7 @@ class DataObjects_UsersTest extends DalUnitTestCase
         $this->assertTrue($this->userId);
     }
 
-    function tearDown()
+    public function tearDown()
     {
         DataGenerator::cleanUp();
     }
@@ -56,16 +48,16 @@ class DataObjects_UsersTest extends DalUnitTestCase
      * @return array | integer  Array of users ids or one user id
      *                          if only one record was created
      */
-    function createUser($doUsers = null, $cUsers = 1)
+    public function createUser($doUsers = null, $cUsers = 1)
     {
         static $userCounter = 0;
         if (!$doUsers) {
             $doUsers = OA_Dal::factoryDO('users');
         }
-        $aUsersIds = array();
+        $aUsersIds = [];
         for ($i = 1; $i <= $cUsers; $i++) {
             if (empty($doUsers->username)) {
-                $doUsers->username = 'test'.++$userCounter;
+                $doUsers->username = 'test' . ++$userCounter;
             }
             $aUsersIds[] = DataGenerator::generateOne($doUsers);
         }
@@ -75,13 +67,13 @@ class DataObjects_UsersTest extends DalUnitTestCase
         return $aUsersIds;
     }
 
-    function testInsert()
+    public function testInsert()
     {
         $doUsers = OA_Dal::staticGetDO('users', $this->userId);
         $this->assertEqual($doUsers->username, 'foo');
     }
 
-    function testUpdate()
+    public function testUpdate()
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doUsers->user_id = $this->userId;
@@ -92,7 +84,7 @@ class DataObjects_UsersTest extends DalUnitTestCase
         $this->assertEqual($doUsers->username, 'bar');
     }
 
-    function testUserExists()
+    public function testUserExists()
     {
         $doUsers = OA_Dal::factoryDO('users');
         $this->assertTrue($doUsers->userExists('foo'));
@@ -100,7 +92,7 @@ class DataObjects_UsersTest extends DalUnitTestCase
         $this->assertTrue($doUsers->userExists('FOO'));
     }
 
-    function testLogDateLastLogIn()
+    public function testLogDateLastLogIn()
     {
         $userId = DataGenerator::generateOne('users');
         $now = new Date();
@@ -111,23 +103,23 @@ class DataObjects_UsersTest extends DalUnitTestCase
         $this->assertEqual($doUsers->date_last_login, $nowFormatted);
     }
 
-    function _checkIfPermissionsExists($permissionsToCheck, $aNewPermissions)
+    public function _checkIfPermissionsExists($permissionsToCheck, $aNewPermissions)
     {
         foreach ($permissionsToCheck as $accountId => $aPermissions) {
             foreach ($aPermissions as $permissionId) {
-                $this->assertTrue(isset($aNewPermissions[$accountId][$permissionId]),
-                        'Permission id('.$permissionId.') in account id('.$accountId.') is not set');
+                $this->assertTrue(
+                    isset($aNewPermissions[$accountId][$permissionId]),
+                    'Permission id(' . $permissionId . ') in account id(' . $accountId . ') is not set',
+                );
             }
         }
     }
 
-    function _setAccountsAndPermissions($userId, $accountPermissions)
+    public function _setAccountsAndPermissions($userId, $accountPermissions)
     {
         foreach ($accountPermissions as $accountId => $aPermissions) {
             OA_Permission::setAccountAccess($accountId, $userId);
             OA_Permission::storeUserAccountsPermissions($aPermissions, $accountId, $userId);
         }
     }
-
 }
-?>

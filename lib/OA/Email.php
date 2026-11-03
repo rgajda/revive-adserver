@@ -24,6 +24,11 @@ require_once MAX_PATH . '/www/admin/lib-statistics.inc.php';
 require_once LIB_PATH . '/OperationInterval.php';
 require_once OX_PATH . '/lib/pear/Date.php';
 
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
+use RV\Extension\MailerComponentInterface;
+
 /**
  * A class to provide support for sending of email-based reports and
  * alerts.
@@ -33,15 +38,16 @@ require_once OX_PATH . '/lib/pear/Date.php';
 class OA_Email
 {
     // Cache variables
-    var $aAdminCache;
-    var $aClientCache;
-    var $aAgencyCache;
+    public $aAdminCache;
+    public $aClientCache;
+    public $aAgencyCache;
 
-    function sendCampaignDeliveryEmail($aAdvertiser, $oStartDate = null, $oEndDate = null, $campaignId = null) {
+    public function sendCampaignDeliveryEmail($aAdvertiser, $oStartDate = null, $oEndDate = null, $campaignId = null)
+    {
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         $aAdvertiserPrefs = OA_Preferences::loadAccountPreferences($aAdvertiser['account_id'], true);
-        $oTimezone = new Date_Timezone($aAdvertiserPrefs['timezone']);
+        $oTimezone = new Date_TimeZone($aAdvertiserPrefs['timezone'] ?? 'UTC');
 
         $this->convertStartEndDate($oStartDate, $oEndDate, $oTimezone);
 
@@ -61,10 +67,12 @@ class OA_Email
                             $copiesSent++;
                             if ($aConf['email']['logOutgoing']) {
                                 phpAds_userlogSetUser(phpAds_userMaintenance);
-                                phpAds_userlogAdd(phpAds_actionAdvertiserReportMailed, $aAdvertiser['clientid'],
+                                phpAds_userlogAdd(
+                                    phpAds_actionAdvertiserReportMailed,
+                                    $aAdvertiser['clientid'],
                                     "{$aEmail['subject']}\n\n
                                      {$aUser['contact_name']}({$aUser['email_address']})\n\n
-                                     {$aEmail['contents']}"
+                                     {$aEmail['contents']}",
                                 );
                             }
                         }
@@ -99,10 +107,9 @@ class OA_Email
      *                          'userEmail' => The email address to send the report to.
      *                          'userName'  => The real name of the email address, or null.
      */
-    function prepareCampaignDeliveryEmail($aUser, $advertiserId, $oStartDate, $oEndDate, $campaignId = null)
+    public function prepareCampaignDeliveryEmail($aUser, $advertiserId, $oStartDate, $oEndDate, $campaignId = null)
     {
-
-        Language_Loader::load('default',$aUser['language']);
+        Language_Loader::load('default', $aUser['language'] ?? null);
 
         OA::debug('   - Preparing "campaign delivery" report for advertiser ID ' . $advertiserId . '.', PEAR_LOG_DEBUG);
 
@@ -114,14 +121,14 @@ class OA_Email
 
         // Load the required strings
         global $strMailHeader, $strSirMadam, $strMailBannerStats, $strMailReportPeriodAll,
-               $strMailReportPeriod, $date_format, $strMailSubject;
+        $strMailReportPeriod, $date_format, $strMailSubject;
 
         // Prepare the result array
-        $aResult = array(
-            'subject'   => '',
-            'contents'  => '',
+        $aResult = [
+            'subject' => '',
+            'contents' => '',
             'hasAdviews' => false,
-        );
+        ];
 
         // Get the advertiser's details
         $aAdvertiser = $this->_loadAdvertiser($advertiserId);
@@ -136,7 +143,7 @@ class OA_Email
         }
         // Does the advertiser have an email address?
         if (empty($aUser['email_address'])) {
-            OA::debug('   - No email for User ID ' . $aUser['user_id']. '.', PEAR_LOG_ERR);
+            OA::debug('   - No email for User ID ' . $aUser['user_id'] . '.', PEAR_LOG_ERR);
             return false;
         }
 
@@ -153,9 +160,9 @@ class OA_Email
         $email = "$strMailHeader\n\n";
         if (!empty($aUser['contact_name'])) {
             $greetingTo = $aUser['contact_name'];
-        } else if (!empty($aAdvertiser['contact'])) {
+        } elseif (!empty($aAdvertiser['contact'])) {
             $greetingTo = $aAdvertiser['contact'];
-        } else if (!empty($aAdvertiser['clientname'])) {
+        } elseif (!empty($aAdvertiser['clientname'])) {
             $greetingTo = $aAdvertiser['clientname'];
         } else {
             $greetingTo = $strSirMadam;
@@ -183,8 +190,8 @@ class OA_Email
         $email .= $this->_prepareRegards($aAdvertiser['agencyid']);
 
         // Prepare & return the final email array
-        $aResult['subject']    = $strMailSubject . ': ' . $aAdvertiser['clientname'];
-        $aResult['contents']   = $email;
+        $aResult['subject'] = $strMailSubject . ': ' . $aAdvertiser['clientname'];
+        $aResult['contents'] = $email;
         $aResult['hasAdviews'] = ($aEmailBody['adviews'] > 0);
         return $aResult;
     }
@@ -199,29 +206,29 @@ class OA_Email
      * @param PEAR::Date $oEndDate     The end date of the report, inclusive.
      * @param integer    $campaignId   Restrict the report to a single campaign.
      */
-    function _prepareCampaignDeliveryEmailBody($advertiserId, $oStartDate, $oEndDate, $campaignId)
+    public function _prepareCampaignDeliveryEmailBody($advertiserId, $oStartDate, $oEndDate, $campaignId)
     {
         // Load the "Campaign" and "Banner" strings, and prepare formatting strings
         global $strCampaign, $strBanner;
         $strCampaignLength = strlen($strCampaign);
-        $strBannerLength   = strlen($strBanner);
-        $maxLength         = max($strCampaignLength, $strBannerLength);
-        $strCampaignPrint  = '%-'  . $maxLength . 's';
-        $strBannerPrint    = ' %-'  . ($maxLength - 1) . 's';
+        $strBannerLength = strlen($strBanner);
+        $maxLength = max($strCampaignLength, $strBannerLength);
+        $strCampaignPrint = '%-' . $maxLength . 's';
+        $strBannerPrint = ' %-' . ($maxLength - 1) . 's';
 
         // Load the impression, click and conversion delivery strings, and
         // prepare formatting strings
         global $strImpressions, $strClicks, $strConversions, $strTotal,
-               $strTotalThisPeriodLength;
-        $strTotalImpressions       = $strImpressions . ' (' . $strTotal . ')';
-        $strTotalClicks            = $strClicks      . ' (' . $strTotal . ')';
-        $strTotalConversions       = $strConversions . ' (' . $strTotal . ')';
+        $strTotalThisPeriod;
+        $strTotalImpressions = $strImpressions . ' (' . $strTotal . ')';
+        $strTotalClicks = $strClicks . ' (' . $strTotal . ')';
+        $strTotalConversions = $strConversions . ' (' . $strTotal . ')';
         $strTotalImpressionsLength = strlen($strTotalImpressions);
-        $strTotalClicksLength      = strlen($strTotalClicks);
+        $strTotalClicksLength = strlen($strTotalClicks);
         $strTotalConversionsLength = strlen($strTotalConversions);
-        $strTotalThisPeriodLength  = strlen($strTotalThisPeriod);
-        $maxLength   = max($strTotalImpressionsLength, $strTotalClicksLength, $strTotalConversionsLength, $strTotalThisPeriodLength);
-        $adTextPrint = ' %'  . $maxLength . 's';
+        $strTotalThisPeriodLength = strlen($strTotalThisPeriod);
+        $maxLength = max($strTotalImpressionsLength, $strTotalClicksLength, $strTotalConversionsLength, $strTotalThisPeriodLength);
+        $adTextPrint = ' %' . $maxLength . 's';
 
         // Load remaining required strings
         global $strLinkedTo, $strNoStatsForCampaign;
@@ -242,15 +249,15 @@ class OA_Email
         $doCampaigns->find();
         if ($doCampaigns->getRowCount() > 0) {
             while ($doCampaigns->fetch()) {
-            	$aCampaign = $doCampaigns->toArray();
+                $aCampaign = $doCampaigns->toArray();
 
                 // If campaign is active or we are running the report for a single campaign.
-            	if ($aCampaign['status'] == '0' || !empty($campaignId)) {
-            		// Add the name of the campaign to the report
-            		$emailBody .= "\n" . sprintf($strCampaignPrint, $strCampaign) . ' ';
+                if ($aCampaign['status'] == '0' || !empty($campaignId)) {
+                    // Add the name of the campaign to the report
+                    $emailBody .= "\n" . sprintf($strCampaignPrint, $strCampaign) . ' ';
                     $emailBody .= strip_tags(phpAds_buildName($aCampaign['campaignid'], $aCampaign['campaignname'])) . "\n";
                     // Add a URL link to the stats page of the campaign
-                    $page = 'stats.php?clientid='. $advertiserId . '&campaignid=' . $aCampaign['campaignid'] .'&statsBreakdown=day&entity=campaign&breakdown=history&period_preset=all_stats&period_start=&period_end=';
+                    $page = 'stats.php?clientid=' . $advertiserId . '&campaignid=' . $aCampaign['campaignid'] . '&statsBreakdown=day&entity=campaign&breakdown=history&period_preset=all_stats&period_start=&period_end=';
                     $emailBody .= MAX::constructURL(MAX_URL_ADMIN, $page) . "\n";
                     // Add a nice divider
                     $emailBody .= "=======================================================\n\n";
@@ -259,13 +266,13 @@ class OA_Email
                     $doBanners->campaignid = $aCampaign['campaignid'];
                     $doBanners->orderBy('bannerid');
                     $doBanners->find();
+                    $adsWithDelivery = false;
                     if ($doBanners->getRowCount() > 0) {
-                        $adsWithDelivery = false;
                         while ($doBanners->fetch()) {
                             $aAd = $doBanners->toArray();
                             // Get the total impressions, clicks and conversions delivered by this ad
                             $adImpressions = phpAds_totalViews($aAd['bannerid']);
-                            $adClicks      = phpAds_totalClicks($aAd['bannerid']);
+                            $adClicks = phpAds_totalClicks($aAd['bannerid']);
                             $adConversions = phpAds_totalConversions($aAd['bannerid']);
                             if ($adImpressions > 0 || $adClicks > 0 || $adConversions > 0) {
                                 $adsWithDelivery = true;
@@ -317,15 +324,15 @@ class OA_Email
                     if ($adsWithDelivery != true) {
                         $emailBody .= $strNoStatsForCampaign . "\n\n\n";
                     }
-            	}
+                }
             }
         }
 
         // Return the email body
-        return array(
-            'body'    => $emailBody,
+        return [
+            'body' => $emailBody,
             'adviews' => $totalAdviewsInPeriod,
-        );
+        ];
     }
 
     /**
@@ -343,9 +350,9 @@ class OA_Email
      *      'body'      => string The ad statistics part of the report.
      *      'adviews'   => int    Adviews in this period
      */
-    function _prepareCampaignDeliveryEmailBodyStats($adId, $oStartDate, $oEndDate, $type, $adTextPrint)
+    public function _prepareCampaignDeliveryEmailBodyStats($adId, $oStartDate, $oEndDate, $type, $adTextPrint)
     {
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
 
         // Obtain the required date format
         global $date_format;
@@ -353,19 +360,19 @@ class OA_Email
         // Obtain the impressions, clicks and conversions string, and prepare
         // these strings for use, including formatting strings
         global $strNoViewLoggedInInterval, $strNoClickLoggedInInterval, $strNoConversionLoggedInInterval,
-               $strTotalThisPeriod;
+        $strTotalThisPeriod;
 
         if ($type == 'impressions') {
             $nothingLogged = $strNoViewLoggedInInterval;
-        } else if ($type == 'clicks') {
+        } elseif ($type == 'clicks') {
             $nothingLogged = $strNoClickLoggedInInterval;
-        } else if ($type == 'conversions') {
+        } elseif ($type == 'conversions') {
             $nothingLogged = $strNoConversionLoggedInInterval;
         } else {
-            return array (
-                'body'    => '',
+            return [
+                'body' => '',
                 'adviews' => 0,
-            );
+            ];
         }
 
         // Prepare the result
@@ -393,16 +400,14 @@ class OA_Email
         $doDataSummaryAdHourly->find();
         if ($doDataSummaryAdHourly->getRowCount() > 0) {
             // The ad has statistics this period, perform time zone conversion and summarize
-            $aAdQuantity = array();
-            while($doDataSummaryAdHourly->fetch()) {
+            $aAdQuantity = [];
+            while ($doDataSummaryAdHourly->fetch()) {
                 $v = $doDataSummaryAdHourly->toArray();
                 $oDate = new Date($v['date_time']);
                 $oDate->setTZbyID('UTC');
                 $oDate->convertTZ($oEndDate->tz);
                 $k = $oDate->format($date_format);
-                if (!isset($aAdQuantity[$k])) {
-                    $aAdQuantity[$k] = 0;
-                }
+                $aAdQuantity[$k] ??= 0;
                 $aAdQuantity[$k] += $v['quantity'];
             }
             foreach ($aAdQuantity as $day => $quantity) {
@@ -420,10 +425,10 @@ class OA_Email
         }
 
         // Return the result for the ad's stats
-        return array(
-            'body'    => $emailBodyStats,
+        return [
+            'body' => $emailBodyStats,
             'adviews' => $total,
-        );
+        ];
     }
 
     /**
@@ -431,7 +436,8 @@ class OA_Email
      * @param $campaignId
      * @return int Number of emails sent
      */
-    function sendCampaignImpendingExpiryEmail($oDate, $campaignId) {
+    public function sendCampaignImpendingExpiryEmail($oDate, $campaignId)
+    {
         $aConf = $GLOBALS['_MAX']['CONF'];
         global $date_format;
 
@@ -443,17 +449,20 @@ class OA_Email
 
             // Get admin prefs
             $adminPrefsNames = $this->_createPrefsListPerAccount(OA_ACCOUNT_ADMIN);
-            $aAdminPrefs = $oPreference->loadAccountPreferences($adminAccountId,
-                $adminPrefsNames, OA_ACCOUNT_ADMIN);
+            $aAdminPrefs = $oPreference->loadAccountPreferences(
+                $adminAccountId,
+                $adminPrefsNames,
+                OA_ACCOUNT_ADMIN,
+            );
 
             // Get admin users
             $aAdminUsers = $this->getAdminUsersLinkedToAccount();
 
             // Store admin cache
-            $this->aAdminCache = array($aAdminPrefs, $aAdminUsers);
+            $this->aAdminCache = [$aAdminPrefs, $aAdminUsers];
         } else {
             // Retrieve admin cache
-            list($aAdminPrefs, $aAdminUsers) = $this->aAdminCache;
+            [$aAdminPrefs, $aAdminUsers] = $this->aAdminCache;
         }
 
         $aPreviousOIDates = OX_OperationInterval::convertDateToPreviousOperationIntervalStartAndEndDates($oDate);
@@ -473,41 +482,47 @@ class OA_Email
 
             // Add advertiser prefs
             $advertiserPrefsNames = $this->_createPrefsListPerAccount(OA_ACCOUNT_ADVERTISER);
-            $aPrefs['advertiser'] = $oPreference->loadAccountPreferences($doClients->account_id,
-                $advertiserPrefsNames, OA_ACCOUNT_ADVERTISER);
+            $aPrefs['advertiser'] = $oPreference->loadAccountPreferences(
+                $doClients->account_id,
+                $advertiserPrefsNames,
+                OA_ACCOUNT_ADVERTISER,
+            );
 
             if (!isset($aAgencyCache[$doClients->agencyid])) {
                 // Add manager linked users
                 $doAgency = OA_Dal::staticGetDO('agency', $doClients->agencyid);
-                $aLinkedUsers['manager']    = $this->getUsersLinkedToAccount('agency',  $doClients->agencyid);
+                $aLinkedUsers['manager'] = $this->getUsersLinkedToAccount('agency', $doClients->agencyid);
 
                 // Add manager preferences
                 $managerPrefsNames = $this->_createPrefsListPerAccount(OA_ACCOUNT_MANAGER);
-                $aPrefs['manager'] = $oPreference->loadAccountPreferences($doAgency->account_id,
-                    $managerPrefsNames, OA_ACCOUNT_MANAGER);
+                $aPrefs['manager'] = $oPreference->loadAccountPreferences(
+                    $doAgency->account_id,
+                    $managerPrefsNames,
+                    OA_ACCOUNT_MANAGER,
+                );
 
                 // Get agency "From" details
                 $aAgencyFromDetails = $this->_getAgencyFromDetails($doAgency->agencyid);
 
                 // Store in the agency cache
-                $this->aAgencyCache = array(
-                    $doClients->agencyid => array($aLinkedUsers['manager'], $aPrefs['manager'], $aAgencyFromDetails)
-                );
+                $this->aAgencyCache = [
+                    $doClients->agencyid => [$aLinkedUsers['manager'], $aPrefs['manager'], $aAgencyFromDetails],
+                ];
             } else {
                 // Retrieve agency cache
-                list($aLinkedUsers['manager'], $aPrefs['manager'], $aAgencyFromDetails) = $this->aAgencyCache[$doClients->agencyid];
+                [$aLinkedUsers['manager'], $aPrefs['manager'], $aAgencyFromDetails] = $this->aAgencyCache[$doClients->agencyid];
             }
 
             // Add admin linked users and preferences
             $aLinkedUsers['admin'] = $aAdminUsers;
-            $aPrefs['admin']       = $aAdminPrefs;
+            $aPrefs['admin'] = $aAdminPrefs;
 
             // Create a linked user 'special' for the advertiser that will take the admin preferences for advertiser
             $aLinkedUsers['special']['advertiser'] = $doClients->toArray();
-            $aLinkedUsers['special']['advertiser']['contact_name']  = $aLinkedUsers['special']['advertiser']['contact'];
+            $aLinkedUsers['special']['advertiser']['contact_name'] = $aLinkedUsers['special']['advertiser']['contact'];
             $aLinkedUsers['special']['advertiser']['email_address'] = $aLinkedUsers['special']['advertiser']['email'];
-            $aLinkedUsers['special']['advertiser']['language']      = '';
-            $aLinkedUsers['special']['advertiser']['user_id']       = 0;
+            $aLinkedUsers['special']['advertiser']['language'] = '';
+            $aLinkedUsers['special']['advertiser']['user_id'] = 0;
 
             // Check that every user is not going to receive more than one email if they
             // are linked to more than one account
@@ -516,17 +531,17 @@ class OA_Email
             // Create the linked special user preferences from the admin preferences
             // the special user is the client that doesn't have preferences in the database
             $aPrefs['special'] = $aPrefs['admin'];
-            $aPrefs['special']['warn_email_special']                  = $aPrefs['special']['warn_email_advertiser'];
-            $aPrefs['special']['warn_email_special_day_limit']        = $aPrefs['special']['warn_email_advertiser_day_limit'];
-            $aPrefs['special']['warn_email_special_impression_limit'] = $aPrefs['special']['warn_email_advertiser_impression_limit'];
+            $aPrefs['special']['warn_email_special'] = $aPrefs['special']['warn_email_advertiser'] ?? false;
+            $aPrefs['special']['warn_email_special_day_limit'] = $aPrefs['special']['warn_email_advertiser_day_limit'] ?? 0;
+            $aPrefs['special']['warn_email_special_impression_limit'] = $aPrefs['special']['warn_email_advertiser_impression_limit'] ?? 0;
 
             // Store in the client cache
-            $this->aClientCache = array(
-                $aCampaign['clientid'] => array($aLinkedUsers, $aPrefs, $aAgencyFromDetails)
-            );
+            $this->aClientCache = [
+                $aCampaign['clientid'] => [$aLinkedUsers, $aPrefs, $aAgencyFromDetails],
+            ];
         } else {
             // Retrieve client cache
-            list($aLinkedUsers, $aPrefs, $aAgencyFromDetails) = $this->aClientCache[$aCampaign['clientid']];
+            [$aLinkedUsers, $aPrefs, $aAgencyFromDetails] = $this->aClientCache[$aCampaign['clientid']];
         }
 
         $copiesSent = 0;
@@ -538,7 +553,7 @@ class OA_Email
                 // Use the Admin details
                 $aFromDetails = '';
             }
-            if ($aPrefs[$accountType]['warn_email_' . $accountType]) {
+            if (!empty($aPrefs[$accountType]['warn_email_' . $accountType])) {
                 // Does the account type want warnings when the impressions are low?
                 if ($aPrefs[$accountType]['warn_email_' . $accountType . '_impression_limit'] > 0 && $aCampaign['views'] > 0) {
                     // Test to see if the placements impressions remaining are less than the limit
@@ -560,7 +575,7 @@ class OA_Email
                                     $aCampaign['campaignid'],
                                     'impressions',
                                     $aPrefs[$accountType]['warn_email_' . $accountType . '_impression_limit'],
-                                    $accountType
+                                    $accountType,
                                 );
 
                                 if ($aEmail !== false) {
@@ -568,10 +583,12 @@ class OA_Email
                                         $copiesSent++;
                                         if ($aConf['email']['logOutgoing']) {
                                             phpAds_userlogSetUser(phpAds_userMaintenance);
-                                            phpAds_userlogAdd(phpAds_actionWarningMailed, $aPlacement['campaignid'],
+                                            phpAds_userlogAdd(
+                                                phpAds_actionWarningMailed,
+                                                $aCampaign['campaignid'],
                                                 "{$aEmail['subject']}\n\n
                                                  {$aUser['contact_name']}({$aUser['email_address']})\n\n
-                                                 {$aEmail['contents']}"
+                                                 {$aEmail['contents']}",
                                             );
                                         }
                                     }
@@ -600,23 +617,30 @@ class OA_Email
                             // was crossed to the point where it's about to expire,
                             // so send those emails, baby!
                             foreach ($aUsers as $aUser) {
+                                // Load the appropriate language details for the email recipient,
+                                // and use their date format if present, otherwise use the default
+                                // from above...
+                                Language_Loader::load('default', $aUser['language']);
                                 $aEmail = $this->prepareCampaignImpendingExpiryEmail(
                                     $aUser,
                                     $aCampaign['clientid'],
                                     $aCampaign['campaignid'],
                                     'date',
                                     $oEndDate->format($date_format),
-                                    $accountType
+                                    $accountType,
                                 );
+                                // Send the email...
                                 if ($aEmail !== false) {
                                     if ($this->sendMail($aEmail['subject'], $aEmail['contents'], $aUser['email_address'], $aUser['contact_name'], $aFromDetails)) {
                                         $copiesSent++;
                                         if ($aConf['email']['logOutgoing']) {
                                             phpAds_userlogSetUser(phpAds_userMaintenance);
-                                            phpAds_userlogAdd(phpAds_actionWarningMailed, $aPlacement['campaignid'],
+                                            phpAds_userlogAdd(
+                                                phpAds_actionWarningMailed,
+                                                $aCampaign['campaignid'],
                                                 "{$aEmail['subject']}\n\n
                                                  {$aUser['contact_name']}({$aUser['email_address']})\n\n
-                                                 {$aEmail['contents']}"
+                                                 {$aEmail['contents']}",
                                             );
                                         }
                                     }
@@ -652,21 +676,23 @@ class OA_Email
      *                          'userEmail' => The email address to send the report to.
      *                          'userName'  => The real name of the email address, or null.
      */
-    function prepareCampaignImpendingExpiryEmail($aUser, $advertiserId, $placementId, $reason, $value, $type)
+    public function prepareCampaignImpendingExpiryEmail($aUser, $advertiserId, $placementId, $reason, $value, $type)
     {
         OA::debug('   - Preparing "impending expiry" report for advertiser ID ' . $advertiserId . '.', PEAR_LOG_DEBUG);
 
-        Language_Loader::load('default',$aUser['language']);
+        $aConf = $GLOBALS['_MAX']['CONF'];
+
+        Language_Loader::load('default', $aUser['language']);
 
         // Load the required strings
         global $strImpendingCampaignExpiryDateBody, $strImpendingCampaignExpiryImpsBody, $strMailHeader,
-               $strSirMadam, $strTheCampiaignBelongingTo, $strYourCampaign, $strImpendingCampaignExpiryBody,
-               $strMailFooter, $strImpendingCampaignExpiry;
+        $strSirMadam, $strTheCampiaignBelongingTo, $strYourCampaign, $strImpendingCampaignExpiryBody,
+        $strMailFooter, $strImpendingCampaignExpiry;
 
         // Prepare the expiration email body
         if ($reason == 'date') {
             $reason = $strImpendingCampaignExpiryDateBody;
-        } else if ($reason == 'impressions') {
+        } elseif ($reason == 'impressions') {
             $reason = $strImpendingCampaignExpiryImpsBody;
         } else {
             return false;
@@ -691,7 +717,7 @@ class OA_Email
         }
 
         // Prepare the email body
-        $emailBody  = $this->_prepareCampaignImpendingExpiryEmailBody($advertiserId, $aCampaign);
+        $emailBody = $this->_prepareCampaignImpendingExpiryEmailBody($advertiserId, $aCampaign);
 
         // Was anything found?
         if ($emailBody == '') {
@@ -704,14 +730,14 @@ class OA_Email
         // then admin name/company, fallback to generic
         if (!empty($aUser['contact_name'])) {
             $greetingTo = $aUser['contact_name'];
-        } else if (!empty($aAdvertiser['contact'])) {
+        } elseif (!empty($aAdvertiser['contact'])) {
             $greetingTo = $aAdvertiser['contact'];
-        } else if (!empty($aAdvertiser['clientname'])) {
+        } elseif (!empty($aAdvertiser['clientname'])) {
             $greetingTo = $aAdvertiser['clientname'];
-        } else if (!empty($conf['email']['fromName'])) {
-            $greetingTo = $conf['email']['fromName'];
-        } else if (!empty($conf['email']['fromCompany'])) {
-            $greetingTo = $conf['email']['fromCompany'];
+        } elseif (!empty($aConf['email']['fromName'])) {
+            $greetingTo = $aConf['email']['fromName'];
+        } elseif (!empty($aConf['email']['fromCompany'])) {
+            $greetingTo = $aConf['email']['fromCompany'];
         } else {
             $greetingTo = $strSirMadam;
         }
@@ -727,7 +753,7 @@ class OA_Email
             $campaignReplace = $strTheCampiaignBelongingTo . ' ' . trim($aAdvertiser['clientname']);
         }
         $email = str_replace("{clientname}", $campaignReplace, $email);
-        $email = str_replace("{date}",  $value, $email);
+        $email = str_replace("{date}", $value, $email);
         $email = str_replace("{limit}", $value, $email);
         $email .= $strImpendingCampaignExpiryBody . "\n\n";
 
@@ -742,10 +768,10 @@ class OA_Email
         }
 
         // Return the emails to be sent
-        return array(
-            'subject'   => $strImpendingCampaignExpiry . ': ' . $aAdvertiser['clientname'],
-            'contents'  => $email,
-        );
+        return [
+            'subject' => $strImpendingCampaignExpiry . ': ' . $aAdvertiser['clientname'],
+            'contents' => $email,
+        ];
     }
 
     /**
@@ -756,7 +782,7 @@ class OA_Email
      * @param integer $advertiserId The advertiser's ID.
      * @param array   $aCampaign   The placement details.
      */
-    function _prepareCampaignImpendingExpiryEmailBody($advertiserId, $aCampaign)
+    public function _prepareCampaignImpendingExpiryEmailBody($advertiserId, $aCampaign)
     {
         // Load required strings
         global $strCampaign, $strBanner, $strLinkedTo, $strNoBanners;
@@ -768,7 +794,7 @@ class OA_Email
         $emailBody .= $strCampaign . ' ';
         $emailBody .= strip_tags(phpAds_buildName($aCampaign['campaignid'], $aCampaign['campaignname'])) . "\n";
         // Add a URL link to the stats page of the campaign
-        $page = 'stats.php?clientid='. $advertiserId . '&campaignid=' . $aCampaign['campaignid'] .'&statsBreakdown=day&entity=campaign&breakdown=history&period_preset=all_stats&period_start=&period_end=';
+        $page = 'stats.php?clientid=' . $advertiserId . '&campaignid=' . $aCampaign['campaignid'] . '&statsBreakdown=day&entity=campaign&breakdown=history&period_preset=all_stats&period_start=&period_end=';
         $emailBody .= MAX::constructURL(MAX_URL_ADMIN, $page) . "\n";
         // Add a separator after the placement and before the ads
         $emailBody .= "-------------------------------------------------------\n\n";
@@ -800,7 +826,7 @@ class OA_Email
         return $emailBody;
     }
 
-    function sendCampaignActivatedDeactivatedEmail($campaignId, $reason = null)
+    public function sendCampaignActivatedDeactivatedEmail($campaignId, $reason = null)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         $doCampaigns = OA_Dal::factoryDO('campaigns');
@@ -814,8 +840,9 @@ class OA_Email
         $copiesSent = 0;
 
         if (!empty($aLinkedUsers) && is_array($aLinkedUsers)) {
-            if ($aConf['email']['useManagerDetails'])
+            if ($aConf['email']['useManagerDetails']) {
                 $aFromDetails = $this->_getAgencyFromDetails($aAdvertiser['agencyid']);
+            }
             foreach ($aLinkedUsers as $aUser) {
                 $aEmail = $this->prepareCampaignActivatedDeactivatedEmail($aUser, $doCampaigns->campaignid, $reason);
                 if ($aEmail !== false) {
@@ -825,15 +852,15 @@ class OA_Email
                             phpAds_userlogSetUser(phpAds_userMaintenance);
                             phpAds_userlogAdd(
                                 ((is_null($reason)) ? phpAds_actionActivationMailed : phpAds_actionDeactivationMailed),
-                                $doPlacement->campaignid,
+                                $doCampaigns->campaignid,
                                 "{$aEmail['subject']}\n\n
                                  {$aUser['contact_name']}({$aUser['email_address']})\n\n
-                                 {$aEmail['contents']}"
+                                 {$aEmail['contents']}",
                             );
                         }
                     }
                 }
-                        }
+            }
             // Restore the default language strings
             Language_Loader::load('default');
         }
@@ -859,22 +886,22 @@ class OA_Email
      *                          'userEmail' => The email address to send the report to.
      *                          'userName'  => The real name of the email address, or null.
      */
-    function prepareCampaignActivatedDeactivatedEmail($aUser, $campaignId, $reason = null)
+    public function prepareCampaignActivatedDeactivatedEmail($aUser, $campaignId, $reason = null)
     {
-        Language_Loader::load('default',$aUser['language']);
+        Language_Loader::load('default', $aUser['language']);
 
         if (is_null($reason)) {
-            OA::debug('   - Preparing "campaign activated" email for campaign ID ' . $campaignId. '.', PEAR_LOG_DEBUG);
+            OA::debug('   - Preparing "campaign activated" email for campaign ID ' . $campaignId . '.', PEAR_LOG_DEBUG);
         } else {
-            OA::debug('   - Preparing "campaign deactivated" email for campaign ID ' . $campaignId. '.', PEAR_LOG_DEBUG);
+            OA::debug('   - Preparing "campaign deactivated" email for campaign ID ' . $campaignId . '.', PEAR_LOG_DEBUG);
         }
 
         // Load the required strings
         global $strMailHeader, $strSirMadam,
-               $strMailBannerActivatedSubject, $strMailBannerDeactivatedSubject,
-               $strMailBannerActivated, $strMailBannerDeactivated,
-               $strNoMoreImpressions, $strNoMoreClicks, $strNoMoreConversions,
-               $strAfterExpire;
+        $strMailBannerActivatedSubject, $strMailBannerDeactivatedSubject,
+        $strMailBannerActivated, $strMailBannerDeactivated,
+        $strNoMoreImpressions, $strNoMoreClicks, $strNoMoreConversions,
+        $strAfterExpire;
 
         // Fetch the campaign
         $aCampaign = $this->_loadCampaign($campaignId);
@@ -895,9 +922,9 @@ class OA_Email
         $email = "$strMailHeader\n\n";
         if (!empty($aUser['contact_name'])) {
             $greetingTo = $aUser['contact_name'];
-        } else if (!empty($aAdvertiser['contact'])) {
+        } elseif (!empty($aAdvertiser['contact'])) {
             $greetingTo = $aAdvertiser['contact'];
-        } else if (!empty($aAdvertiser['clientname'])) {
+        } elseif (!empty($aAdvertiser['clientname'])) {
             $greetingTo = $aAdvertiser['clientname'];
         } else {
             $greetingTo = $strSirMadam;
@@ -933,11 +960,11 @@ class OA_Email
 
         // Prepare & return the final email array
         if (is_null($reason)) {
-            $aResult['subject']   = $strMailBannerActivatedSubject . ': ' . $aAdvertiser['clientname'];
+            $aResult['subject'] = $strMailBannerActivatedSubject . ': ' . $aAdvertiser['clientname'];
         } else {
-            $aResult['subject']   = $strMailBannerDeactivatedSubject . ': ' . $aAdvertiser['clientname'];
+            $aResult['subject'] = $strMailBannerDeactivatedSubject . ': ' . $aAdvertiser['clientname'];
         }
-        $aResult['contents']  = $email;
+        $aResult['contents'] = $email;
         return $aResult;
     }
 
@@ -949,15 +976,15 @@ class OA_Email
      * @param integer $advertiserId The advertiser's ID.
      * @param array   $acampaign    The campaign details.
      */
-    function _prepareCampaignActivatedDeactivatedEmailBody($aCampaign)
+    public function _prepareCampaignActivatedDeactivatedEmailBody($aCampaign)
     {
         // Load the "Campaign" and "Banner" strings, and prepare formatting strings
         global $strCampaign, $strBanner;
         $strCampaignLength = strlen($strCampaign);
-        $strBannerLength   = strlen($strBanner);
-        $maxLength         = max($strCampaignLength, $strBannerLength);
-        $strCampaignPrint  = '%-'  . $maxLength . 's';
-        $strBannerPrint    = ' %-'  . ($maxLength - 1) . 's';
+        $strBannerLength = strlen($strBanner);
+        $maxLength = max($strCampaignLength, $strBannerLength);
+        $strCampaignPrint = '%-' . $maxLength . 's';
+        $strBannerPrint = ' %-' . ($maxLength - 1) . 's';
 
         // Load remaining strings
         global $strLinkedTo;
@@ -970,7 +997,7 @@ class OA_Email
         $emailBody .= strip_tags(phpAds_buildName($aCampaign['campaignid'], $aCampaign['campaignname'])) . "\n";
 
         // Add a URL link to the stats page of the campaign
-        $page = 'stats.php?clientid='. $aCampaign['clientid'] . '&campaignid=' . $aCampaign['campaignid'] .'&statsBreakdown=day&entity=campaign&breakdown=history&period_preset=all_stats&period_start=&period_end=';
+        $page = 'stats.php?clientid=' . $aCampaign['clientid'] . '&campaignid=' . $aCampaign['campaignid'] . '&statsBreakdown=day&entity=campaign&breakdown=history&period_preset=all_stats&period_start=&period_end=';
         $emailBody .= MAX::constructURL(MAX_URL_ADMIN, $page) . "\n";
         // Add a nice divider
         $emailBody .= "=======================================================\n\n";
@@ -995,29 +1022,26 @@ class OA_Email
         return $emailBody;
     }
 
-    function _createPrefsListPerAccount($accountType)
+    public function _createPrefsListPerAccount($accountType)
     {
         $type = strtolower($accountType);
-        return array(
+        return [
             'warn_email_' . $type,
             'warn_email_' . $type . '_impression_limit',
             'warn_email_' . $type . '_day_limit',
-        );
+        ];
     }
 
     /**
      * A private method to load the preferences required when generating reports.
-     *
-     * @access private
-     * @return array The loaded preference array.
      */
-    function _loadPrefs()
+    private function _loadPrefs(): void
     {
-        $aPref = $GLOBALS['_MAX']['PREF'];
-        if (is_null($aPref)) {
-            $aPref = OA_Preferences::loadAdminAccountPreferences(true);
+        if (!empty($GLOBALS['_MAX']['PREF'])) {
+            return;
         }
-        return $aPref;
+
+        OA_Preferences::loadAdminAccountPreferences(true);
     }
 
     /**
@@ -1027,7 +1051,7 @@ class OA_Email
      * @return false|array False if the campaign cannot be loaded, an array of the
      *                     campaign's details from the database otherwise.
      */
-    function _loadCampaign($campaignId)
+    public function _loadCampaign($campaignId)
     {
         // Get the campaign's details
         $doCampaigns = OA_Dal::factoryDO('campaigns');
@@ -1048,7 +1072,7 @@ class OA_Email
      * @return false|array False if the advertiser cannot be loaded, an array of the
      *                     advertiser's details from the database otherwise.
      */
-    function _loadAdvertiser($advertiserId)
+    public function _loadAdvertiser($advertiserId)
     {
         // Get the advertiser's details
         $doClients = OA_Dal::factoryDO('clients');
@@ -1069,7 +1093,7 @@ class OA_Email
      * @return false|array False if the agency cannot be loaded, an array of the
      *                     agency's details from the database otherwise.
      */
-    function _loadAgency($agencyId)
+    public function _loadAgency($agencyId)
     {
         // Get the agency's details
         $doAgency = OA_Dal::factoryDO('agency');
@@ -1091,14 +1115,15 @@ class OA_Email
      * @param integer $agencyId The owning agency ID.
      * @return string The "regards" string to sign off an email with.
      */
-    function _prepareRegards($agencyId)
+    public function _prepareRegards($agencyId)
     {
-        $aPref = $this->_loadPrefs();
+        $this->_loadPrefs();
+
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         global $strMailFooter;
 
-        $regards   = '';
+        $regards = '';
         $useAgency = false;
         if ($agencyId != 0 && $aConf['email']['useManagerDetails']) {
             // Send regards of the owning agency
@@ -1149,14 +1174,14 @@ class OA_Email
      * @param integer $entityId  Inventory entity ID
      * @return array
      */
-    function getUsersLinkedToAccount($entityName, $entityId)
+    public function getUsersLinkedToAccount($entityName, $entityId)
     {
         // Get any users linked to this account
         $doUsers = OA_Dal::factoryDO('users');
         return $doUsers->getAccountUsersByEntity($entityName, $entityId);
     }
 
-    function getAdminUsersLinkedToAccount()
+    public function getAdminUsersLinkedToAccount()
     {
         // Get any users linked to the admin account
         $doUsers = OA_Dal::factoryDO('users');
@@ -1172,54 +1197,86 @@ class OA_Email
      * @param string $userName  The readable name of the user. Optional.
      * @return boolean True if the mail was send, false otherwise.
      */
-    function sendMail($subject, $contents, $userEmail, $userName = null, $fromDetails = null)
+    public function sendMail($subject, $contents, $userEmail, $userName = null, $fromDetails = null)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         if (defined('DISABLE_ALL_EMAILS') || $aConf['debug']['disableSendEmails']) {
             return true;
         }
-        global $phpAds_CharSet;
 
         // If not Agency details send email using Administrator's details
         if (empty($fromDetails)) {
-            $fromDetails['name'] = $aConf['email']['fromName'];
-            $fromDetails['emailAddress'] = $aConf['email']['fromAddress'];
+            $fromDetails = [
+                'name' => $aConf['email']['fromName'],
+                'emailAddress' => $aConf['email']['fromAddress'],
+            ];
         }
 
-    	// For the time being we're sending plain text emails only, so decode any HTML entities
-    	$contents = html_entity_decode($contents, ENT_QUOTES);
+        // For the time being we're sending plain text emails only, so decode any HTML entities
+        $contents = html_entity_decode($contents, ENT_QUOTES);
 
-    	// Build the "to:" header for the email
+        try {
+            $from = new Address($fromDetails['emailAddress'], $fromDetails['name'] ?: '');
+            $to = new Address($userEmail, $userName ?: '');
+        } catch (Exception $e) {
+            OA::debug('Could not send email: ' . $e->getMessage(), PEAR_LOG_WARNING);
+
+            return false;
+        }
+
+        $mailer = OX_Component::factoryByComponentIdentifier($aConf['email']['pluginType'] ?? null);
+
+        if ($mailer instanceof MailerComponentInterface) {
+            try {
+                $mailer->send(
+                    (new Email())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->text($contents),
+                );
+
+                return true;
+            } catch (TransportExceptionInterface $e) {
+                OA::debug('Could not send email: ' . $e->getMessage(), PEAR_LOG_WARNING);
+            }
+        }
+
+        return $this->builtinSendMail($subject, $contents, $userEmail, $userName, $fromDetails);
+    }
+
+    public function builtinSendMail(string $subject, string $contents, string $userEmail, ?string $userName, array $fromDetails): bool
+    {
+        global $phpAds_CharSet;
+
+        // Build the "to:" header for the email
         if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
             // We do not know if PHP's mail() in windows can handle the
-            // full username in the "To:" header for all supported 
+            // full username in the "To:" header for all supported
             // PHP versions so we leave it out for now to be on the safe side.
             $toParam = $userEmail;
         } else {
-            $toParam = '"'.$userName.'" <'.$userEmail.'>';
+            $toParam = self::quoteHeaderText($userName) . ' <' . $userEmail . '>';
         }
-    	// Build additional email headers
-    	$headersParam = "MIME-Version: 1.0\r\n";
-    	if (isset($phpAds_CharSet)) {
-    		$headersParam .= "Content-Type: text/plain; charset=" . $phpAds_CharSet . "\r\n";
-    	}
-    	$headersParam .= "Content-Transfer-Encoding: 8bit\r\n";
-    	$headersParam .= 'From: "' . $fromDetails['name'] . '" <' . $fromDetails['emailAddress'] . '>' . "\r\n";
-    	// Use only \n as header separator when qmail is used
-    	if ($aConf['email']['qmailPatch']) {
-    		$headersParam = str_replace("\r", '', $headersParam);
-    	}
-    	// Add \r to linebreaks in the contents for MS Exchange compatibility
-    	$contents = str_replace("\n", "\r\n", $contents);
-    	// Send email, if possible!
-    	if (function_exists('mail')) {
-    	   $value = @mail($toParam, $subject, $contents, $headersParam);
-    	   return $value;
-    	} else {
-    	    OA::debug('Cannot send emails - mail() does not exist!', PEAR_LOG_ERR);
-    	    return false;
-    	}
+
+        // Build additional email headers
+        $headersParam = "MIME-Version: 1.0\r\n";
+        if (isset($phpAds_CharSet)) {
+            $headersParam .= "Content-Type: text/plain; charset=" . $phpAds_CharSet . "\r\n";
+        }
+        $headersParam .= 'From: ' . self::quoteHeaderText($fromDetails['name']) . ' <' . $fromDetails['emailAddress'] . '>' . "\r\n";
+
+        // Add \r to linebreaks in the contents for MS Exchange compatibility
+        $contents = str_replace("\n", "\r\n", $contents);
+
+        // Send email, if possible!
+        if (function_exists('mail')) {
+            return @mail($toParam, $subject, $contents, $headersParam);
+        }
+
+        OA::debug('Cannot send emails - mail() does not exist!', PEAR_LOG_ERR);
+        return false;
     }
 
     /**
@@ -1232,11 +1289,11 @@ class OA_Email
      *
      * @return array $aLinkedUsers  The linked users that are going to be mailed
      */
-    function _addAdvertiser($aAdvertiser, $aLinkedUsers)
+    public function _addAdvertiser($aAdvertiser, $aLinkedUsers)
     {
         $duplicatedEmail = false;
         if (!is_array($aLinkedUsers) || empty($aLinkedUsers)) {
-            $aLinkedUsers = array();
+            $aLinkedUsers = [];
         } else {
             foreach ($aLinkedUsers as $aUser) {
                 if ($aUser['email_address'] == $aAdvertiser['email']) {
@@ -1246,12 +1303,12 @@ class OA_Email
             }
         }
         if (!$duplicatedEmail) {
-            $aLinkedUsers[] = array(
-                                  'email_address' => $aAdvertiser['email'],
-                                  'contact_name'  => $aAdvertiser['contact'],
-                                  'language'      => null,
-                                  'user_id'       => 0
-                                 );
+            $aLinkedUsers[] = [
+                'email_address' => $aAdvertiser['email'],
+                'contact_name' => $aAdvertiser['contact'],
+                'language' => null,
+                'user_id' => 0,
+            ];
         }
 
         return $aLinkedUsers;
@@ -1266,10 +1323,10 @@ class OA_Email
      * @param  array $aLinkedUsers         The linked user list that has to be checked
      * @return array $aLinkedUsersToEmail  The linked user list that are going to be emailed
      */
-    function _deleteDuplicatedUser($aLinkedUsers)
+    public function _deleteDuplicatedUser($aLinkedUsers)
     {
-        $aLinkedUsersToEmail = array();
-        $aEmailAddressUsed = array();
+        $aLinkedUsersToEmail = [];
+        $aEmailAddressUsed = [];
 
         foreach ($aLinkedUsers['admin'] as $aUser) {
             $aEmailAddressUsed[] = $aUser['email_address'];
@@ -1290,13 +1347,14 @@ class OA_Email
             }
         }
 
-        if (!in_array($aLinkedUsers['special']['advertiser']['email_address'], $aEmailAddressUsed))
+        if (!in_array($aLinkedUsers['special']['advertiser']['email_address'], $aEmailAddressUsed)) {
             $aLinkedUsersToEmail['special']['advertiser'] = $aLinkedUsers['special']['advertiser'];
+        }
 
         return $aLinkedUsersToEmail;
     }
 
-    function _getAgencyFromDetails($agencyId)
+    public function _getAgencyFromDetails($agencyId)
     {
         $doAgency = OA_Dal::factoryDO('agency');
         $doAgency->get($agencyId);
@@ -1309,14 +1367,14 @@ class OA_Email
         return;
     }
 
-    function clearCache()
+    public function clearCache()
     {
         unset($this->aAdminCache);
         unset($this->aAdminCache);
         unset($this->aClientCache);
     }
 
-    function convertStartEndDate(&$oStartDate, &$oEndDate, $oTimezone)
+    public function convertStartEndDate(&$oStartDate, &$oEndDate, $oTimezone)
     {
         if (isset($oStartDate)) {
             $oStartTz = new Date($oStartDate);
@@ -1332,11 +1390,9 @@ class OA_Email
         }
 
 
-        if (!isset($oEndDate)) {
-            $oEndDate = new Date();
-        }
+        $oEndDate ??= new Date();
 
-        $oEndTz   = new Date($oEndDate);
+        $oEndTz = new Date($oEndDate);
         $oEndTz->convertTZ($oTimezone);
         $oEndTz->setHour(0);
         $oEndTz->setMinute(0);
@@ -1347,9 +1403,22 @@ class OA_Email
         }
 
         $oStartDate = $oStartTz;
-        $oEndDate   = $oEndTz;
+        $oEndDate = $oEndTz;
     }
 
-}
+    public static function quoteHeaderText(string $string): string
+    {
+        global $phpAds_CharSet;
 
-?>
+        if (!isset($phpAds_CharSet) || !preg_match('#[\x80-\xFF]#', $string)) {
+            // No charset or 7bit text
+            return $string;
+        }
+
+        return sprintf(
+            '=?%s?Q?%s?=',
+            $phpAds_CharSet,
+            quoted_printable_encode($string),
+        );
+    }
+}

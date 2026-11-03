@@ -23,14 +23,6 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
 class Test_OA_Dal_Maintenance_Priority_getPreviousWeekZoneForcastImpressions extends UnitTestCase
 {
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * A method to test the getPreviousWeekZoneForcastImpressions() method.
      *
      * Test 1: Test with bad input, and ensure false is returned.
@@ -41,10 +33,10 @@ class Test_OA_Dal_Maintenance_Priority_getPreviousWeekZoneForcastImpressions ext
      * Test 4: Test with data, and ensure that an array with the correct
      *         forecasts is returned.
      */
-    function testGetPreviousWeekZoneForcastImpressions()
+    public function testGetPreviousWeekZoneForcastImpressions()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oDal = new OA_Dal_Maintenance_Priority();
 
         // Test 1
@@ -52,7 +44,7 @@ class Test_OA_Dal_Maintenance_Priority_getPreviousWeekZoneForcastImpressions ext
         $this->assertFalse($aResult);
 
         // Test 2
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $oServiceLocator->remove('now');
         $aResult = $oDal->getPreviousWeekZoneForcastImpressions(1);
         $this->assertFalse($aResult);
@@ -64,11 +56,11 @@ class Test_OA_Dal_Maintenance_Priority_getPreviousWeekZoneForcastImpressions ext
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), OX_OperationInterval::operationIntervalsPerWeek());
         for ($operationIntervalID = 0; $operationIntervalID < OX_OperationInterval::operationIntervalsPerWeek(); $operationIntervalID++) {
-            $expected =  array(
-                        'zone_id' => 1,
-                        'forecast_impressions' => $oDal->getZoneForecastDefaultZoneImpressions(),
-                        'operation_interval_id' => $operationIntervalID
-            );
+            $expected = [
+                'zone_id' => 1,
+                'forecast_impressions' => $oDal->getZoneForecastDefaultZoneImpressions(),
+                'operation_interval_id' => $operationIntervalID,
+            ];
             $this->assertEqual($aResult[$operationIntervalID], $expected);
         }
 
@@ -82,7 +74,7 @@ class Test_OA_Dal_Maintenance_Priority_getPreviousWeekZoneForcastImpressions ext
         $startDate = $aDates['start']->format('%Y-%m-%d %H:%M:%S');
         $endDate = $aDates['start']->format('%Y-%m-%d %H:%M:%S');
 
-        $doDIA      = OA_Dal::factoryDO('data_intermediate_ad');
+        $doDIA = OA_Dal::factoryDO('data_intermediate_ad');
         $aDIAs = DataGenerator::generate($doDIA, 4);
         $doDIA = OA_Dal::staticGetDO('data_intermediate_ad', $aDIAs[0]);
 
@@ -172,5 +164,3 @@ class Test_OA_Dal_Maintenance_Priority_getPreviousWeekZoneForcastImpressions ext
         DataGenerator::cleanUp();
     }
 }
-
-?>

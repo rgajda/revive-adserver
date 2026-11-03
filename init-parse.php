@@ -28,18 +28,21 @@
  *
  * @return mixed The array resulting from the call to parse_ini_file(), with
  *               the appropriate .php file for the installation.
+ *
+ * @throws \RuntimeException
  */
 function parseIniFile($configPath = null, $configFile = null, $sections = true, $type = '.php')
 {
-    $fixMysqli = function($conf) {
-        if ('mysql' === $conf['database']['type'] && !extension_loaded('mysql') && extension_loaded('mysqli')) {
+    $fixMysqli = function ($conf) {
+        if (!isset($conf['database'])) {
+            return $conf;
+        }
+
+        if (0 === stripos($conf['database']['type'] ?? '', 'mysql')) {
             $conf['database']['type'] = 'mysqli';
-        } elseif ('mysqli' === $conf['database']['type']) {
+
             if (empty($conf['table']['type'])) {
                 $conf['table']['type'] = 'InnoDB';
-            }
-            if (!extension_loaded('mysqli') && extension_loaded('mysql')) {
-                $conf['database']['type'] = 'mysql';
             }
         }
 
@@ -47,9 +50,7 @@ function parseIniFile($configPath = null, $configFile = null, $sections = true, 
     };
 
     // Set up the configuration .ini file path location
-    if (is_null($configPath)) {
-        $configPath = MAX_PATH . '/var';
-    }
+    $configPath ??= MAX_PATH . '/var';
     // Set up the configuration .ini file type name
     if (!is_null($configFile)) {
         $configFile = '.' . $configFile;
@@ -63,8 +64,7 @@ function parseIniFile($configPath = null, $configFile = null, $sections = true, 
             $_SERVER['HTTP_HOST'] = 'test';
         } else {
             if (!isset($GLOBALS['argv'][1])) {
-                echo PRODUCT_NAME . " was called via the command line, but had no host as a parameter.\n";
-                exit(1);
+                throw new \RuntimeException(PRODUCT_NAME . " was called via the command line, but had no host as a parameter.");
             }
             $_SERVER['HTTP_HOST'] = trim($GLOBALS['argv'][1]);
         }
@@ -79,18 +79,21 @@ function parseIniFile($configPath = null, $configFile = null, $sections = true, 
         $testFilePath = $configPath . '/test.conf' . $type;
         if (file_exists($testFilePath)) {
             return @parse_ini_file($testFilePath, $sections);
-        } else {
-            // Define a value so that we know the testing environment is not
-            // configured, so that the TestRenner class knows not to run any
-            // tests, and return an empty config
-            define('TEST_ENVIRONMENT_NO_CONFIG', true);
-            return array();
         }
+        // Define a value so that we know the testing environment is not
+        // configured, so that the TestRenner class knows not to run any
+        // tests, and return an empty config
+        define('TEST_ENVIRONMENT_NO_CONFIG', true);
+        return [];
     }
+    $configName = $configPath . '/' . $host . $configFile . '.conf' . $type;
     // Is the .ini file for the hostname being used directly accessible?
-    if (file_exists($configPath . '/' . $host . $configFile . '.conf' . $type)) {
+    if (file_exists($configName)) {
         // Parse the configuration file
-        $conf = @parse_ini_file($configPath . '/' . $host . $configFile . '.conf' . $type, $sections);
+        $conf = @parse_ini_file($configName, $sections);
+        if (false === $conf) {
+            throw new \RuntimeException(PRODUCT_NAME . " wasn't able to parse the configuration file '{$configName}'.");
+        }
         // Is this a real config file?
         if (!isset($conf['realConfig'])) {
             // Yes, return the parsed configuration file
@@ -111,10 +114,8 @@ function parseIniFile($configPath = null, $configFile = null, $sections = true, 
         $defaultConfig = MAX_PATH . '/plugins/' . $pluginType . '/default.plugin.conf' . $type;
         if (file_exists($defaultConfig)) {
             return parse_ini_file($defaultConfig, $sections);
-        } else {
-            echo PRODUCT_NAME . " could not read the default configuration file for the {$pluginType} plugin";
-            exit(1);
         }
+        throw new \RuntimeException(PRODUCT_NAME . " could not read the default configuration file for the {$pluginType} plugin");
     }
     // Check for a default.conf.php file...
     if (file_exists($configPath . '/default' . $configFile . '.conf' . $type)) {
@@ -139,36 +140,28 @@ function parseIniFile($configPath = null, $configFile = null, $sections = true, 
     // the user is upgrading from an old version where the config
     // files have a .ini prefix instead of .php...
     global $installing;
-    if ($installing)
-    {
+    if ($installing) {
         // ah but MMM might be installed, check for the ini file
-        if (file_exists($configPath . '/' . $host . $configFile . '.conf.ini'))
-        {
+        if (file_exists($configPath . '/' . $host . $configFile . '.conf.ini')) {
             return parseIniFile($configPath, $configFile, $sections, '.ini');
         }
-        if (!$configFile)
-        {
+        if (!$configFile) {
             // Revive Adserver hasn't been installed, so use the distribution
             // .ini file; this deals with letting a PAN install get into the
             // ugprader
             return @parse_ini_file(MAX_PATH . '/etc/dist.conf.php', $sections);
         }
         //return parseIniFile($configPath, $configFile, $sections, '.ini');
-
     }
     // Check to ensure Revive Adserver hasn't been installed
-    if (file_exists(MAX_PATH . '/var/INSTALLED'))
-    {
+    if (file_exists(MAX_PATH . '/var/INSTALLED')) {
         // ah but MMM might be installed, check for the ini file
-        if (file_exists($configPath . '/' . $host . $configFile . '.conf.ini'))
-        {
+        if (file_exists($configPath . '/' . $host . $configFile . '.conf.ini')) {
             return parseIniFile($configPath, $configFile, $sections, '.ini');
         }
-        echo PRODUCT_NAME . " has been installed, but no configuration file ".$configPath . '/' . $host . $configFile . '.conf.php'." was found.\n";
-        exit(1);
+
+        throw new \RuntimeException(PRODUCT_NAME . " has been installed, but no configuration file " . $configPath . '/' . $host . $configFile . '.conf.php' . " was found.");
     }
     // Revive Adserver hasn't been installed, so use the distribution .ini file
     return @parse_ini_file(MAX_PATH . '/etc/dist.conf.php', $sections);
 }
-
-?>

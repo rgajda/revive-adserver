@@ -25,7 +25,7 @@ function insert_OA_Admin_UI_CustomHeader()
 
     if (!empty($aConf['ui']['headerFilePath'])) {
         ob_start();
-        include ($aConf['ui']['headerFilePath']);
+        include($aConf['ui']['headerFilePath']);
         return ob_get_clean();
     }
 
@@ -41,17 +41,13 @@ function insert_OA_Admin_UI_CustomFooter()
 {
     $aConf = $GLOBALS['_MAX']['CONF'];
 
-    
+
     if (!empty($aConf['ui']['footerFilePath'])) {
         ob_start();
-        include ($aConf['ui']['footerFilePath']);
+        include($aConf['ui']['footerFilePath']);
 
-        $content = ob_get_clean();
-        
-        return $content;
+        return ob_get_clean();
     }
 
     return '';
 }
-
-?>

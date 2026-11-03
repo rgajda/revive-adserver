@@ -19,8 +19,8 @@ require_once MAX_PATH . '/lib/max/Admin/UI/Field.php';
 
 class Admin_UI_DropdownField extends Admin_UI_Field
 {
-    /* @var array */
-    var $_fieldSelectionNames;
+    /** @var array */
+    public $_fieldSelectionNames;
 
     /**
      * PHP4-style constructor
@@ -28,7 +28,7 @@ class Admin_UI_DropdownField extends Admin_UI_Field
      * @param array $aFieldSelectionNames A list of the predefined 'friendly' selections.
      * @param string $fieldSelectionDefault The default selection.
      */
-    function __construct($aFieldSelectionNames = array(), $fieldSelectionDefault = '')
+    public function __construct($aFieldSelectionNames = [], $fieldSelectionDefault = '')
     {
         parent::__construct();
         $this->_fieldSelectionNames = $aFieldSelectionNames;
@@ -40,7 +40,7 @@ class Admin_UI_DropdownField extends Admin_UI_Field
      *
      * @param array $aQuerystring The querystring of this field.
      */
-    function setValueFromArray($aFieldValues)
+    public function setValueFromArray($aFieldValues)
     {
         $fieldSelectionName = $aFieldValues[$this->_name . '_preset'];
         if (!empty($fieldSelectionName)) {
@@ -51,10 +51,9 @@ class Admin_UI_DropdownField extends Admin_UI_Field
     /**
      * A method that echos the HTML for this field.
      */
-    function display()
+    public function display()
     {
         $name = $this->_name;
-        $value = is_null($this->_value) && !is_null($this->_defaultValue) ? $this->_defaultValue : $this->_value;
         $fieldSelectionValue = $this->_value;
         $aFieldSelectionNames = $this->_fieldSelectionNames;
 
@@ -70,5 +69,3 @@ class Admin_UI_DropdownField extends Admin_UI_Field
         </select>";
     }
 }
-
-?>

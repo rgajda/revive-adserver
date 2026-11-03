@@ -55,8 +55,10 @@ $GLOBALS['strNo'] = "否";
 $GLOBALS['strNone'] = "無";
 $GLOBALS['strCustom'] = "定制";
 $GLOBALS['strDefault'] = "默認";
+$GLOBALS['strUnknown'] = "未知";
 $GLOBALS['strUnlimited'] = "無限制";
 $GLOBALS['strUntitled'] = "未命名";
+$GLOBALS['strAll'] = "全部";
 $GLOBALS['strAverage'] = "平均";
 $GLOBALS['strTotal'] = "合計";
 $GLOBALS['strTo'] = "到";
@@ -109,9 +111,7 @@ $GLOBALS['strUsernameToLink'] = "將被添加用戶的姓名";
 $GLOBALS['strNewUserWillBeCreated'] = "將創建新用戶";
 $GLOBALS['strToLinkProvideEmail'] = "如想新增用戶,請提供用戶電子郵件";
 $GLOBALS['strToLinkProvideUsername'] = "如想新增用戶,請提供用戶名稱";
-$GLOBALS['strUserLinkedToAccount'] = "用戶已經被添加到賬號內";
 $GLOBALS['strUserAccountUpdated'] = "用戶賬號已經更新";
-$GLOBALS['strUserUnlinkedFromAccount'] = "用戶已經從賬號內被刪除";
 $GLOBALS['strUserWasDeleted'] = "用戶已經被刪除";
 $GLOBALS['strLinkUserHelpUser'] = "用戶名";
 $GLOBALS['strLinkUserHelpEmail'] = "電子郵件地址";
@@ -124,6 +124,7 @@ $GLOBALS['strAuthentification'] = "認證";
 $GLOBALS['strWelcomeTo'] = "歡迎來到";
 $GLOBALS['strEnterUsername'] = "請填入你的用戶名和密碼";
 $GLOBALS['strEnterBoth'] = "請填入你的用戶名和密碼";
+$GLOBALS['strEnableCookies'] = "您需要啟用cookie才能使用{$PRODUCT_NAME}";
 $GLOBALS['strLogin'] = "登錄";
 $GLOBALS['strLogout'] = "退出";
 $GLOBALS['strUsername'] = "用戶名";
@@ -145,6 +146,8 @@ $GLOBALS['strConversions'] = "轉化";
 $GLOBALS['strDateTime'] = "每日時間";
 $GLOBALS['strTrackerID'] = "跟蹤ID";
 $GLOBALS['strTrackerName'] = "跟蹤器名稱";
+$GLOBALS['strTrackerImageTag'] = "图片";
+$GLOBALS['strTrackerJsTag'] = "Javascript";
 $GLOBALS['strBanners'] = "廣告";
 $GLOBALS['strCampaigns'] = "項目";
 $GLOBALS['strCampaignID'] = "項目ID";
@@ -172,12 +175,26 @@ $GLOBALS['strDayOfWeek'] = "周一至周七";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
+$GLOBALS['strDayFullNames'][0] = '星期天';
+$GLOBALS['strDayFullNames'][1] = '星期一';
+$GLOBALS['strDayFullNames'][2] = '星期二';
+$GLOBALS['strDayFullNames'][3] = '星期三';
+$GLOBALS['strDayFullNames'][4] = '星期四';
+$GLOBALS['strDayFullNames'][5] = '星期五';
+$GLOBALS['strDayFullNames'][6] = '星期六';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
+$GLOBALS['strDayShortCuts'][0] = '周日';
+$GLOBALS['strDayShortCuts'][1] = '周一';
+$GLOBALS['strDayShortCuts'][2] = '周二';
+$GLOBALS['strDayShortCuts'][3] = '周三';
+$GLOBALS['strDayShortCuts'][4] = '周四';
+$GLOBALS['strDayShortCuts'][5] = '周五';
+$GLOBALS['strDayShortCuts'][6] = '周六';
 
 $GLOBALS['strHour'] = "小時";
 $GLOBALS['strSeconds'] = "秒";
@@ -204,7 +221,6 @@ $GLOBALS['strEMail'] = "電子郵件";
 $GLOBALS['strAllowClientModifyBanner'] = "允許用戶修改自己版面";
 $GLOBALS['strAllowClientDisableBanner'] = "允許用戶修改自己版面";
 $GLOBALS['strAllowClientActivateBanner'] = "允許用戶修改自己版面";
-$GLOBALS['strAllowCreateAccounts'] = "允許本用戶創建新賬號";
 
 // Campaign
 $GLOBALS['strCampaign'] = "項目";
@@ -225,6 +241,7 @@ $GLOBALS['strHiddenAdvertiser'] = "廣告商";
 $GLOBALS['strHiddenTracker'] = "跟蹤系統";
 $GLOBALS['strHiddenWebsite'] = "網站";
 $GLOBALS['strHiddenZone'] = "版位";
+$GLOBALS['strCampaignDelivery'] = "项目对比";
 $GLOBALS['strCompanionPositioning'] = "項目撇之";
 $GLOBALS['strSelectUnselectAll'] = "選擇/反選";
 
@@ -276,6 +293,7 @@ $GLOBALS['strConversionWindow'] = "轉化窗口";
 $GLOBALS['strUniqueWindow'] = "獨立窗口";
 $GLOBALS['strClick'] = "點擊";
 $GLOBALS['strView'] = "瀏覽";
+$GLOBALS['strImpression'] = "曝光量";
 $GLOBALS['strConversionType'] = "轉化類型";
 
 // Banners (General)
@@ -326,25 +344,25 @@ $GLOBALS['strStatusText'] = "狀態文字";
 $GLOBALS['strBannerWeight'] = "項目權重 ";
 $GLOBALS['strAdserverTypeGeneric'] = "生成HTML廣告";
 $GLOBALS['strGenericOutputAdServer'] = "生成";
-$GLOBALS['strSwfTransparency'] = "使用透明背景";
 
 // Banner (advanced)
-
-// Banner (swf)
-$GLOBALS['strCompressSWF'] = "壓縮SWF文件（需要Flash 6 player)";
-$GLOBALS['strOverwriteSource'] = "覆蓋原參數";
 
 // Display Delviery Rules
 $GLOBALS['strModifyBannerAcl'] = "發送選項";
 $GLOBALS['strACL'] = "發送選項";
 $GLOBALS['strEqualTo'] = "等於";
 $GLOBALS['strDifferentFrom'] = "不同於";
+$GLOBALS['strLaterThan'] = "晚於";
+$GLOBALS['strLaterThanOrEqual'] = "晚於或剛好";
+$GLOBALS['strEarlierThan'] = "早於";
+$GLOBALS['strEarlierThanOrEqual'] = "早於或剛好";
 $GLOBALS['strGreaterThan'] = "大於";
 $GLOBALS['strLessThan'] = "少於";
 $GLOBALS['strAND'] = "與";                          // logical operator
 $GLOBALS['strOR'] = "或";                         // logical operator
 $GLOBALS['strOnlyDisplayWhen'] = "當： 時候顯示這條廣告";
 $GLOBALS['strWeekDays'] = "工作日";
+$GLOBALS['strTime'] = "時間";
 $GLOBALS['strSource'] = "來源";
 
 $GLOBALS['strDeliveryCappingReset'] = "於此時之後重新開始統計";
@@ -352,17 +370,17 @@ $GLOBALS['strDeliveryCappingTotal'] = "合計";
 $GLOBALS['strDeliveryCappingSession'] = "平均每個線程";
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 $GLOBALS['strCappingBanner']['limit'] = "限定廣告瀏覽數為:";
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 $GLOBALS['strCappingCampaign']['limit'] = "限定項目瀏覽數為:";
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 $GLOBALS['strCappingZone']['limit'] = "限定版位瀏覽數為:";
 
@@ -441,8 +459,15 @@ $GLOBALS['strSelectAd'] = "選擇廣告";
 $GLOBALS['strSelectPublisher'] = "選擇網站";
 $GLOBALS['strSelectZone'] = "選擇版位";
 $GLOBALS['strStatusPending'] = "未決的";
+$GLOBALS['strStatusApproved'] = "確認";
+$GLOBALS['strStatusDisapproved'] = "否決";
 $GLOBALS['strStatusDuplicate'] = "複製";
+$GLOBALS['strStatusOnHold'] = "擱置";
+$GLOBALS['strStatusIgnore'] = "忽略";
 $GLOBALS['strConnectionType'] = "類型";
+$GLOBALS['strConnTypeSale'] = "出售";
+$GLOBALS['strConnTypeLead'] = "領先";
+$GLOBALS['strConnTypeSignUp'] = "註冊";
 $GLOBALS['strShortcutEditStatuses'] = "編輯狀態";
 $GLOBALS['strShortcutShowStatuses'] = "顯示狀態";
 
@@ -470,6 +495,9 @@ $GLOBALS['strEstimated'] = "預期到期日";
 $GLOBALS['strCampaignStop'] = "項目歷史";
 
 // Reports
+$GLOBALS['strStartDate'] = "開始日期";
+$GLOBALS['strEndDate'] = "結束日期";
+$GLOBALS['strPeriod'] = "时间段";
 
 // Admin_UI_Fields
 $GLOBALS['strAllAdvertisers'] = "所有客戶";
@@ -493,26 +521,33 @@ $GLOBALS['strFrameSize'] = "框架尺寸";
 $GLOBALS['strBannercode'] = "旗標代碼";
 $GLOBALS['strBackToTheList'] = "返回報告列表";
 
-
 // Errors
 $GLOBALS['strNoMatchesFound'] = "沒有符合的結果";
 $GLOBALS['strErrorOccurred'] = "出錯";
 $GLOBALS['strErrorDBPlain'] = "訪問數據庫出錯";
 $GLOBALS['strErrorDBSerious'] = "數據庫出錯";
+$GLOBALS['strErrorDBNoDataPlain'] = "{$PRODUCT_NAME} 無法從數據庫中取回或儲存數據。";
+$GLOBALS['strErrorDBNoDataSerious'] = "由於{$PRODUCT_NAME} 無法從數據庫中取回數據，因而導致一個嚴重問題";
 $GLOBALS['strErrorDBCorrupt'] = "數據庫表格出錯需要修復。希望了解關於修復表格的更多資訊，請參閱<i>管理員手冊</i>中的<i>排錯</i>章節";
 $GLOBALS['strErrorDBContact'] = "請聯繫伺服器管理員注意相關問題。";
+$GLOBALS['strErrorDBSubmitBug'] = "如果這個問題重複出現，則可能是由於{$PRODUCT_NAME}自身的BUG導致的。請向{$PRODUCT_NAME}開發人員報告這個錯誤。為了幫助開發人員解決問題，請儘量清晰地描述您的錯誤。";
+$GLOBALS['strMaintenanceNotActive'] = "管理代碼在過去的24小時內沒有被執行。為了保證{$PRODUCT_NAME}能夠正常地提供服務，管理代碼應該每小時執行一次。請閱讀管理員手冊了解更多相關資訊。";
 $GLOBALS['strUnableToChangeZone'] = "因為以下原因無法應用更新";
 $GLOBALS['strDatesConflict'] = "數據衝突";
+$GLOBALS['strEmailNoDates'] = "電子郵件版位必須有開始好結束時間";
 
 //Validation
 
 // Email
 $GLOBALS['strSirMadam'] = "先生/女士";
 $GLOBALS['strMailSubject'] = "客戶報告";
+$GLOBALS['strMailHeader'] = "親愛的（）";
 $GLOBALS['strMailBannerStats'] = "{clientname}的廣告統計數據:";
 $GLOBALS['strMailBannerActivatedSubject'] = "激活的項目";
 $GLOBALS['strMailBannerDeactivatedSubject'] = "撤銷的項目";
+$GLOBALS['strMailBannerActivated'] = "激活期限已到，您的項目已經被激活";
 $GLOBALS['strMailBannerDeactivated'] = "由於以下原因，您的項目已被撤銷";
+$GLOBALS['strMailFooter'] = "尊敬的：";
 $GLOBALS['strClientDeactivated'] = "由於以下原因，該項目未被激活";
 $GLOBALS['strBeforeActivate'] = "激活日期還未到";
 $GLOBALS['strAfterExpire'] = "項目已過期";
@@ -531,6 +566,7 @@ $GLOBALS['strYourCampaign'] = "您的項目";
 $GLOBALS['strTheCampiaignBelongingTo'] = "該項目屬於";
 $GLOBALS['strImpendingCampaignExpiryDateBody'] = "{clientname}在{date}之前.";
 $GLOBALS['strImpendingCampaignExpiryImpsBody'] = "{clientname} 剩餘的曝光量已低於 {limit}。";
+$GLOBALS['strImpendingCampaignExpiryBody'] = "該項目即將自動失效，項目之下的廣告也將一併失效:";
 
 // Priority
 $GLOBALS['strPriority'] = "優先";
@@ -596,6 +632,7 @@ $GLOBALS['strNoAgencies'] = "沒有相關的賬戶";
 $GLOBALS['strConfirmDeleteAgency'] = "您真的希望刪除該賬戶？";
 $GLOBALS['strHideInactiveAgencies'] = "藏不活躍的帳戶";
 $GLOBALS['strInactiveAgenciesHidden'] = "藏不活躍的帳戶";
+$GLOBALS['strAgencyStatusInactive'] = "活躍";
 
 // Channels
 $GLOBALS['strChannelToWebsite'] = "沒有網站";
@@ -625,14 +662,18 @@ $GLOBALS['strTrackerTypeCustom'] = "自定義JS代碼";
 $GLOBALS['strVariableCode'] = "JavaScript跟蹤代碼";
 
 // Password recovery
-$GLOBALS['strForgotPassword'] = "忘記密碼？";
-$GLOBALS['strPasswordRecovery'] = "密碼恢復";
 $GLOBALS['strEmailRequired'] = "電子郵件為必填項";
-$GLOBALS['strPwdRecWrongId'] = "錯誤ID";
-$GLOBALS['strPwdRecEnterEmail'] = "請填入你的郵件地址";
 $GLOBALS['strPwdRecEnterPassword'] = "請填入新密碼";
-$GLOBALS['strPwdRecEmailPwdRecovery'] = "%s 密碼重置";
 $GLOBALS['strProceed'] = "繼續>";
+
+// Password recovery - Default
+
+
+// Password recovery - Welcome email
+
+// Password recovery - Hash update
+
+// Password reset warning
 
 // Audit
 $GLOBALS['strHas'] = "具備";
@@ -656,6 +697,21 @@ $GLOBALS['strAuditTrail'] = "審計跟踪";
 
 
 // Report error messages
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

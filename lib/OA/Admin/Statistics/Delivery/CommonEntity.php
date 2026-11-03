@@ -19,33 +19,43 @@ require_once MAX_PATH . '/lib/OA/Admin/Statistics/Delivery/Common.php';
  * @package    OpenXAdmin
  * @subpackage StatisticsDelivery
  */
-class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Delivery_Common
+abstract class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Delivery_Common
 {
+    public $aNodes;
 
     /** @var boolean */
-    var $showHideInactive = false;
+    public $showHideInactive = false;
+
     /** @var int */
-    var $startLevel;
+    public $startLevel;
+
     /** @var boolean */
-    var $hideInactive;
+    public $hideInactive;
+
     /** @var int */
-    var $hiddenEntities = 0;
-    /** @var array */
-    var $showHideLevels;
+    public $hiddenEntities = 0;
 
     /** @var array */
-    var $data;
-    /** @var array */
-    var $childrendata;
+    public $showHideLevels;
 
     /** @var array */
-    var $entityLinks = array(
-            'a' => 'stats.php?entity=advertiser&breakdown=history',
-            'c' => 'stats.php?entity=campaign&breakdown=history',
-            'b' => 'stats.php?entity=banner&breakdown=history',
-            'p' => 'stats.php?entity=affiliate&breakdown=history',
-            'z' => 'stats.php?entity=zone&breakdown=history'
-        );
+    public $data;
+
+    /** @var array */
+    public $childrendata;
+
+    /** @var string */
+    public $hiddenEntitiesText;
+
+    /** @var array */
+    public $entityLinks = [
+        'a' => 'stats.php?entity=advertiser&breakdown=history',
+        'c' => 'stats.php?entity=campaign&breakdown=history',
+        'b' => 'stats.php?entity=banner&breakdown=history',
+        'p' => 'stats.php?entity=affiliate&breakdown=history',
+        'z' => 'stats.php?entity=zone&breakdown=history',
+        'g' => 'stats.php?entity=agency&breakdown=history',
+    ];
 
     /**
      * The array of "entity" style delivery statistics data to
@@ -53,24 +63,24 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      *
      * @var array
      */
-    var $aEntitiesData;
+    public $aEntitiesData;
 
     /**
      * PHP5-style constructor
      */
-    function __construct($params)
+    public function __construct($params)
     {
         // Set the output type "entity" style delivery statistcs
         $this->outputType = 'deliveryEntity';
 
         // Get list order and direction
-        $this->listOrderField     = MAX_getStoredValue('listorder', 'name');
+        $this->listOrderField = MAX_getStoredValue('listorder', 'name');
         $this->listOrderDirection = MAX_getStoredValue('orderdirection', 'up');
 
         parent::__construct($params);
 
         // Store the preferences
-        $this->aPagePrefs['listorder']      = $this->listOrderField;
+        $this->aPagePrefs['listorder'] = $this->listOrderField;
         $this->aPagePrefs['orderdirection'] = $this->listOrderDirection;
 
         // load the Banners DO class (to be used in entityLink)
@@ -86,16 +96,16 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      * @access private
      * @return boolean True on empty, false if at least one row of data.
      */
-    function _isEmptyResultArray()
+    public function _isEmptyResultArray()
     {
         if (!is_array($this->aEntitiesData)) {
             return true;
         }
-        foreach($this->aEntitiesData as $aRecord) {
+        foreach ($this->aEntitiesData as $aRecord) {
             if (
                 $aRecord['sum_requests'] != '-' ||
-                $aRecord['sum_views']    != '-' ||
-                $aRecord['sum_clicks']   != '-'
+                $aRecord['sum_views'] != '-' ||
+                $aRecord['sum_clicks'] != '-'
             ) {
                 return false;
             }
@@ -107,16 +117,16 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      * Recursively convert the tree-style entities array to a flat array
      * suitable for displaying it in a template
      */
-    function flattenEntities()
+    public function flattenEntities()
     {
         $i = 0;
         $this->aEntitiesData = $this->_flattenEntities($this->aEntitiesData, $i);
-        if (count($this->aEntitiesData)) {
+        if ($this->aEntitiesData !== []) {
             $this->aEntitiesData[count($this->aEntitiesData) - 1]['htmlclass'] .= ' last';
             $this->aEntitiesData[count($this->aEntitiesData) - 1]['nameclass'] .= ' last';
             foreach (array_keys($this->aEntitiesData) as $k) {
                 if ($k && $this->aEntitiesData[$k]['level'] != 0) {
-                    $this->aEntitiesData[$k-1]['nameclass'] = 'nb'.$this->aEntitiesData[$k-1]['nameclass'];
+                    $this->aEntitiesData[$k - 1]['nameclass'] = 'nb' . $this->aEntitiesData[$k - 1]['nameclass'];
                 }
             }
         }
@@ -131,9 +141,9 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      *
      * @return array Flat entities array
      */
-    function _flattenEntities($aEntitiesData, &$cycle_var, $parent = null)
+    public function _flattenEntities($aEntitiesData, &$cycle_var, $parent = null)
     {
-        $ret = array();
+        $ret = [];
 
         foreach ($aEntitiesData as $e) {
             if (is_null($parent)) {
@@ -161,8 +171,9 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
 
             $ret[] = $e;
 
-            if (is_array($sub))
+            if (is_array($sub)) {
                 $ret = array_merge($ret, $sub);
+            }
         }
 
         return $ret;
@@ -171,13 +182,9 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
     /**
      * Return the appriopriate link for an entity -- helper function for Flexy
      */
-    function entityLink($key, $type = null)
+    public function entityLink($key)
     {
-        return empty($this->entityLinks[$key])
-            || $type == DataObjects_Banners::BANNER_TYPE_MARKET
-            || $type == MAX_ZoneMarketMigrated
-                ?  false
-                : $this->entityLinks[$key];
+        return $this->entityLinks[$key] ?? false;
     }
 
     /**
@@ -187,7 +194,7 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      * @param array Stats row
      * @param string Key name
      */
-    function _prepareDataAdd(&$entity, $row, $key)
+    public function _prepareDataAdd(&$entity, $row, $key)
     {
         if (!isset($entity[$row[$key]])) {
             $entity[$row[$key]][$key] = $row[$key];
@@ -199,11 +206,11 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
         // Use $row keys instead of $this->column to preserve non visible data
         foreach (array_keys($row) as $s) {
             if (isset($row[$s])) {
-                if (!isset($entity[$row[$key]][$s])) {
-                    $entity[$row[$key]][$s] = $row[$s];
-                }
-                if (substr($s, -3) != '_id') {
+                if (!str_ends_with($s, '_id')) {
+                    $entity[$row[$key]][$s] ??= 0;
                     $entity[$row[$key]][$s] += $row[$s];
+                } else {
+                    $entity[$row[$key]][$s] ??= $row[$s];
                 }
             }
         }
@@ -214,15 +221,14 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      *
      * @param array Query parameters
      */
-    function prepareData($aParams)
+    public function prepareData($aParams)
     {
-        if (is_null($this->data))
-        {
+        if (is_null($this->data)) {
             $oNow = new Date();
             $aParams['tz'] = $oNow->tz->getID();
 
             // Get plugin aParams
-            $pluginParams = array();
+            $pluginParams = [];
             foreach ($this->aPlugins as $oPlugin) {
                 $oPlugin->addQueryParams($pluginParams);
             }
@@ -234,20 +240,21 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 $oPlugin->mergeData($aRows, 'getEntitiesStats', $aParams + $this->aDates, $this->aEmptyRow);
             }
 
-            $this->data = array(
-                'advertiser_id' => array(),
-                'placement_id'  => array(),
-                'ad_id'         => array(),
-                'publisher_id'  => array(),
-                'zone_id'       => array()
-            );
+            $this->data = [
+                'agency_id' => [],
+                'advertiser_id' => [],
+                'placement_id' => [],
+                'ad_id' => [],
+                'publisher_id' => [],
+                'zone_id' => [],
+            ];
 
             if (!count($aRows)) {
                 $this->noStatsAvailable = true;
                 return;
             }
 
-            $aggregates = array('ad_id', 'zone_id');
+            $aggregates = ['ad_id', 'zone_id'];
             if (isset($aParams['exclude'])) {
                 $aggregates = array_diff($aggregates, $aParams['exclude']);
             }
@@ -255,48 +262,51 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 $aggregates = array_merge($aggregates, $aParams['include']);
             }
 
-            $this->childrendata = array();
-            if (array_search('ad_id', $aggregates) !== false) {
+            $this->childrendata = [];
+            if (in_array('ad_id', $aggregates)) {
                 $this->childrendata['ad_id'] = Admin_DA::fromCache('getAds', $aParams);
                 // Plugins can set their own ads in the array
                 foreach ($this->aPlugins as $oPlugin) {
                     $oPlugin->mergeAds($this->childrendata['ad_id']);
                 }
             }
-            if (array_search('placement_id', $aggregates) !== false) {
+            if (in_array('placement_id', $aggregates)) {
                 $this->childrendata['placement_id'] = Admin_DA::fromCache('getPlacementsChildren', $aParams);
 
                 if (isset($this->childrendata['ad_id'])) {
                     foreach ($this->childrendata['ad_id'] as $key => $item) {
-                        $this->childrendata['placement_id'][$item['placement_id']]['children'][$key] =& $this->childrendata['ad_id'][$key];
+                        $this->childrendata['placement_id'][$item['placement_id']]['children'][$key] = &$this->childrendata['ad_id'][$key];
                         $this->childrendata['ad_id'][$key]['advertiser_id'] = $this->childrendata['placement_id'][$item['placement_id']]['advertiser_id'];
                     }
                 }
             }
-            if (array_search('advertiser_id', $aggregates) !== false) {
+            if (in_array('advertiser_id', $aggregates)) {
                 $this->childrendata['advertiser_id'] = Admin_DA::fromCache('getAdvertisersChildren', $aParams);
 
                 if (isset($this->childrendata['placement_id'])) {
                     foreach ($this->childrendata['placement_id'] as $key => $item) {
-                        $this->childrendata['advertiser_id'][$item['advertiser_id']]['children'][$key] =& $this->childrendata['placement_id'][$key];
+                        $this->childrendata['advertiser_id'][$item['advertiser_id']]['children'][$key] = &$this->childrendata['placement_id'][$key];
                     }
                 }
             }
-            if (array_search('zone_id', $aggregates) !== false) {
+            if (in_array('zone_id', $aggregates)) {
                 $this->childrendata['zone_id'] = Admin_DA::fromCache('getZones', $aParams);
                 // Plugins can set their own zones in the array
                 foreach ($this->aPlugins as $oPlugin) {
                     $oPlugin->mergeZones($this->childrendata['zone_id']);
                 }
             }
-            if (array_search('publisher_id', $aggregates) !== false) {
+            if (in_array('publisher_id', $aggregates)) {
                 $this->childrendata['publisher_id'] = Admin_DA::fromCache('getPublishersChildren', $aParams);
 
                 if (isset($this->childrendata['zone_id'])) {
                     foreach ($this->childrendata['zone_id'] as $key => $item) {
-                        $this->childrendata['publisher_id'][$item['publisher_id']]['children'][$key] =& $this->childrendata['zone_id'][$key];
+                        $this->childrendata['publisher_id'][$item['publisher_id']]['children'][$key] = &$this->childrendata['zone_id'][$key];
                     }
                 }
+            }
+            if (in_array('agency_id', $aggregates)) {
+                $this->childrendata['agency_id'] = Admin_DA::fromCache('getAgencies', $aParams);
             }
 
             foreach ($aRows as $row) {
@@ -314,9 +324,9 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      * @param string Key name
      * @return array Full entity stats with entity data
      */
-    function mergeData($aParams, $key)
+    public function mergeData($aParams, $key)
     {
-        $aEntitiesData = array();
+        $aEntitiesData = [];
 
         if (isset($this->childrendata[$key])) {
             if ($key == 'placement_id' && !empty($aParams['advertiser_id'])) {
@@ -349,27 +359,162 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
     }
 
     /**
+     * Get agency stats
+     *
+     * @param array Query parameters
+     * @param int Tree level
+     * @param string Expand GET parameter, used only when called from other get methods
+     * @return array Entities array
+     */
+    public function getAgencies($aParams)
+    {
+        $aParams['include'] = ['agency_id'];
+        $aParams['exclude'] = ['advertiser_id', 'zone_id', 'ad_id', 'placement_id'];
+        $this->prepareData($aParams);
+        $period_preset = MAX_getStoredValue('period_preset', 'today');
+        $aAgencies = $this->mergeData($aParams, 'agency_id');
+        MAX_sortArray(
+            $aAgencies,
+            ($this->listOrderField == 'id' ? 'agency_id' : $this->listOrderField),
+            $this->listOrderDirection == 'up',
+        );
+
+        $aEntitiesData = [];
+        foreach ($aAgencies as $agencyId => $agency) {
+            $agency['active'] = $this->_hasActiveStats($agency);
+
+            $this->_summarizeStats($agency);
+
+            if (!$this->hideInactive || $agency['active']) {
+                $agency['prefix'] = 'g';
+                $agency['id'] = $agencyId;
+                $agency['linkparams'] = "agencyid={$agencyId}&";
+                if (is_array($aParams) && $aParams !== []) {
+                    foreach ($aParams as $key => $value) {
+                        if ($key != "include" && $key != "exclude") {
+                            $agency['linkparams'] .= $key . "=" . $value . "&";
+                        }
+                    }
+                } else {
+                    $agency['linkparams'] .= "&";
+                }
+                $agency['linkparams'] .= "period_preset={$period_preset}&period_start=" . MAX_getStoredValue('period_start', date('Y-m-d'))
+                    . "&period_end=" . MAX_getStoredValue('period_end', date('Y-m-d'));
+
+                $agency['icon'] = MAX_getEntityIcon('agency', $agency['active']);
+
+                $aEntitiesData[] = $agency;
+            } else {
+                $this->hiddenEntities++;
+            }
+        }
+
+        return $aEntitiesData;
+    }
+
+    /**
+     * Get campaign stats
+     *
+     * @param array Query parameters
+     * @param int Tree level
+     * @param string Expand GET parameter, used only when called from other get methods
+     * @return array Entities array
+     */
+    public function getCampaigns($aParams, $level, $expand = '')
+    {
+        $aParams['include'] = ['placement_id', 'advertiser_id'];
+        $aParams['exclude'] = ['zone_id'];
+        $this->prepareData($aParams);
+        $period_preset = MAX_getStoredValue('period_preset', 'today');
+
+        $aPlacements = $this->mergeData($aParams, 'placement_id');
+        MAX_sortArray(
+            $aPlacements,
+            ($this->listOrderField == 'id' ? 'placement_id' : $this->listOrderField),
+            $this->listOrderDirection == 'up',
+        );
+
+        $aEntitiesData = [];
+        foreach ($aPlacements as $campaignId => $campaign) {
+            $campaign['active'] = $this->_hasActiveStats($campaign);
+
+            if ($this->startLevel > $level || !$this->hideInactive || $campaign['active']) {
+                $this->_summarizeStats($campaign);
+                // mask anonymous campaigns if advertiser
+                if (OA_Permission::isAccount(OA_ACCOUNT_ADVERTISER)) {
+                    // a) mask campaign name
+                    $campaign['name'] = MAX_getPlacementName($campaign);
+                    // b) mask ad names
+                    if ($campaign['anonymous'] == 't' && isset($campaign['children'])) {
+                        foreach ($campaign['children'] as $ad_id => $ad) {
+                            $campaign['children'][$ad_id]['name'] = MAX_getAdName($ad['name'], null, null, $campaign['anonymous'], $ad_id);
+                        }
+                    }
+                }
+
+                $campaign['prefix'] = 'c';
+                $campaign['id'] = $campaignId;
+                $campaign['linkparams'] = "clientid={$campaign['advertiser_id']}&campaignid={$campaignId}&";
+                if (is_array($aParams) && $aParams !== []) {
+                    foreach ($aParams as $key => $value) {
+                        if ($key != "include" && $key != "exclude") {
+                            $campaign['linkparams'] .= $key . "=" . $value . "&";
+                        }
+                    }
+                } else {
+                    $campaign['linkparams'] .= "&";
+                }
+                $campaign['linkparams'] .= "period_preset={$period_preset}&period_start=" . MAX_getStoredValue('period_start', date('Y-m-d'))
+                    . "&period_end=" . MAX_getStoredValue('period_end', date('Y-m-d'));
+                $campaign['expanded'] = MAX_isExpanded($campaignId, $expand, $this->aNodes, $campaign['prefix']);
+                $campaign['icon'] = MAX_getEntityIcon('placement', $campaign['active'], $campaign['type']);
+
+                // mask anonymous campaigns
+                // a) mask campaign name
+                $campaign['name'] = MAX_getPlacementName($campaign);
+
+                // b) mask ad names
+                if (isset($campaign['children'])) {
+                    foreach ($campaign['children'] as $ad_id => $ad) {
+                        $campaign['children'][$ad_id]['name'] = MAX_getAdName($ad['name'], null, null, $campaign['anonymous'], $ad_id);
+                    }
+                }
+                if ($campaign['expanded'] || $this->startLevel > $level) {
+                    $aParams2 = $aParams + ['placement_id' => $campaignId];
+                    $campaign['subentities'] = $this->getBanners($aParams2, $level + 1, $expand);
+                }
+
+                $aEntitiesData[] = $campaign;
+            } elseif ($this->startLevel == $level) {
+                $this->hiddenEntities++;
+            }
+        }
+
+        return $aEntitiesData;
+    }
+
+    /**
      * Get advertiser stats
      *
      * @param array Query parameters
      * @param int Tree level
      * @param string Expand GET parameter, used only when called from other get methods
-     * @return Entities array
+     * @return array Entities array
      */
-    function getAdvertisers($aParams, $level, $expand = '')
+    public function getAdvertisers($aParams, $level, $expand = '')
     {
-        $aParams['include'] = array('advertiser_id', 'placement_id');
-        $aParams['exclude'] = array('zone_id');
+        $aParams['include'] = ['advertiser_id', 'placement_id'];
+        $aParams['exclude'] = ['zone_id'];
         $this->prepareData($aParams);
         $period_preset = MAX_getStoredValue('period_preset', 'today');
         $aAdvertisers = $this->mergeData($aParams, 'advertiser_id');
         MAX_sortArray(
             $aAdvertisers,
             ($this->listOrderField == 'id' ? 'advertiser_id' : $this->listOrderField),
-            $this->listOrderDirection == 'up'
+            $this->listOrderDirection == 'up',
         );
 
-        $aEntitiesData = array();
+        $aEntitiesData = [];
         foreach ($aAdvertisers as $advertiserId => $advertiser) {
             $advertiser['active'] = $this->_hasActiveStats($advertiser);
 
@@ -379,7 +524,7 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 $advertiser['prefix'] = 'a';
                 $advertiser['id'] = $advertiserId;
                 $advertiser['linkparams'] = "clientid={$advertiserId}&";
-                if (is_array($aParams) && count($aParams) > 0) {
+                if (is_array($aParams) && $aParams !== []) {
                     foreach ($aParams as $key => $value) {
                         if ($key != "include" && $key != "exclude") {
                             $advertiser['linkparams'] .= $key . "=" . $value . "&";
@@ -396,95 +541,11 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 $advertiser['icon'] = MAX_getEntityIcon('advertiser', $advertiser['active'], $advertiser['type']);
 
                 if ($advertiser['expanded'] || $this->startLevel > $level) {
-                    $aParams2 = $aParams + array('advertiser_id' => $advertiserId);
+                    $aParams2 = $aParams + ['advertiser_id' => $advertiserId];
                     $advertiser['subentities'] = $this->getCampaigns($aParams2, $level + 1, $expand);
                 }
 
                 $aEntitiesData[] = $advertiser;
-            } elseif ($this->startLevel == $level) {
-                $this->hiddenEntities++;
-            }
-        }
-
-        return $aEntitiesData;
-    }
-
-    /**
-     * Get campaign stats
-     *
-     * @param array Query parameters
-     * @param int Tree level
-     * @param string Expand GET parameter, used only when called from other get methods
-     * @return Entities array
-     */
-    function getCampaigns($aParams, $level, $expand = '')
-    {
-        $aParams['include'] = array('placement_id', 'advertiser_id');
-        $aParams['exclude'] = array('zone_id');
-        $this->prepareData($aParams);
-        $period_preset = MAX_getStoredValue('period_preset', 'today');
-
-        $aPlacements = $this->mergeData($aParams, 'placement_id');
-        MAX_sortArray(
-            $aPlacements,
-            ($this->listOrderField == 'id' ? 'placement_id' : $this->listOrderField),
-            $this->listOrderDirection == 'up'
-        );
-
-        $aEntitiesData = array();
-        foreach ($aPlacements as $campaignId => $campaign) {
-            $campaign['active'] = $this->_hasActiveStats($campaign);
-
-            if ($this->startLevel > $level || !$this->hideInactive || $campaign['active']) {
-
-                $this->_summarizeStats($campaign);
-                // mask anonymous campaigns if advertiser
-                if (OA_Permission::isAccount(OA_ACCOUNT_ADVERTISER)) {
-                    // a) mask campaign name
-                    $campaign['name'] = MAX_getPlacementName($campaign);
-                    // b) mask ad names
-                    if ($campaign['anonymous'] == 't') {
-                        if(isset($campaign['children'])) {
-		                    foreach ($campaign['children'] as $ad_id => $ad) {
-		                        $campaign['children'][$ad_id]['name'] = MAX_getAdName($ad['name'], null, null, $campaign['anonymous'], $ad_id);
-		                    }
-                        }
-                    }
-                }
-
-                $campaign['prefix'] = 'c';
-                $campaign['id'] = $campaignId;
-                $campaign['linkparams'] = "clientid={$campaign['advertiser_id']}&campaignid={$campaignId}&";
-                if (is_array($aParams) && count($aParams) > 0) {
-                    foreach ($aParams as $key => $value) {
-                        if ($key != "include" && $key != "exclude") {
-                            $campaign['linkparams'] .= $key . "=" . $value . "&";
-                        }
-                    }
-                } else {
-                    $campaign['linkparams'] .= "&";
-                }
-                $campaign['linkparams'] .= "period_preset={$period_preset}&period_start=" . MAX_getStoredValue('period_start', date('Y-m-d'))
-                                          . "&period_end=" . MAX_getStoredValue('period_end', date('Y-m-d'));
-                $campaign['expanded'] = MAX_isExpanded($campaignId, $expand, $this->aNodes, $campaign['prefix']);
-                $campaign['icon'] = MAX_getEntityIcon('placement', $campaign['active'], $campaign['type']);
-
-                // mask anonymous campaigns
-                // a) mask campaign name
-                $campaign['name'] = MAX_getPlacementName($campaign);
-
-                // b) mask ad names
-                if(isset($campaign['children'])) {
-	                foreach ($campaign['children'] as $ad_id => $ad) {
-	                    $campaign['children'][$ad_id]['name'] = MAX_getAdName($ad['name'], null, null, $campaign['anonymous'], $ad_id);
-	                }
-                }
-                if ($campaign['expanded'] || $this->startLevel > $level) {
-                    $aParams2 = $aParams + array('placement_id' => $campaignId);
-                    $campaign['subentities'] = $this->getBanners($aParams2, $level + 1, $expand);
-                }
-
-                $aEntitiesData[] = $campaign;
             } elseif ($this->startLevel == $level) {
                 $this->hiddenEntities++;
             }
@@ -500,7 +561,7 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      */
     private function getHtmlHelpLink($id)
     {
-        return '<span class="link" help="'. $id .'"><span class="icon icon-info"></span></span>';
+        return '<span class="link" help="' . $id . '"><span class="icon icon-info"></span></span>';
     }
 
     /**
@@ -509,15 +570,15 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      * @param array Query parameters
      * @param int Tree level
      * @param string Expand GET parameter, used only when called from other get methods
-     * @return Entities array
+     * @return array Entities array
      */
-    function getBanners($aParams, $level, $expand = '')
+    public function getBanners($aParams, $level, $expand = '')
     {
         global $phpAds_IAB;
         require_once MAX_PATH . '/www/admin/lib-size.inc.php';
 
-        $aParams['include'] = array('placement_id'); // Needed to fetch the advertiser_id
-        $aParams['exclude'] = array('zone_id');
+        $aParams['include'] = ['placement_id']; // Needed to fetch the advertiser_id
+        $aParams['exclude'] = ['zone_id'];
         $this->prepareData($aParams);
         $period_preset = MAX_getStoredValue('period_preset', 'today');
 
@@ -525,32 +586,25 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
         MAX_sortArray(
             $aAds,
             ($this->listOrderField == 'id' ? 'ad_id' : $this->listOrderField),
-            $this->listOrderDirection == 'up'
+            $this->listOrderDirection == 'up',
         );
 
-        $aEntitiesData = array();
+        $aEntitiesData = [];
         foreach ($aAds as $bannerId => $banner) {
             $banner['active'] = $this->_hasActiveStats($banner);
 
             if ($this->startLevel > $level || !$this->hideInactive || $banner['active']) {
-
                 $this->_summarizeStats($banner);
                 // mask banner name if anonymous campaign
                 $campaign = Admin_DA::getPlacement($banner['placement_id']);
-                $campaignAnonymous = $campaign['anonymous'] == 't' ? true : false;
+                $campaignAnonymous = $campaign['anonymous'] == 't';
 
-                if($banner['type'] == DataObjects_Banners::BANNER_TYPE_MARKET) {
-                    $marketBannerNameAndAdvertiserId = $this->getMarketBannerName($banner['name']);
-                    $banner['name'] = $marketBannerNameAndAdvertiserId['name'];
-                    $banner['marketAdvertiserId'] = $marketBannerNameAndAdvertiserId['marketAdvertiserId'];
-
-                }
                 $banner['name'] = MAX_getAdName($banner['name'], null, null, $campaignAnonymous, $bannerId);
 
                 $banner['prefix'] = 'b';
                 $banner['id'] = $bannerId;
                 $banner['linkparams'] = "clientid={$banner['advertiser_id']}&campaignid={$banner['placement_id']}&bannerid={$bannerId}&";
-                if (is_array($aParams) && count($aParams) > 0) {
+                if (is_array($aParams) && $aParams !== []) {
                     foreach ($aParams as $key => $value) {
                         if ($key != "include" && $key != "exclude") {
                             $banner['linkparams'] .= $key . "=" . $value . "&";
@@ -573,83 +627,18 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
         return $aEntitiesData;
     }
 
-    function getMarketBannerName($bannerName)
-    {
-        $marketAdvertiserId = false;
-        // Market ads are written in the array as "campaignid-$NAME" which is a unique ID
-        // across this manager
-        $startRealBannerName = 1 + strpos($bannerName, '_');
-        if($startRealBannerName !== false) {
-            $bannerName = substr($bannerName, $startRealBannerName);
-            // the banner $NAME can be
-            // - "$ADVERTISERID_$ADWIDTH x $ADHEIGHT"
-            // - or "$AD_WIDTH x $AD_HEIGHT"
-            $startBannerDimension = strpos($bannerName, '_');
-
-            $marketAdvertiserName = false;
-            if($startBannerDimension === false) {
-                $bannerDimensions = $bannerName;
-            } else {
-                $bannerDimensions = substr($bannerName, $startBannerDimension + 1);
-                $marketAdvertiserId = substr($bannerName, 0, $startBannerDimension);
-
-                if(!empty($marketAdvertiserId)) {
-                    $marketAdvertiserName = $this->getMarketAdvertiserNameFromId($marketAdvertiserId);
-                }
-                if($marketAdvertiserName) {
-                    $bannerName = $marketAdvertiserName . ' - ' .$bannerDimensions;
-                }
-            }
-            if($marketAdvertiserName === false)
-            {
-                $bannerDimensions = explode('x', $bannerDimensions);
-                $width = trim($bannerDimensions[0]);
-                $height = trim($bannerDimensions[1]);
-                $bannerName = phpAds_getBannerSize($width, $height);
-                $bannerName = $bannerName;
-            }
-        }
-        return array(
-            'name' => $bannerName,
-            'marketAdvertiserId' => $marketAdvertiserId
-        );
-    }
-    /**
-     * Loads the list of market advertisers once, and returns the name for the given market advertiser ID
-     * @param $marketAdvertiserId
-     * @return string or false
-     */
-    protected function getMarketAdvertiserNameFromId($marketAdvertiserId)
-    {
-        static $advertiserList = null;
-        if(is_null($advertiserList)) {
-            $oDbh = OA_DB::singleton();
-            $query = 'SELECT market_advertiser_id, name
-            			FROM '.$GLOBALS['_MAX']['CONF']['table']['prefix'].'ext_market_advertiser
-            			';
-            $rows = $oDbh->queryAll($query);
-            foreach($rows as $row) {
-                $advertiserList[$row['market_advertiser_id']] = utf8_encode($row['name']);
-            }
-        }
-        if(isset($advertiserList[$marketAdvertiserId])) {
-            return $advertiserList[$marketAdvertiserId];
-        }
-        return false;
-    }
-
     /**
      * Get publisher stats
      *
      * @param array Query parameters
      * @param int Tree level
      * @param string Expand GET parameter, used only when called from other get methods
-     * @return Entities array
+     * @return array Entities array
      */
-    function getPublishers($aParams, $level, $expand = '')
+    public function getPublishers($aParams, $level, $expand = '')
     {
-        $aParams['include'] = array('publisher_id');
-        $aParams['exclude'] = array('ad_id');
+        $aParams['include'] = ['publisher_id'];
+        $aParams['exclude'] = ['ad_id'];
         $this->prepareData($aParams);
         $period_preset = MAX_getStoredValue('period_preset', 'today');
 
@@ -657,10 +646,10 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
         MAX_sortArray(
             $aPublishers,
             ($this->listOrderField == 'id' ? 'publisher_id' : $this->listOrderField),
-            $this->listOrderDirection == 'up'
+            $this->listOrderDirection == 'up',
         );
 
-        $aEntitiesData = array();
+        $aEntitiesData = [];
         foreach ($aPublishers as $publisherId => $publisher) {
             $publisher['active'] = $this->_hasActiveStats($publisher);
 
@@ -670,7 +659,7 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 $publisher['prefix'] = 'p';
                 $publisher['id'] = $publisherId;
                 $publisher['linkparams'] = "affiliateid={$publisherId}&";
-                if (is_array($aParams) && count($aParams) > 0) {
+                if (is_array($aParams) && $aParams !== []) {
                     foreach ($aParams as $key => $value) {
                         if ($key != "include" && $key != "exclude") {
                             $publisher['linkparams'] .= $key . "=" . $value . "&";
@@ -685,7 +674,7 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 $publisher['icon'] = MAX_getEntityIcon('publisher', $publisher['active']);
 
                 if ($publisher['expanded'] || $this->startLevel > $level) {
-                    $aParams2 = $aParams + array('publisher_id' => $publisherId);
+                    $aParams2 = $aParams + ['publisher_id' => $publisherId];
                     $publisher['subentities'] = $this->getZones($aParams2, $level + 1, $expand);
                 }
 
@@ -704,12 +693,12 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      * @param array Query parameters
      * @param int Tree level
      * @param string Expand GET parameter, used only when called from other get methods
-     * @return Entities array
+     * @return array Entities array
      */
-    function getZones($aParams, $level, $expand)
+    public function getZones($aParams, $level, $expand)
     {
-        $aParams['exclude'] = array('ad_id');
-        $aParams['include'] = array('publisher_id');
+        $aParams['exclude'] = ['ad_id'];
+        $aParams['include'] = ['publisher_id'];
         $this->prepareData($aParams);
         $period_preset = MAX_getStoredValue('period_preset', 'today');
 
@@ -717,21 +706,20 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
         MAX_sortArray(
             $aZones,
             ($this->listOrderField == 'id' ? 'zone_id' : $this->listOrderField),
-            $this->listOrderDirection == 'up'
+            $this->listOrderDirection == 'up',
         );
 
-        $aEntitiesData = array();
+        $aEntitiesData = [];
         foreach ($aZones as $zoneId => $zone) {
             $zone['active'] = $this->_hasActiveStats($zone);
 
             if ($this->startLevel > $level || !$this->hideInactive || $zone['active']) {
-
                 $this->_summarizeStats($zone);
 
                 $zone['prefix'] = 'z';
                 $zone['id'] = $zoneId;
                 $zone['linkparams'] = "affiliateid={$zone['publisher_id']}&zoneid={$zoneId}&";
-                if (is_array($aParams) && count($aParams) > 0) {
+                if (is_array($aParams) && $aParams !== []) {
                     foreach ($aParams as $key => $value) {
                         if ($key != "include" && $key != "exclude") {
                             $zone['linkparams'] .= $key . "=" . $value . "&";
@@ -742,7 +730,8 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
                 }
                 $zone['linkparams'] .= "period_preset={$period_preset}&period_start=" . MAX_getStoredValue('period_start', date('Y-m-d'))
                                           . "&period_end=" . MAX_getStoredValue('period_end', date('Y-m-d'));
-                $zone['expanded'] = MAX_isExpanded($zoneId, $expand, $this->aNodes, $zone['prefix']);;
+                $zone['expanded'] = MAX_isExpanded($zoneId, $expand, $this->aNodes, $zone['prefix']);
+                ;
                 $zone['icon'] = MAX_getEntityIcon('zone', $zone['active'], $zone['type']);
 
                 $aEntitiesData[] = $zone;
@@ -770,16 +759,16 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
      *
      * @param array Stats array
      */
-    function exportArray()
+    public function exportArray()
     {
         $parent = parent::exportArray();
 
-        $headers = array_merge(array($GLOBALS['strName']), $parent['headers']);
-        $formats = array_merge(array('text'), $parent['formats']);
-        $data    = array();
+        $headers = array_merge([$GLOBALS['strName']], $parent['headers']);
+        $formats = array_merge(['text'], $parent['formats']);
+        $data = [];
 
         foreach ($this->aEntitiesData as $e) {
-            $row = array();
+            $row = [];
             $row[] = $e['name'];
             foreach (array_keys($this->aColumns) as $ck) {
                 if ($this->showColumn($ck)) {
@@ -790,12 +779,10 @@ class OA_Admin_Statistics_Delivery_CommonEntity extends OA_Admin_Statistics_Deli
             $data[] = $row;
         }
 
-        return array(
+        return [
             'headers' => $headers,
             'formats' => $formats,
-            'data'    => $data
-        );
+            'data' => $data,
+        ];
     }
 }
-
-?>

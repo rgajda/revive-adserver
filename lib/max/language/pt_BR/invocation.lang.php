@@ -33,10 +33,7 @@ $GLOBALS['strInvocationComments'] = "Incluir comentários";
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "Recarregar após";
-$GLOBALS['strIframeResizeToBanner'] = "Redimensionar iframe para as dimensões do banner";
 $GLOBALS['strIframeMakeTransparent'] = "Fazer o iframe ser transparente";
-$GLOBALS['strIframeIncludeNetscape4'] = "Incluir layer de compatibilidade para o Netscape 4";
-$GLOBALS['strIframeGoogleClickTracking'] = "Incluir código para rastrear cliques do Google Adsense";
 
 // PopUp
 $GLOBALS['strPopUpStyle'] = "Tipo de Pop-up";
@@ -49,18 +46,9 @@ $GLOBALS['strPopUpTop'] = "Posiï¿œï¿œo Inicial (topo)";
 $GLOBALS['strPopUpLeft'] = "Posiï¿œï¿œo Inicial (esquerda)";
 $GLOBALS['strShowStatus'] = "Estado";
 
-// XML-RPC
-$GLOBALS['strXmlRpcLanguage'] = "Linguagem do Servidor";
-
-// Support for 3rd party server clicktracking
-$GLOBALS['str3rdPartyTrack'] = "Suporte para rastreamento de cliques de terceiros";
-
 // Support for cachebusting code
 $GLOBALS['strCacheBuster'] = "Inserir código anti-cache";
 
 // IMG invocation selected for tracker with appended code
 $GLOBALS['strWarning'] = "Alerta";
 $GLOBALS['strImgWithAppendWarning'] = "Este rastreador tem código anexado, código anexado funcionará <strong>apenas</strong> com tags JavaScript";
-
-// Local Invocation
-

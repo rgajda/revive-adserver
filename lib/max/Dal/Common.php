@@ -29,10 +29,10 @@ class MAX_Dal_Common
     /**
      * @var MDB2_Driver_Common
      */
-    var $oDbh;
-    var $queryBuilder;
-    var $conf;
-    var $prefix;
+    public $oDbh;
+    public $queryBuilder;
+    public $conf;
+    public $prefix;
 
     /**
      * Usually most of models will be created to handle persistent operation per
@@ -40,12 +40,12 @@ class MAX_Dal_Common
      *
      * @var string
      */
-    var $table;
+    public $table;
 
     /**
      * @var OA_DB_AdvisoryLock
      */
-    var $oLock;
+    public $oLock;
 
     /**
      * This array is used by getSqlListOrder(), getOrderColumn to decide how to sort
@@ -61,18 +61,18 @@ class MAX_Dal_Common
      * @see MAX_Dal_Common::getSqlListOrder()
      * @var array
      */
-    var $orderListName = array();
+    public $orderListName = [];
 
     // Default column to order by.
-    var $defaultOrderListName = 'name';
+    public $defaultOrderListName = 'name';
 
     /**
      * The class constructor method.
      */
-    function __construct()
+    public function __construct()
     {
         $this->conf = $GLOBALS['_MAX']['CONF'];
-        $this->prefix = $this->getTablePrefix();
+        $this->prefix = static::getTablePrefix();
         $this->oDbh = &$this->_getDbConnection();
         $this->queryBuilder = $this->_getQueryTool($this->oDbh);
     }
@@ -81,24 +81,24 @@ class MAX_Dal_Common
      * Factory method for loading model class
      *
      * @param string $modelName
-     * @return object|false
+     * @return self|false
      */
-    function factory($modelName)
+    public static function factory($modelName)
     {
         if (empty($modelName)) {
             PEAR::raiseError("Factory did not recive model name");
             return false;
         }
         $modelName = ucfirst($modelName);
-        $class = MAX_Dal_Common::getClassName($modelName);
+        $class = self::getClassName($modelName);
         if (!class_exists($class)) {
-            $class = MAX_Dal_Common::autoLoadClass($modelName);
+            $class = self::autoLoadClass($modelName);
             if (!$class) {
                 return false;
             }
         }
 
-        return new $class;
+        return new $class();
     }
 
     /**
@@ -106,11 +106,10 @@ class MAX_Dal_Common
      *
      * @param string $modelName  Class model name
      * @return boolean  True on success
-     * @access public
      */
-    function autoLoadClass($modelName)
+    private static function autoLoadClass($modelName)
     {
-        $path = MAX_PATH . '/lib/max/Dal/Admin/'.$modelName.'.php';
+        $path = MAX_PATH . '/lib/max/Dal/Admin/' . $modelName . '.php';
         if (!file_exists($path)) {
             PEAR::raiseError("autoload:File doesn't exist {$path}");
             return false;
@@ -125,12 +124,12 @@ class MAX_Dal_Common
         return $class;
     }
 
-    function getClassName($table)
+    public static function getClassName($table)
     {
-        return 'MAX_Dal_Admin_'.ucfirst($table);
+        return 'MAX_Dal_Admin_' . ucfirst($table);
     }
 
-    function getTablePrefix()
+    public static function getTablePrefix()
     {
         return OA_Dal::getTablePrefix();
     }
@@ -141,7 +140,7 @@ class MAX_Dal_Common
      * @access private
      * @return mixed An instance of the OA_DB class.
      */
-    function &_getDbConnection()
+    public function &_getDbConnection()
     {
         return OA_DB::singleton();
     }
@@ -152,7 +151,7 @@ class MAX_Dal_Common
      * @access private
      * @param mixed $dsn DSN string, DSN array or DB object
      */
-    function _getQueryTool($dsn)
+    public function _getQueryTool($dsn)
     {
         return new DB_QueryTool($dsn);
     }
@@ -184,10 +183,10 @@ class MAX_Dal_Common
      *               string to make complex logic if needed.
      * @return array An array of arrays representing the result(s) of the query.
      */
-    function &_get($aParams)
+    public function &_get($aParams)
     {
         if (is_null($aParams['table'])) {
-            return array();
+            return [];
         }
         // Reset the query builder
         $this->queryBuilder->reset();
@@ -204,11 +203,11 @@ class MAX_Dal_Common
         }
         // Add where conditions
         if (!empty($aParams['wheres'])) {
-            list($constraint, $operator) = $aParams['wheres'][0];
+            [$constraint, $operator] = $aParams['wheres'][0];
             $this->queryBuilder->setWhere($constraint, $operator);
             if (count($aParams['wheres']) > 1) {
                 for ($counter = 1; $counter < count($aParams['wheres']); $counter++) {
-                    list($constraint, $operator) = $aParams['wheres'][$counter];
+                    [$constraint, $operator] = $aParams['wheres'][$counter];
                     $this->queryBuilder->addWhere($constraint, $operator);
                 }
             }
@@ -216,7 +215,7 @@ class MAX_Dal_Common
         // Add joins
         if (!empty($aParams['joins'])) {
             foreach ($aParams['joins'] as $join) {
-                list($table, $joinCond) = $join;
+                [$table, $joinCond] = $join;
                 $this->queryBuilder->addJoin($table, $joinCond);
             }
         }
@@ -226,16 +225,16 @@ class MAX_Dal_Common
         }
         // Add order by conditions
         if (!empty($aParams['orderBys'])) {
-            list($field, $direction) = $aParams['orderBys'][0];
+            [$field, $direction] = $aParams['orderBys'][0];
             if (!is_bool($direction)) {
-                $direction = ($direction == 'DESC') ? true : false;
+                $direction = $direction == 'DESC';
             }
             $this->queryBuilder->setOrder($field, $direction);
             if (count($aParams['orderBys']) > 1) {
                 for ($counter = 1; $counter < count($aParams['orderBys']); $counter++) {
-                    list($field, $direction) = $aParams['orderBys'][$counter];
+                    [$field, $direction] = $aParams['orderBys'][$counter];
                     if (!is_bool($direction)) {
-                        $direction = ($direction == 'DESC') ? true : false;
+                        $direction = $direction == 'DESC';
                     }
                     $this->queryBuilder->addOrder($field, $direction);
                 }
@@ -243,11 +242,11 @@ class MAX_Dal_Common
         }
         // Add having conditions
         if (!empty($aParams['havings'])) {
-            list($constraint, $operator) = $aParams['havings'][0];
+            [$constraint, $operator] = $aParams['havings'][0];
             $this->queryBuilder->setHaving($constraint);
             if (count($aParams['havings']) > 1) {
                 for ($counter = 1; $counter < count($aParams['havings']); $counter++) {
-                    list($constraint, $operator) = $aParams['havings'][$counter];
+                    [$constraint, $operator] = $aParams['havings'][$counter];
                     $this->queryBuilder->addHaving($constraint, $operator);
                 }
             }
@@ -258,16 +257,22 @@ class MAX_Dal_Common
     }
 
     // Get any generic list order...
-    function getSqlListOrder($listOrder, $orderDirection)
+    public function getSqlListOrder(string $listOrder, string $orderDirection, string $tblAlias = ''): string
     {
-        $direction = $this->getOrderDirection($this->oDbh->quote($orderDirection, 'text'));
-        $nameColumn = $this->getOrderColumn($this->oDbh->quote($listOrder, 'text'));
-        if (is_array($nameColumn)) {
-            $sqlTableOrder = ' ORDER BY ' . implode($direction . ',', $nameColumn) . $direction;
-        } else {
-            $sqlTableOrder = !empty($nameColumn) ? " ORDER BY $nameColumn $direction" : '';
+        $direction = $this->getOrderDirection($orderDirection);
+        $nameColumn = $this->getOrderColumn($listOrder);
+
+        if (empty($nameColumn)) {
+            return '';
         }
-        return $sqlTableOrder;
+
+        $tblAlias = $tblAlias ? $tblAlias . '.' : '';
+
+        if (is_array($nameColumn)) {
+            return " ORDER BY {$tblAlias}" . implode($direction . ', ' . $tblAlias, $nameColumn) . $direction;
+        }
+
+        return " ORDER BY {$tblAlias}{$nameColumn} {$direction}";
     }
 
     /**
@@ -276,7 +281,7 @@ class MAX_Dal_Common
      * @param string $orderDirection the sorting direction ('up' or 'down').
      * @return string the SQL ORDER BY direction keyword
      */
-    function getOrderDirection($orderDirection)
+    public function getOrderDirection($orderDirection)
     {
         return ($orderDirection == 'down') ? ' DESC' : ' ASC';
     }
@@ -287,21 +292,18 @@ class MAX_Dal_Common
      * @param string $listOrder the "type" of column to order by, eg 'name', 'id'.
      * @return string  the name(s) of the column(s) to order by
      */
-    function getOrderColumn($listOrder)
+    public function getOrderColumn($listOrder)
     {
-        return isset($this->orderListName[$listOrder]) ? $this->orderListName[$listOrder] : $this->orderListName[$this->defaultOrderListName];
+        return $this->orderListName[$listOrder] ?? $this->orderListName[$this->defaultOrderListName];
     }
 
-    function _getTablename($tableName)
+    public function _getTablename($tableName)
     {
         return $this->oDbh->quoteIdentifier($this->_getTablenameUnquoted($tableName), true);
     }
 
-    function _getTablenameUnquoted($tableName)
+    public function _getTablenameUnquoted($tableName)
     {
-        return $this->prefix.($this->conf['table'][$tableName] ? $this->conf['table'][$tableName] : $tableName);
+        return $this->prefix . ($this->conf['table'][$tableName] ?? $tableName);
     }
-
 }
-
-?>

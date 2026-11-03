@@ -21,13 +21,14 @@ require_once MAX_PATH . '/lib/OA/ServiceLocator.php';
  */
 class OX_Maintenance_Priority_Zone
 {
+    public int $id;
+    public $active = true;
+    public $availableImpressions = 0;
+    public $averageImpressions = 0;
 
-    var $id;
-    var $active               = true;
-    var $availableImpressions = 0;
-    var $averageImpressions   = 0;
-    var $aAdverts             = array();
-    var $aOperationIntId      = array();
+    /** @var list<OA_Maintenance_Priority_Ad>  */
+    public array $aAdverts = [];
+    public $aOperationIntId = [];
 
     /**
      * The constructor method.
@@ -35,22 +36,19 @@ class OX_Maintenance_Priority_Zone
      * @param array $aZone associative array of values to be assigned to
      *              object, array keys reflect database field names
      */
-    function __construct($aZone = array())
+    public function __construct($aZone = [])
     {
-        $this->id = (int)$aZone['zoneid'];
+        $this->id = (int) $aZone['zoneid'];
     }
 
     /**
      * A method to add Advert objects to the Zone.
      *
-     * @param Advert $oAdvert The Advert object to add.
+     * @param OA_Maintenance_Priority_Ad $oAdvert The Advert object to add.
      * @return void
      */
-    function addAdvert($oAdvert)
+    public function addAdvert($oAdvert)
     {
         $this->aAdverts[$oAdvert->id] = $oAdvert;
     }
-
 }
-
-?>

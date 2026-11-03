@@ -23,16 +23,6 @@ require_once MAX_PATH . '/www/api/v2/common/BaseServiceImpl.php';
  */
 class LogonServiceImpl extends BaseServiceImpl
 {
-
-    /**
-     * The LogonServiceImpl constructor calls the base constructor for the class.
-     *
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Login to OpenX without using the login form in the user interface and
      * receive a session ID.
@@ -44,7 +34,7 @@ class LogonServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function _internalLogin($username, $password)
+    public function _internalLogin($username, $password)
     {
         // Require the default language file.
         include_once MAX_PATH . '/lib/max/language/Loader.php';
@@ -55,11 +45,10 @@ class LogonServiceImpl extends BaseServiceImpl
 
         $doUser = $oPlugin->checkPassword($username, $password);
         if ($doUser) {
-            phpAds_SessionDataRegister(OA_Auth::getSessionData($doUser));
+            phpAds_SessionDataRegister(OA_Auth::getSessionData($doUser, context: \RV\Auth\AuthContext::API));
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -73,7 +62,7 @@ class LogonServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function logon($username, $password, &$sessionId)
+    public function logon($username, $password, &$sessionId)
     {
         global $_POST, $_COOKIE;
         global $strUsernameOrPasswordWrong;
@@ -101,21 +90,18 @@ class LogonServiceImpl extends BaseServiceImpl
         if ($this->_internalLogin($username, $password)) {
             // Check if the user has administrator access to Openads.
             if (OA_Permission::isUserLinkedToAdmin()) {
-
                 $this->postInitSession();
 
                 $sessionId = $_COOKIE['sessionID'];
                 return true;
-            } else {
-
-                $this->raiseError('User must be OA installation admin');
-                return false;
             }
-        } else {
-
-            $this->raiseError($strUsernameOrPasswordWrong);
+            $this->raiseError('User must be OA installation admin');
+            // Also destroy session
+            phpAds_SessionDataDestroy();
             return false;
         }
+        $this->raiseError($strUsernameOrPasswordWrong);
+        return false;
     }
 
     /**
@@ -127,19 +113,15 @@ class LogonServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function logoff($sessionId)
+    public function logoff($sessionId)
     {
         if ($this->verifySession($sessionId)) {
-
             phpAds_SessionDataDestroy();
             unset($GLOBALS['session']);
 
-            return !OA_Auth::isLoggedIn();
-
-        } else {
-
-            return false;
+            return !OA_Auth::isLoggedIn(\RV\Auth\AuthContext::API);
         }
+        return false;
     }
 
 
@@ -155,25 +137,16 @@ class LogonServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function _verifyUsernameAndPasswordLength($username, $password)
+    public function _verifyUsernameAndPasswordLength($username, $password)
     {
         if (strlen($username) > 64) {
-
             $this->raiseError('UserName greater 64 characters');
             return false;
-
-        } elseif (strlen($password) > 64) {
-
+        }
+        if (strlen($password) > 64) {
             $this->raiseError('Password greater 64 characters');
             return false;
-
-        } else {
-
-            return true;
         }
+        return true;
     }
-
 }
-
-
-?>

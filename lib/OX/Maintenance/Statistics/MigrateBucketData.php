@@ -34,10 +34,10 @@ class OX_Maintenance_Statistics_MigrateBucketData
     public $oDbh;
     private $aPackages;
 
-    function __construct()
+    public function __construct()
     {
         // Get a connection to the datbase
-        $this->oDbh =& OA_DB::singleton();
+        $this->oDbh = OA_DB::singleton();
 
         // Locate all plugins (packages) that have been installed
         $oPluginManager = new OX_PluginManager();
@@ -52,21 +52,21 @@ class OX_Maintenance_Statistics_MigrateBucketData
      */
     public function summarise($oStartDate, $oEndDate)
     {
-//        $oComponent =& OX_Component::factory('deliveryLog', 'oxLogCountry', 'logImpressionCountry');
-//        $statisticsTableName = $GLOBALS['_MAX']['CONF']['table']['prefix'] .
-//            $oComponent->getStatisticsName();
-//        $aMigrationMaps = array(
-//            $oComponent->getStatisticsMigration());
+        //        $oComponent =& OX_Component::factory('deliveryLog', 'oxLogCountry', 'logImpressionCountry');
+        //        $statisticsTableName = $GLOBALS['_MAX']['CONF']['table']['prefix'] .
+        //            $oComponent->getStatisticsName();
+        //        $aMigrationMaps = array(
+        //            $oComponent->getStatisticsMigration());
 
         $aRunComponents = $this->prepareMaps($this->locateComponents());
 
         // TODO: make it work for a range of dates
-        $aDates = array(
+        $aDates = [
             'start' => $oStartDate,
-            'end' => $oEndDate
-        );
+            'end' => $oEndDate,
+        ];
 
-       // Prepare the DAL object
+        // Prepare the DAL object
         $oFactory = new OX_Dal_Maintenance_Statistics_Factory();
         $oDalMaintenanceStatistics = $oFactory->factory();
 
@@ -92,15 +92,15 @@ class OX_Maintenance_Statistics_MigrateBucketData
      */
     private function locateComponents()
     {
-        $aSummariseComponents = array();
+        $aSummariseComponents = [];
         foreach ($this->aPackages as $aPluginInfo) {
             foreach ($aPluginInfo['contents'] as $aContents) {
                 if ($aContents['extends'] == 'deliveryLog') {
                     foreach ($aContents['components'] as $aComponent) {
-                        $oComponent =& OX_Component::factory('deliveryLog', $aContents['name'], $aComponent['name']);
+                        $oComponent = &OX_Component::factory('deliveryLog', $aContents['name'], $aComponent['name']);
                         if ($oComponent->enabled) {
                             $destinationTable = $oComponent->getStatisticsTableName();
-                            $aSummariseComponents[$destinationTable][get_class($oComponent)] = $oComponent;
+                            $aSummariseComponents[$destinationTable][$oComponent::class] = $oComponent;
                         }
                     }
                 }
@@ -125,7 +125,7 @@ class OX_Maintenance_Statistics_MigrateBucketData
      */
     private function prepareMaps($aSummariseComponents)
     {
-        $aRunComponents = array();
+        $aRunComponents = [];
 
         foreach ($aSummariseComponents as $statisticsTable => $aComponents) {
             foreach ($aComponents as $oComponent) {
@@ -135,12 +135,10 @@ class OX_Maintenance_Statistics_MigrateBucketData
                 }
                 if ($aMap['method'] == 'aggregate') {
                     // Nice! We can migrate aggregate data
-                    $aRunComponents[$statisticsTable][get_class($oComponent)] = $aMap;
+                    $aRunComponents[$statisticsTable][$oComponent::class] = $aMap;
                 }
             }
         }
         return $aRunComponents;
     }
-
-
 }

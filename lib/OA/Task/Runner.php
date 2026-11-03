@@ -21,15 +21,15 @@ require_once MAX_PATH . '/lib/OA/Task.php';
  */
 class OA_Task_Runner
 {
-    const TASK_ORDER_BEFORE = -1;
-    const TASK_ORDER_REPLACE = 0;
-    const TASK_ORDER_AFTER = 1;
+    public const TASK_ORDER_BEFORE = -1;
+    public const TASK_ORDER_REPLACE = 0;
+    public const TASK_ORDER_AFTER = 1;
 
     /**
      * The collection of Task objects
      * @var array
      */
-    var $aTasks = [];
+    public $aTasks = [];
 
     /**
      * A method to run the run() method of each task in the collection,
@@ -37,14 +37,14 @@ class OA_Task_Runner
      *
      * @todo We should really make OA_Task::run return a boolean we can check.
      */
-    function runTasks()
+    public function runTasks()
     {
         // Remove tasks from the queue and unset them when done to prevent
         // useless memory consumption
         while ($oTask = array_shift($this->aTasks)) {
-            OA::debug('Task begin: ' . get_class($oTask), PEAR_LOG_INFO);
+            OA::debug('Task begin: ' . $oTask::class, PEAR_LOG_INFO);
             $oTask->run();
-            OA::debug('Task complete: ' . get_class($oTask), PEAR_LOG_INFO);
+            OA::debug('Task complete: ' . $oTask::class, PEAR_LOG_INFO);
             unset($oTask);
         }
     }
@@ -63,32 +63,28 @@ class OA_Task_Runner
      *                      0 if the task is to replace the specified class name.
      * @return boolean Returns true on add success, false on failure.
      */
-    function addTask($oTask, $className = null, $order = self::TASK_ORDER_AFTER)
+    public function addTask($oTask, $className = null, $order = self::TASK_ORDER_AFTER)
     {
         if (!is_null($className)) {
-
             // Try to locate the task supplied
             foreach ($this->aTasks as $key => $oExistingTask) {
                 if (is_a($oExistingTask, $className)) {
                     if ($order == self::TASK_ORDER_AFTER) {
-
                         // Insert the new task after this item
                         $this->aTasks = array_merge(
                             array_slice($this->aTasks, 0, $key + 1),
-                            array($oTask),
-                            array_slice($this->aTasks, $key + 1)
+                            [$oTask],
+                            array_slice($this->aTasks, $key + 1),
                         );
-                    } else if ($order == self::TASK_ORDER_REPLACE) {
-
+                    } elseif ($order == self::TASK_ORDER_REPLACE) {
                         // Replace the specified task
                         $this->aTasks[$key] = $oTask;
-                    } else if ($order == self::TASK_ORDER_BEFORE) {
-
+                    } elseif ($order == self::TASK_ORDER_BEFORE) {
                         // Insert the new task before this item
                         $this->aTasks = array_merge(
                             array_slice($this->aTasks, 0, $key),
-                            array($oTask),
-                            array_slice($this->aTasks, $key)
+                            [$oTask],
+                            array_slice($this->aTasks, $key),
                         );
                     }
                     return true;
@@ -99,12 +95,9 @@ class OA_Task_Runner
         }
 
         if (is_a($oTask, 'OA_Task')) {
-            $this->aTasks[] =& $oTask;
+            $this->aTasks[] = &$oTask;
             return true;
         }
         return false;
     }
-
 }
-
-?>

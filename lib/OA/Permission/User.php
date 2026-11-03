@@ -12,6 +12,8 @@
 
 require_once MAX_PATH . '/lib/OA/Permission.php';
 
+use RV\Auth\AuthContext;
+
 /**
  * A class for managing users.
  *
@@ -19,25 +21,30 @@ require_once MAX_PATH . '/lib/OA/Permission.php';
  */
 class OA_Permission_User
 {
+    /**
+     * @var array
+     */
+    public $aUser;
 
     /**
      * @var array
      */
-    var $aUser;
-
-    /**
-     * @var array
-     */
-    var $aAccount;
+    public $aAccount;
 
     /**
      * Class constructor
      *
-     * @param DataObjects_Users $doUsers
-     * @return OA_Permission_User
+     * @param DataObjects_Users|null $doUsers Null for system process users
      */
-    function __construct($doUsers, $skipDatabaseAccess = false)
-    {
+    public function __construct(
+        $doUsers,
+        $skipDatabaseAccess = false,
+        public readonly AuthContext $context = AuthContext::UI,
+    ) {
+        if ($doUsers === null && $this instanceof OA_Permission_SystemUser) {
+            return;
+        }
+
         if (!is_a($doUsers, 'DataObjects_Users')) {
             MAX::raiseError('doUser not a DataObjects_Users');
         }
@@ -58,10 +65,16 @@ class OA_Permission_User
         } else {
             $this->aUser['is_admin'] = false;
         }
+
+        $this->aUser['unsafe_password'] = $doUsers->hasUnsafePassword();
     }
 
-    function __wakeup()
+    public function __unserialize(array $data): void
     {
+        $this->aUser = $data['aUser'];
+        $this->aAccount = $data['aAccount'];
+        $this->context = $data['context'] ?? AuthContext::UI;
+
         if (defined('phpAds_installing')) {
             // We could be upgrading from a version that doesn't have all the necessary tables
             return;
@@ -74,7 +87,7 @@ class OA_Permission_User
             $aAccounts[$adminAccountId] = true;
         }
 
-        $doAUA  = OA_Dal::factoryDO('account_user_assoc');
+        $doAUA = OA_Dal::factoryDO('account_user_assoc');
         $doAUA->whereInAdd('account_id', array_keys($aAccounts));
         $doAUA->user_id = $this->aUser['user_id'];
 
@@ -91,10 +104,9 @@ class OA_Permission_User
         OA_Permission::enforceTrue($this->aUser['is_admin'] || !isset($aAccounts[$this->aAccount['account_id']]));
     }
 
-    function loadAccountData($accountId)
+    public function loadAccountData($accountId)
     {
-        if (!empty($accountId))
-        {
+        if (!empty($accountId)) {
             $this->_clearAccountData();
 
             $doAccount = OA_Dal::factoryDO('accounts');
@@ -108,7 +120,7 @@ class OA_Permission_User
                     $this->aAccount['entity_id'] = $this->_getEntityId();
 
                     if (empty($this->aAccount['entity_id'])) {
-                        Max::raiseError("No entity associated with the account");
+                        MAX::raiseError("No entity associated with the account");
                     }
 
                     if ($this->aAccount['account_type'] == OA_ACCOUNT_MANAGER) {
@@ -118,11 +130,11 @@ class OA_Permission_User
                     }
 
                     if (empty($this->aAccount['agency_id'])) {
-                        Max::raiseError("No manager associated with the account");
+                        MAX::raiseError("No manager associated with the account");
                     }
                 }
             } else {
-                Max::raiseError("Could not find the specified account");
+                MAX::raiseError("Could not find the specified account");
             }
         }
     }
@@ -131,14 +143,14 @@ class OA_Permission_User
      * A private method to clear the $aAccount array
      *
      */
-    function _clearAccountData()
+    public function _clearAccountData()
     {
-        $this->aAccount = array(
-            'account_id'   => 0,
+        $this->aAccount = [
+            'account_id' => 0,
             'account_type' => '',
-            'entity_id'    => 0,
-            'agency_id'    => 0
-        );
+            'entity_id' => 0,
+            'agency_id' => 0,
+        ];
     }
 
     /**
@@ -146,7 +158,7 @@ class OA_Permission_User
      *
      * @return mixed The ID as integer on success, false otherwise
      */
-    function _getEntityId()
+    public function _getEntityId()
     {
         $doEntity = $this->_getEntityDO();
         if (!empty($doEntity)) {
@@ -168,7 +180,7 @@ class OA_Permission_User
      *
      * @return mixed The ID as integer on success, false otherwise
      */
-    function _getAgencyId()
+    public function _getAgencyId()
     {
         $doEntity = $this->_getEntityDO();
         if (!empty($doEntity)) {
@@ -188,14 +200,14 @@ class OA_Permission_User
      *
      * @return bool True if the user is linked to the admin account
      */
-    function _isAdmin()
+    public function _isAdmin()
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doUsers->user_id = $this->aUser['user_id'];
-        $doAUA  = OA_Dal::factoryDO('account_user_assoc');
+        $doAUA = OA_Dal::factoryDO('account_user_assoc');
         $doAUA->account_id = OA_Dal_ApplicationVariables::get('admin_account_id');
         $doUsers->joinAdd($doAUA);
-        return (bool)$doUsers->count();
+        return (bool) $doUsers->count();
     }
 
     /**
@@ -203,25 +215,15 @@ class OA_Permission_User
      *
      * @return DB_DataObjectCommon
      */
-    function &_getEntityDO()
+    public function &_getEntityDO()
     {
-        switch ($this->aAccount['account_type']) {
-            case OA_ACCOUNT_MANAGER:
-                $doEntity = OA_Dal::factoryDO('agency');
-                break;
-            case OA_ACCOUNT_ADVERTISER:
-                $doEntity = OA_Dal::factoryDO('clients');
-                break;
-            case OA_ACCOUNT_TRAFFICKER:
-                $doEntity = OA_Dal::factoryDO('affiliates');
-                break;
-            default:
-                $doEntity = null;
-                break;
-        }
+        $doEntity = match ($this->aAccount['account_type']) {
+            OA_ACCOUNT_MANAGER => OA_Dal::factoryDO('agency'),
+            OA_ACCOUNT_ADVERTISER => OA_Dal::factoryDO('clients'),
+            OA_ACCOUNT_TRAFFICKER => OA_Dal::factoryDO('affiliates'),
+            default => null,
+        };
 
         return $doEntity;
     }
 }
-
-?>

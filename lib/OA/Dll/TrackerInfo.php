@@ -20,8 +20,6 @@ require_once MAX_PATH . '/lib/max/Dal/DataObjects/Trackers.php';
 
 class OA_Dll_TrackerInfo extends OA_Info
 {
-
-
     // Required fields
     public $trackerId;
     public $clientId;
@@ -55,7 +53,7 @@ class OA_Dll_TrackerInfo extends OA_Info
         }
 
         if (empty($this->linkCampaigns)) {
-            $this->linkCampaigns = $pref['tracker_link_campaigns'] == true ? true : false;
+            $this->linkCampaigns = (bool) ($pref['tracker_link_campaigns'] ?? false);
         }
 
         if (empty($this->variableMethod)) {
@@ -65,7 +63,7 @@ class OA_Dll_TrackerInfo extends OA_Info
 
     public function getFieldsTypes()
     {
-        return array(
+        return [
             'trackerId' => 'integer',
             'clientId' => 'integer',
             'trackerName' => 'string',
@@ -73,8 +71,8 @@ class OA_Dll_TrackerInfo extends OA_Info
             'status' => 'integer',
             'type' => 'integer',
             'linkCampaigns' => 'boolean',
-            'variableMethod' => 'string'
-        );
+            'variableMethod' => 'string',
+        ];
     }
 
     /**
@@ -110,12 +108,9 @@ class OA_Dll_TrackerInfo extends OA_Info
         $aTrackerData['clientId'] = $aTrackerData['clientid'];
 
         // Convert to boolean
-        $aTrackerData['linkCampaigns'] = ($aTrackerData['linkcampaigns'] == 1 ? true : false);
+        $aTrackerData['linkCampaigns'] = ($aTrackerData['linkcampaigns'] == 1);
         $aTrackerData['variableMethod'] = $aTrackerData['variablemethod'];
 
         $this->readDataFromArray($aTrackerData);
     }
-
 }
-
-?>

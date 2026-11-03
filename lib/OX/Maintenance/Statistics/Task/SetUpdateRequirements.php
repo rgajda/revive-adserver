@@ -27,27 +27,16 @@ require_once LIB_PATH . '/Plugin/Component.php';
  */
 class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenance_Statistics_Task
 {
-
-    /**
-     * The constructor method.
-     *
-     * @return OX_Maintenance_Statistics_Task_SetUpdateRequirements
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * The implementation of the OA_Task::run() method that performs
      * the required task of determining what operation intervals
      * and/or hours, if any, need to be updated during the MSE run.
      */
-    function run()
+    public function run()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oServiceLocator =& OA_ServiceLocator::instance();
-        $oNowDate =& $oServiceLocator->get('now');
+        $oServiceLocator = OA_ServiceLocator::instance();
+        $oNowDate = $oServiceLocator->get('now');
         if (!$oNowDate) {
             $oNowDate = new Date();
         }
@@ -60,11 +49,11 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
 
         // Don't update unless the time is right!
         $this->oController->updateIntermediate = false;
-        $this->oController->updateFinal        = false;
+        $this->oController->updateFinal = false;
 
         // Test to see if a date for when the statistics were last updated
         // has been set in the service locator (for re-generation of stats)
-        $oLastUpdatedDate =& $oServiceLocator->get('lastUpdatedDate');
+        $oLastUpdatedDate = $oServiceLocator->get('lastUpdatedDate');
 
         // Determine when the last intermediate table update happened
         if (is_a($oLastUpdatedDate, 'Date')) {
@@ -72,10 +61,8 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
         } else {
             $this->oController->oLastDateIntermediate =
                 $this->_getMaintenanceStatisticsLastRunInfo(OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI, $oNowDate);
-            if (is_null($this->oController->oLastDateIntermediate)) {
-                // The MSE has never run, look to see if delivery data exists
-                $this->oController->oLastDateIntermediate = $this->_getEarliestLoggedDeliveryData(OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI);
-            }
+            // The MSE has never run, look to see if delivery data exists
+            $this->oController->oLastDateIntermediate ??= $this->_getEarliestLoggedDeliveryData(OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI);
         }
 
         if (is_null($this->oController->oLastDateIntermediate)) {
@@ -144,10 +131,8 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
         } else {
             $this->oController->oLastDateFinal =
                 $this->_getMaintenanceStatisticsLastRunInfo(OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR, $oNowDate);
-            if (is_null($this->oController->oLastDateFinal)) {
-                // The MSE has never run, look to see if delivery data exists
-                $this->oController->oLastDateFinal = $this->_getEarliestLoggedDeliveryData(OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR);
-            }
+            // The MSE has never run, look to see if delivery data exists
+            $this->oController->oLastDateFinal ??= $this->_getEarliestLoggedDeliveryData(OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR);
         }
 
         if (is_null($this->oController->oLastDateFinal)) {
@@ -162,7 +147,8 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
             // Found a last update date
             $message = '- Maintenance statistics last updated final table statistics to ' .
                        $this->oController->oLastDateFinal->format('%Y-%m-%d %H:%M:%S') . ' ' .
-                       $this->oController->oLastDateFinal->tz->getShortName();;
+                       $this->oController->oLastDateFinal->tz->getShortName();
+            ;
             $this->oController->report .= $message . ".\n";
             OA::debug($message, PEAR_LOG_DEBUG);
             // Calculate the date after which the next hour-based update can happen
@@ -230,7 +216,7 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
      *              have been summarised, for the specified update type.
      *              Returns null if no run type for the MSE can be located.
      */
-    function _getMaintenanceStatisticsLastRunInfo($type, $oNow = null)
+    public function _getMaintenanceStatisticsLastRunInfo($type, $oNow = null)
     {
         // Prepare debugging message
         $message = '- Getting the details of when maintenance statistics last ran on the basis of ';
@@ -251,7 +237,7 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
         // Set the required WHERE condition for the query
         if ($type == OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI) {
             $sWhereClause = "(adserver_run_type = " . OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI .
-                           " OR adserver_run_type = " . OX_DAL_MAINTENANCE_STATISTICS_UPDATE_BOTH. ')';
+                           " OR adserver_run_type = " . OX_DAL_MAINTENANCE_STATISTICS_UPDATE_BOTH . ')';
             $doLog_maintenance_statistics->whereAdd($sWhereClause);
         } elseif ($type == OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR) {
             $sWhereClause = "(adserver_run_type = " . OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR .
@@ -302,7 +288,7 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
      *              logged delivery data record. Returns null if no logged
      *              delivery data can be located.
      */
-    function _getEarliestLoggedDeliveryData($type)
+    public function _getEarliestLoggedDeliveryData($type)
     {
         // Obtain all components from the deliveryLog plugin group
         $aDeliveryLogComponents = OX_Component::getComponents('deliveryLog');
@@ -316,7 +302,7 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
         // component, to find out what is the date of the earliest
         // logged data that the component knows about
         $aResult = OX_Component::callOnComponents($aDeliveryLogComponents, 'getEarliestLoggedDataDate');
-        if ($aResults === false) {
+        if ($aResult === false) {
             return null;
         }
 
@@ -331,10 +317,8 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
                 if (is_null($oDate)) {
                     $oDate = new Date();
                     $oDate->copy($oComponentDate);
-                } else {
-                    if ($oComponentDate->before($oDate)) {
-                        $oDate->copy($oComponentDate);
-                    }
+                } elseif ($oComponentDate->before($oDate)) {
+                    $oDate->copy($oComponentDate);
                 }
             }
         }
@@ -356,7 +340,4 @@ class OX_Maintenance_Statistics_Task_SetUpdateRequirements extends OX_Maintenanc
         // Return the date
         return $aDates['end'];
     }
-
 }
-
-?>

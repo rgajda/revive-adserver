@@ -19,7 +19,6 @@ name                                = oa_simpletest ; Don't set this to be your 
                                                     ; Adserver database - the test database
                                                     ; is created/dropped during testing!
 persistent                          = false
-mysql4_compatibility                = false
 protocol                            = tcp
 
 compress                            = false
@@ -57,6 +56,8 @@ dashboardEnabled                    = true
 hideNavigator                       = false
 zoneLinkingStatistics               = true
 disableDirectSelection              = true
+displayNameLength                   = 60
+loaderDelay                         = 250; in ms. Use 0 for no delay, or a negative value to disable
 
 ;------------------------------------------------------------------------------------------;
 ; Database Settings                                                                        ;
@@ -88,12 +89,11 @@ asyncjs                             = asyncjs.php
 asyncjsjs                           = async.js
 asyncspc                            = asyncspc.php
 click                               = ck.php
+signedClick                         = cl.php
 conversionvars                      = tv.php
 content                             = ac.php
 conversion                          = ti.php
 conversionjs                        = tjs.php
-flash                               = fl.js
-google                              = ag.php
 frame                               = afr.php
 image                               = ai.php
 js                                  = ajs.php
@@ -101,8 +101,6 @@ layer                               = al.php
 log                                 = lg.php
 popup                               = apu.php
 view                                = avw.php
-xmlrpc                              = axmlrpc.php
-local                               = alocal.php
 frontcontroller                     = fc.php
 singlepagecall                      = spc.php
 spcjs                               = spcjs.php
@@ -116,14 +114,7 @@ ftpPath                             =
 ftpUsername                         =
 ftpPassword                         =
 ftpPassive                          =
-
-[origin]
-type                                = "None"
-host                                =
-port                                = 80
-script                              = /www/delivery/dxmlrpc.php
-timeout                             = 10
-protocol                            = http
+maxFilesize                         = 0
 
 ;------------------------------------------------------------------------------------------;
 ; Delivery Details                                                                         ;
@@ -144,7 +135,6 @@ cachePath                           =
 acls                                = true
 aclsDirectSelection                 = true
 obfuscate                           = false
-execPhp                             = false
 ctDelimiter                         = __
 chDelimiter                         = ","
 keywords                            = false
@@ -157,15 +147,20 @@ ecpmSelectionRate                   = 0.9
 enableControlOnPureCPM              = true
 assetClientCacheExpire              = 3600  ; Used to create the browser caching directive
                                             ; of semi-static delivery files, e.g. asyncjs.php
+secret                              = secret
+clickUrlValidity                    = 0;    ; Click URL open redirect validity in seconds
+logUrlValidity                      = 0;    ; Impression logging URL validity in seconds
+relAttribute                        = noopener nofollow
+relPreconnect                       = false
 
 [defaultBanner]
-imageUrl                            =       ; If banner was deleted and ai.php script
-                                            ; is called use this imageUrl
+invalidZoneHtmlBanner               =       ; If zone does not exist, show this HTML snipper
+suspendedAccountHtmlBanner          =       ; If account is suspended, show this HTML snippet
+inactiveAccountHtmlBanner           =       ; If account is inactive, show this HTML snippet
 
-[p3p]
-policies                            = true
-compactPolicy                       = CUR ADM OUR NOR STA NID
-policyLocation                      =
+[privacy]
+disableViewerId                     = true
+anonymiseIp                         = true
 
 ;------------------------------------------------------------------------------------------;
 ; User Interface Settings                                                                  ;
@@ -333,6 +328,8 @@ permCookieSeconds   = 31536000      ; 1 year in seconds
 maxCookieSize       = 2048
 domain              =
 viewerIdDomain      =
+disabled            =
+adminDomain         =
 
 [debug]
 logfile             =                       ; The delivery engine debugging file
@@ -351,7 +348,9 @@ prefix              = OA_           ; Used to prefix some variables and used in 
 cookieTest          = ct            ; Used for the forced cookie test redirect
 cacheBuster         = cb            ; Cache buster
 channel             = source        ; Channel of the website
-dest                = oadest        ; Used to pass in a URL to redirect to after action
+dest                = dest          ; Used to pass in a URL to redirect to after action
+signature           = sig           ; Used to sign the destination url
+timestamp           = ts            ; Used to stamp the time a click url was generated
 logClick            = log           ; Used to indicate if a click should be logged
 n                   = n             ; Used to name a cookie containing displayed banner information
 params              = oaparams      ; Used to pass in custom delimited key=value pairs into an ad-call
@@ -402,12 +401,8 @@ persistent          = false
 checkForUpdates = true
 shareStack      = true
 
-[oacSync]
-protocol    = https
-host        = sync.revive-adserver.com
-path        = /xmlrpc.php
-httpPort    = 80
-httpsPort   = 443
+[rvSync]
+endpoint = https://sync.revive-adserver.com/v1/sync
 
 ;------------------------------------------------------------------------------------------;
 ; Plugins Settings                                                                         ;
@@ -443,6 +438,15 @@ useMergedFunctions = true
 [audit]
 enabled=0
 enabledForZoneLinking=false
+
+;------------------------------------------------------------------------------------------;
+; Security Settings                                                                        ;
+;------------------------------------------------------------------------------------------;
+
+[security]
+passwordMinLength=12
+badLoginLogPath=
+allowLinkingExistingUsers=false
 
 ;------------------------------------------------------------------------------------------;
 ; Test configuration

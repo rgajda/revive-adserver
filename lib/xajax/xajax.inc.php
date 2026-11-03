@@ -242,7 +242,7 @@ class xajax
 			$this->$sVar = (boolean)$value;
 		}
 		else {
-			trigger_error("The flag \"$name\" could not be found", E_USER_ERROR);
+			throw new \RuntimeException("The flag \"$name\" could not be found");
 		}
 	}
 
@@ -701,11 +701,6 @@ class xajax
 		{
 			for ($i = 0; $i < sizeof($aArgs); $i++)
 			{
-				// If magic quotes is on, then we need to strip the slashes from the args
-				if (get_magic_quotes_gpc() == 1 && is_string($aArgs[$i])) {
-
-					$aArgs[$i] = stripslashes($aArgs[$i]);
-				}
 				if (stristr($aArgs[$i],"<xjxobj>") != false)
 				{
 					$aArgs[$i] = $this->_xmlToArray("xjxobj",$aArgs[$i]);
@@ -930,14 +925,14 @@ class xajax
 		if (!file_exists($realJsFile)) {
 			$srcFile = str_replace(".js", "_uncompressed.js", $realJsFile);
 			if (!file_exists($srcFile)) {
-				trigger_error("The xajax uncompressed Javascript file could not be found in the <b>" . dirname($realJsFile) . "</b> folder. Error ", E_USER_ERROR);
+				throw new \RuntimeException("The xajax uncompressed Javascript file could not be found in the <b>" . dirname($realJsFile) . "</b> folder. Error ");
 			}
 			require(dirname(__FILE__)."/xajaxCompress.php");
 			$javaScript = implode('', file($srcFile));
 			$compressedScript = xajaxCompressJavascript($javaScript);
 			$fH = @fopen($realJsFile, "w");
 			if (!$fH) {
-				trigger_error("The xajax compressed javascript file could not be written in the <b>" . dirname($realJsFile) . "</b> folder. Error ", E_USER_ERROR);
+				throw new \RuntimeException("The xajax compressed javascript file could not be written in the <b>" . dirname($realJsFile) . "</b> folder. Error ");
 			}
 			else {
 				fwrite($fH, $compressedScript);
@@ -1225,18 +1220,6 @@ class xajax
 					$aArray[$key] = $this->_decodeUTF8Data($value);
 				}
 			}
-			// If magic quotes is on, then we need to strip the slashes from the
-			// array values because of the parse_str pass which adds slashes
-			if (get_magic_quotes_gpc() == 1) {
-				$newArray = array();
-				foreach ($aArray as $sKey => $sValue) {
-					if (is_string($sValue))
-						$newArray[$sKey] = stripslashes($sValue);
-					else
-						$newArray[$sKey] = $sValue;
-				}
-				$aArray = $newArray;
-			}
 		}
 
 		return $aArray;
@@ -1251,48 +1234,29 @@ class xajax
 	 */
 	function _decodeUTF8Data($sData)
 	{
-		$sValue = $sData;
-		if ($this->bDecodeUTF8Input)
-		{
-			$sFuncToUse = NULL;
-
-			if (function_exists('iconv'))
-			{
-				$sFuncToUse = "iconv";
-			}
-			else if (function_exists('mb_convert_encoding'))
-			{
-				$sFuncToUse = "mb_convert_encoding";
-			}
-			else if ($this->sEncoding == "ISO-8859-1")
-			{
-				$sFuncToUse = "utf8_decode";
-			}
-			else
-			{
-				trigger_error("The incoming xajax data could not be converted from UTF-8", E_USER_NOTICE);
-			}
-
-			if ($sFuncToUse)
-			{
-				if (is_string($sValue))
-				{
-					if ($sFuncToUse == "iconv")
-					{
-						$sValue = iconv("UTF-8", $this->sEncoding.'//TRANSLIT', $sValue);
-					}
-					else if ($sFuncToUse == "mb_convert_encoding")
-					{
-						$sValue = mb_convert_encoding($sValue, $this->sEncoding, "UTF-8");
-					}
-					else
-					{
-						$sValue = utf8_decode($sValue);
-					}
-				}
-			}
+		if (!is_string($sData) || !$this->bDecodeUTF8Input) {
+			return $sData;
 		}
-		return $sValue;
+
+		if (class_exists('UConverter')) {
+			return UConverter::transcode($sData, $this->sEncoding, "UTF-8");
+		}
+
+		if (function_exists('iconv')) {
+			return iconv("UTF-8", $this->sEncoding . '//TRANSLIT', $sData);
+		}
+
+		if (function_exists('mb_convert_encoding')) {
+			return mb_convert_encoding($sData, $this->sEncoding, "UTF-8");
+		}
+
+		if ($this->sEncoding == "ISO-8859-1" && function_exists('utf8_decode')) {
+			return @utf8_decode($sData);
+		}
+
+		trigger_error("The incoming xajax data could not be converted from UTF-8", E_USER_NOTICE);
+
+		return $sData;
 	}
 
 }// end class xajax

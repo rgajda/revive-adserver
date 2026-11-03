@@ -19,21 +19,19 @@
  */
 class OA_Admin_Statistics_Factory
 {
-
     /**
      *  Create a new object of the appropriate OA_Admin_Statistics_Common subclass.
      *
-     * @static
      * @param string $controllerType The controller type (e.g. "global-advertiser").
      * @param array  $aParams        An array of parameters to be passed as the parameter
      *                               to the constructor of the class instantiated.
-     * @return OA_Admin_Statistics_Common The instantiated class that inherits from
+     * @return OA_Admin_Statistics_Common|PEAR_Error The instantiated class that inherits from
      *                                    OA_Admin_Statistics_Common.
      */
-    function &getController($controllerType = '', $aParams = null)
+    public static function getController($controllerType = '', $aParams = null)
     {
         // Instantiate & return the required statistics class
-        $result = OA_Admin_Statistics_Factory::_getControllerClass($controllerType, $aParams, $class, $file);
+        $result = OA_Admin_Statistics_Factory::_getControllerClass($controllerType, $class, $file);
         if (PEAR::isError($result)) {
             return $result;
         }
@@ -44,10 +42,9 @@ class OA_Admin_Statistics_Factory
         return $oStatsController;
     }
 
-    function _instantiateController($file, $class, $aParams = null)
+    public static function _instantiateController($file, $class, $aParams = null)
     {
-        if (!@include_once $file)
-        {
+        if (!@include_once $file) {
             $errMsg = "OA_Admin_Statistics_Factory::_instantiateController() Unable to locate " . basename($file);
             return MAX::raiseError($errMsg, MAX_ERROR_INVALIDARGS);
         }
@@ -55,18 +52,12 @@ class OA_Admin_Statistics_Factory
             $errMsg = "OA_Admin_Statistics_Factory::_instantiateController() Class {$class} doesn't exist";
             return MAX::raiseError($errMsg, MAX_ERROR_INVALIDARGS);
         }
-        $oController = new $class($aParams);
-        return $oController;
+        return new $class($aParams);
     }
 
-    function _getControllerClass($controllerType = '', $aParams = null, &$class, &$file)
+    public static function _getControllerClass($controllerType, &$class, &$file)
     {
-        if (!is_array($aParams)) {
-            $aParams = array();
-        }
-
-        if (empty($controllerType) || $controllerType == '-')
-        {
+        if (empty($controllerType) || $controllerType == '-') {
             $controllerType = basename($_SERVER['SCRIPT_NAME']);
             $controllerType = preg_replace('#^(?:stats-)?(.*)\.php#', '$1', $controllerType);
         }
@@ -78,7 +69,7 @@ class OA_Admin_Statistics_Factory
         }
 
         // Prepare the strings required to generate the file and class names
-        list($primary, $secondary) = explode('-', $controllerType, 2);
+        [$primary, $secondary] = explode('-', $controllerType, 2);
         $primary = ucfirst(strtolower($primary));
         $aSecondary = explode('-', $secondary);
         foreach ($aSecondary as $key => $string) {
@@ -97,8 +88,4 @@ class OA_Admin_Statistics_Factory
             $class .= $string;
         }
     }
-
-
 }
-
-?>

@@ -1,48 +1,44 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: revive-adserver\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-16 14:32+0100\n"
+"Last-Translator: Revive Adserver Team <noreply@revive-adserver.com>\n"
+"Language-Team: German\n"
+"Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-SourceCharset: utf-8\n"
-"X-Poedit-KeywordsList: translate\n"
-"Last-Translator: mbeccati <matteo@beccati.com>\n"
-"Language-Team: German\n"
-"Language: de_DE\n"
-"X-Generator: crowdin.com\n"
-"X-Poedit-SearchPath-0: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site/\n"
 "X-Crowdin-Project: revive-adserver\n"
+"X-Crowdin-Project-ID: 78987\n"
 "X-Crowdin-Language: de\n"
-"X-Crowdin-File: /plugins_repo/openXDeliveryLimitations/plugins/etc/Site/_lang/po/en.po\n"
+"X-Crowdin-File: /openXDeliveryLimitations/plugins/etc/Site/_lang/po/en.po\n"
+"X-Crowdin-File-ID: 350\n"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Channel.class.php:62
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Channel.class.php:46
 msgid "Is all of"
-msgstr ""
+msgstr "Ist alles von"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Channel.class.php:72
-msgid "Channel"
-msgstr ""
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Hostnamelist.class.php:72
+msgid "Enter hostnames below to remove matching entries from the list"
+msgstr "Geben Sie unten Host-Namen ein, um entsprechende Einträge aus der Liste zu entfernen"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Referingpage.class.php:59
-msgid "Refering Page"
-msgstr ""
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Hostnamelist.class.php:75
+msgid "Remove Hostnames"
+msgstr "Host-Namen entfernen"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Source.class.php:59
-msgid "Source"
-msgstr "Quelle"
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Registerabledomainlist.class.php:77
+msgid "Enter domains below to remove matching entries from the list"
+msgstr "Geben Sie Domains unten ein, um entsprechende Einträge aus der Liste zu entfernen"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Pageurl.class.php:66
-msgid "Page URL"
-msgstr ""
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Registerabledomainlist.class.php:80
+msgid "Remove Domains"
+msgstr "Domänen entfernen"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Variable.class.php:58
-msgid "Variable"
-msgstr ""
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Registerabledomainlist.class.php:96
+msgid "WARNING"
+msgstr "WARNUNG"
 
-#: plugins_repo/openXDeliveryLimitations/extensions/deliveryLimitations/Site//Variable.class.php:71
-msgid "Site:Variable: Name contains unallowed character(s)"
-msgstr ""
+#: plugins_repo/openXDeliveryLimitations/plugins/deliveryLimitations/Site/Registerabledomainlist.class.php:97
+msgid "The Registerable Domain List delivery rule cannot be used; it requires that the PHP <i>intl</i> extension be installed."
+msgstr "Die Auslieferungsregel \"Registrierbare Domänenliste\" kann nicht verwendet werden; sie erfordert die Installation der <i>intl</i> PHP-Erweiterung."
 

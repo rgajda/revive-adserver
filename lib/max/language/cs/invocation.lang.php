@@ -20,7 +20,7 @@ $GLOBALS['strAbbrSeconds'] = "vteřin";
 
 // Common Invocation Parameters
 $GLOBALS['strInvocationWhat'] = "Volba banneru";
-$GLOBALS['strInvocationCampaignID'] = "Skrytá kampaň";
+$GLOBALS['strInvocationCampaignID'] = "Kampaň";
 $GLOBALS['strInvocationTarget'] = "Cílový frame";
 $GLOBALS['strInvocationSource'] = "Zdroj";
 $GLOBALS['strInvocationWithText'] = "Zobrazit text pod bannerem";
@@ -31,9 +31,7 @@ $GLOBALS['strInvocationBannerID'] = "ID banneru";
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "Obnovit po";
-$GLOBALS['strIframeResizeToBanner'] = "Zmenit velikost iframe podle banneru";
 $GLOBALS['strIframeMakeTransparent'] = "Udělat iframe průhledný";
-$GLOBALS['strIframeIncludeNetscape4'] = "Vložit Nestcape 4 kompatibilní ilayer";
 
 // PopUp
 $GLOBALS['strPopUpStyle'] = "Typ Pop-upu";
@@ -48,20 +46,11 @@ $GLOBALS['strWindowOptions'] = "Parametry okna";
 $GLOBALS['strShowToolbars'] = "Panel nástrojů";
 $GLOBALS['strShowLocation'] = "Umístění";
 $GLOBALS['strShowMenubar'] = "Menu";
-$GLOBALS['strShowStatus'] = "Stavový řádek";
+$GLOBALS['strShowStatus'] = "Stav";
 $GLOBALS['strWindowResizable'] = "Měnitelná velikost";
 $GLOBALS['strShowScrollbars'] = "Skrolovatelný";
-
-// XML-RPC
-$GLOBALS['strXmlRpcLanguage'] = "Jazyk hostitele";
-
-// Support for 3rd party server clicktracking
-$GLOBALS['str3rdPartyTrack'] = "Podpora pro sledování kliknutí serverů 3tích stran";
 
 // Support for cachebusting code
 
 // IMG invocation selected for tracker with appended code
 $GLOBALS['strWarning'] = "Varování";
-
-// Local Invocation
-

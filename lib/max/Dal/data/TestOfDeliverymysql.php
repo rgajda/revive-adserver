@@ -15,7 +15,9 @@
  * @subpackage TestSuite
  */
 
-define('DATA_AGENCY', 'INSERT INTO
+define(
+    'DATA_AGENCY',
+    'INSERT INTO
     agency (
         agencyid,
         name,
@@ -39,7 +41,5 @@ define('DATA_AGENCY', 'INSERT INTO
         \'\',
         \'\',
         0
-    )'
+    )',
 );
-
-?>

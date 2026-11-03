@@ -23,14 +23,6 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
 class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestCase
 {
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Method to test the getAllZonesWithAllocInv method.
      *
      * Requirements:
@@ -43,10 +35,10 @@ class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestC
      * the ad_id belongs to a high priority active campaign
      *
      */
-    function testGetAllZonesWithAllocInv()
+    public function testGetAllZonesWithAllocInv()
     {
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh = &OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
         // Create the required temporary table for the tests
@@ -55,49 +47,49 @@ class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestC
 
         // set up the campaigns and banners
         $doCampaigns = OA_Dal::factoryDO('campaigns');
-        $doCampaigns->status    = OA_ENTITY_STATUS_RUNNING;
-        $doCampaigns->priority  = '5';
+        $doCampaigns->status = OA_ENTITY_STATUS_RUNNING;
+        $doCampaigns->priority = '5';
         $campaignId1 = DataGenerator::generateOne($doCampaigns);
 
         $doCampaigns = OA_Dal::factoryDO('campaigns');
-        $doCampaigns->status    = OA_ENTITY_STATUS_RUNNING;
-        $doCampaigns->priority  = '-1';
+        $doCampaigns->status = OA_ENTITY_STATUS_RUNNING;
+        $doCampaigns->priority = '-1';
         $campaignId2 = DataGenerator::generateOne($doCampaigns);
 
         $doCampaigns = OA_Dal::factoryDO('campaigns');
         $doCampaigns->expire_time = '2000-01-01 23:59:59';
-        $doCampaigns->status      = OA_ENTITY_STATUS_EXPIRED;
-        $doCampaigns->priority    = '5';
+        $doCampaigns->status = OA_ENTITY_STATUS_EXPIRED;
+        $doCampaigns->priority = '5';
         $campaignId3 = DataGenerator::generateOne($doCampaigns);
 
         $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->status    = OA_ENTITY_STATUS_RUNNING;
-        $doBanners->campaignid  = $campaignId1;
+        $doBanners->status = OA_ENTITY_STATUS_RUNNING;
+        $doBanners->campaignid = $campaignId1;
         $bannerId1t = DataGenerator::generateOne($doBanners);
 
         $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->status    = OA_ENTITY_STATUS_EXPIRED;
-        $doBanners->campaignid  = $campaignId1;
+        $doBanners->status = OA_ENTITY_STATUS_EXPIRED;
+        $doBanners->campaignid = $campaignId1;
         $bannerId1f = DataGenerator::generateOne($doBanners);
 
         $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->status    = OA_ENTITY_STATUS_RUNNING;
-        $doBanners->campaignid  = $campaignId2;
+        $doBanners->status = OA_ENTITY_STATUS_RUNNING;
+        $doBanners->campaignid = $campaignId2;
         $bannerId2t = DataGenerator::generateOne($doBanners);
 
         $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->status    = OA_ENTITY_STATUS_EXPIRED;
-        $doBanners->campaignid  = $campaignId2;
+        $doBanners->status = OA_ENTITY_STATUS_EXPIRED;
+        $doBanners->campaignid = $campaignId2;
         $bannerId2f = DataGenerator::generateOne($doBanners);
 
         $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->status    = OA_ENTITY_STATUS_RUNNING;
-        $doBanners->campaignid  = $campaignId3;
+        $doBanners->status = OA_ENTITY_STATUS_RUNNING;
+        $doBanners->campaignid = $campaignId3;
         $bannerId3t = DataGenerator::generateOne($doBanners);
 
         $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->status    = OA_ENTITY_STATUS_EXPIRED;
-        $doBanners->campaignid  = $campaignId3;
+        $doBanners->status = OA_ENTITY_STATUS_EXPIRED;
+        $doBanners->campaignid = $campaignId3;
         $bannerId3f = DataGenerator::generateOne($doBanners);
 
         // Test 1
@@ -283,7 +275,9 @@ class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestC
         // getAllZonesWithAllocInv doesn't guarantee any order, nor it's useful
         // to add the field to its ORDER BY clause. That's why we sort using PHP
         // by required_impressions
-        usort($result, create_function('$a, $b', 'return $a["required_impressions"] - $b["required_impressions"];'));
+        usort($result, function ($a, $b) {
+            return $a["required_impressions"] - $b["required_impressions"];
+        });
 
         $this->assertEqual($result[0]['zone_id'], 1);
         $this->assertEqual($result[0]['ad_id'], $bannerId1t);
@@ -308,20 +302,20 @@ class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestC
      * Test 1: Test with no data, and ensure no data returned.
      * Test 2: Test with sample data, and ensure the correct data is returned.
      */
-    function DEPRECATED_testGetAllZonesWithAllocInv()
+    public function DEPRECATED_testGetAllZonesWithAllocInv()
     {
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
         // Create the required temporary table for the tests
-        $oTable =& OA_DB_Table_Priority::singleton();
+        $oTable = &OA_DB_Table_Priority::singleton();
         $oTable->createTable('tmp_ad_zone_impression');
 
-        $tableTmp = $oDbh->quoteIdentifier('tmp_ad_zone_impression',true);
+        $tableTmp = $oDbh->quoteIdentifier('tmp_ad_zone_impression', true);
 
         // Test 1
-        $result =& $oMaxDalMaintenance->getAllZonesWithAllocInv();
+        $result = &$oMaxDalMaintenance->getAllZonesWithAllocInv();
         $this->assertEqual(count($result), 0);
 
         // Test 2
@@ -376,7 +370,7 @@ class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestC
                     7
                 )";
         $rows = $oDbh->exec($query);
-        $result =& $oMaxDalMaintenance->getAllZonesWithAllocInv();
+        $result = &$oMaxDalMaintenance->getAllZonesWithAllocInv();
         $this->assertEqual(count($result), 3);
         $this->assertEqual($result[0]['zone_id'], 1);
         $this->assertEqual($result[0]['ad_id'], 1);
@@ -392,7 +386,4 @@ class Test_OA_Dal_Maintenance_Priority_getAllZonesWithAllocInv extends UnitTestC
         $this->assertEqual($result[2]['requested_impressions'], 7);
         TestEnv::dropTempTables();
     }
-
 }
-
-?>

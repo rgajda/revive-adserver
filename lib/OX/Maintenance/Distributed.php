@@ -34,27 +34,18 @@ require_once OX_PATH . '/lib/pear/Date.php';
  */
 class OX_Maintenance_Distributed
 {
-
     /**
      * A method to run distributed maintenance.
      */
-    function run()
+    public static function run()
     {
         if (empty($GLOBALS['_MAX']['CONF']['lb']['enabled'])) {
             OA::debug('Distributed stats disabled, not running Maintenance Distributed Engine', PEAR_LOG_INFO);
             return;
         }
 
-        if (!empty($GLOBALS['_MAX']['CONF']['rawDatabase'])) {
-            $GLOBALS['_MAX']['CONF']['database'] = $GLOBALS['_MAX']['CONF']['rawDatabase'] +
-                $GLOBALS['_MAX']['CONF']['database'];
-
-            OA::debug('rawDatabase functionality is being used, switching settings', PEAR_LOG_INFO);
-        }
-
-        $oLock =& OA_DB_AdvisoryLock::factory();
-        if (!$oLock->get(OA_DB_ADVISORYLOCK_DISTRIBUTED))
-        {
+        $oLock = OA_DB_AdvisoryLock::factory();
+        if (!$oLock->get(OA_DB_ADVISORYLOCK_DISTRIBUTED)) {
             OA::debug('Maintenance Distributed Engine Already Running', PEAR_LOG_INFO);
             return;
         }
@@ -65,8 +56,8 @@ class OX_Maintenance_Distributed
         OX_increaseMemoryLimit(OX_getMinimumRequiredMemory('maintenance'));
 
         // Ensure the current time is registered with the OA_ServiceLocator
-        $oServiceLocator =& OA_ServiceLocator::instance();
-        $oNow =& $oServiceLocator->get('now');
+        $oServiceLocator = OA_ServiceLocator::instance();
+        $oNow = &$oServiceLocator->get('now');
         if (!$oNow) {
             // Record the current time, and register with the OA_ServiceLocator
             $oNow = new Date();
@@ -74,7 +65,7 @@ class OX_Maintenance_Distributed
         }
         OA::debug(' - Current time is ' . $oNow->format('%Y-%m-%d %H:%M:%S') . ' ' . $oNow->tz->getShortName(), PEAR_LOG_DEBUG);
 
-        // Get the components of the deliveryLog extension
+        /** @var Plugins_DeliveryLog[] $aBuckets */
         $aBuckets = OX_Component::getComponents('deliveryLog');
 
         // Copy buckets' records with "interval_start" up to and including previous OI start,
@@ -84,11 +75,11 @@ class OX_Maintenance_Distributed
         OA::debug(' - Will process data for all operation intervals before and up to start', PEAR_LOG_DEBUG);
         OA::debug('   time of ' . $aPreviousOperationIntervalDates['start']->format('%Y-%m-%d %H:%M:%S') . ' ' . $aPreviousOperationIntervalDates['start']->tz->getShortName(), PEAR_LOG_DEBUG);
         foreach ($aBuckets as $sBucketName => $oBucketClass) {
-            if ($oBucketClass->testStatisticsMigration($oBucketClass->getStatisticsMigration())){
+            if ($oBucketClass->testStatisticsMigration($oBucketClass->getStatisticsMigration())) {
                 $oBucketClass->processBucket($aPreviousOperationIntervalDates['start']);
                 $oBucketClass->pruneBucket($aPreviousOperationIntervalDates['start']);
             } else {
-                OA::debug('  - Skipping '.$sBucketName, PEAR_LOG_DEBUG);
+                OA::debug('  - Skipping ' . $sBucketName, PEAR_LOG_DEBUG);
             }
         }
 
@@ -97,5 +88,3 @@ class OX_Maintenance_Distributed
         OA::debug('Maintenance Distributed Engine Completed', PEAR_LOG_INFO);
     }
 }
-
-?>

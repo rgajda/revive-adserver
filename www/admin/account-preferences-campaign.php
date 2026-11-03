@@ -33,17 +33,18 @@ $oOptions = new OA_Admin_Option('preferences');
 $prefSection = "campaign";
 
 // Prepare an array for storing error messages
-$aErrormessage = array();
+$aErrormessage = [];
 
 // If the settings page is a submission, deal with the form data
-if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
+$oSettings = new OA_Admin_Settings();
+if ($oSettings->isFormSubmitted()) {
     // Some additional calculations are required, increase the memory
     OX_increaseMemoryLimit(OX_getMinimumRequiredMemory('maintenance'));
 
     // Prepare an array of the HTML elements to process, and which
     // of the preferences are checkboxes
-    $aElements   = array();
-    $aCheckboxes = array();
+    $aElements = [];
+    $aCheckboxes = [];
 
     // eCPM
     $aElements[] = 'campaign_ecpm_enabled';
@@ -52,7 +53,7 @@ if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
     $aCheckboxes['contract_ecpm_enabled'] = true;
 
     // Save the preferences
-    $aInactivatedCampaignsIds = array();
+    $aInactivatedCampaignsIds = [];
     $result = OA_Preferences::processPreferencesFromForm($aElements, $aCheckboxes);
     if ($result) {
         if ((bool) $_POST['campaign_ecpm_enabled'] != (bool) $pref['campaign_ecpm_enabled']) {
@@ -67,11 +68,11 @@ if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
             $oDal = OA_Dal::factoryDAL('campaigns');
             $agencyId = OA_Permission::getAgencyId();
             $aCampaigns = $oDal->updateCampaignsPriorityByAgency($agencyId, $updateFrom, $updateTo);
-            foreach($aCampaigns as $campaignId => $aCampaign) {
+            foreach ($aCampaigns as $campaignId => $aCampaign) {
                 if ($aCampaign['status_changed'] && $aCampaign['status'] == OA_ENTITY_STATUS_INACTIVE) {
                     // store without string indexes, to not to waste space in session
                     $aInactivatedCampaignsIds[$campaignId] =
-                        array($campaignId, $aCampaign['clientid'], $aCampaign['campaignname']);
+                        [$campaignId, $aCampaign['clientid'], $aCampaign['campaignname']];
                 }
             }
             $runMaintenance = true;
@@ -79,18 +80,17 @@ if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
 
         // We changed contract
         if ((bool) $_POST['contract_ecpm_enabled'] != (bool) $pref['contract_ecpm_enabled']) {
-
             // Reload the prefs we just changed into the global variable because
             // we use it when setting ecpm_enabled in the DO.
             OA_Preferences::loadPreferences();
             $oDal = OA_Dal::factoryDAL('campaigns');
             $agencyId = OA_Permission::getAgencyId();
             $aCampaigns = $oDal->updateEcpmEnabledByAgency($agencyId);
-            foreach($aCampaigns as $campaignId => $aCampaign) {
+            foreach ($aCampaigns as $campaignId => $aCampaign) {
                 if ($aCampaign['status_changed'] && $aCampaign['status'] == OA_ENTITY_STATUS_INACTIVE) {
                     // store without string indexes, to not to waste space in session
                     $aInactivatedCampaignsIds[$campaignId] =
-                        array($campaignId, $aCampaign['clientid'], $aCampaign['campaignname']);
+                        [$campaignId, $aCampaign['clientid'], $aCampaign['campaignname']];
                 }
             }
             $runMaintenance = true;
@@ -109,9 +109,11 @@ if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
         // Queue confirmation message
         $setPref = $oOptions->getSettingsPreferences($prefSection);
         $title = $setPref[$prefSection]['name'];
-        $translation = new OX_Translation ();
-        $translated_message = $translation->translate($GLOBALS['strXPreferencesHaveBeenUpdated'],
-            array(htmlspecialchars($title)));
+        $translation = new OX_Translation();
+        $translated_message = $translation->translate(
+            $GLOBALS['strXPreferencesHaveBeenUpdated'],
+            [htmlspecialchars($title)],
+        );
         OA_Admin_UI::queueMessage($translated_message, 'local', 'confirm', 0);
         OX_Admin_Redirect::redirect(basename($_SERVER['SCRIPT_NAME']));
     }
@@ -129,32 +131,32 @@ $oHeaderModel = new OA_Admin_UI_Model_PageHeaderModel($title);
 phpAds_PageHeader('account-preferences-index', $oHeaderModel);
 
 $remnantEcpmInfoText = $strEnableECPM . '<br/>&nbsp;&nbsp;&nbsp;&nbsp;';
-$remnantEcpmInfoText .= !empty($pref['campaign_ecpm_enabled']) ? $strEnableECPMfromECPM :
-    $strEnableECPMfromRemnant;
+$remnantEcpmInfoText .= empty($pref['campaign_ecpm_enabled']) ? $strEnableECPMfromRemnant :
+    $strEnableECPMfromECPM;
 
 $contractEcpmInfoText = $strEnableContractECPM;
 
 // Prepare an array of HTML elements to display for the form, and
 // output using the $oOption object
-$aSettings = array (
-    array (
-        'text'  => $strECPMInformation,
-        'items' => array (
-            array (
-                'type'  => 'checkbox',
-                'name'  => 'campaign_ecpm_enabled',
-                'text'  => $remnantEcpmInfoText,
-                'disabled' => OA_Permission::isAccount(OA_ACCOUNT_ADMIN)
-            ),
-            array(
+$aSettings = [
+    [
+        'text' => $strECPMInformation,
+        'items' => [
+            [
+                'type' => 'checkbox',
+                'name' => 'campaign_ecpm_enabled',
+                'text' => $remnantEcpmInfoText,
+                'disabled' => OA_Permission::isAccount(OA_ACCOUNT_ADMIN),
+            ],
+            [
                 'type' => 'checkbox',
                 'name' => 'contract_ecpm_enabled',
                 'text' => $contractEcpmInfoText,
-                'disabled' => OA_Permission::isAccount(OA_ACCOUNT_ADMIN)
-            )
-        )
-    )
-);
+                'disabled' => OA_Permission::isAccount(OA_ACCOUNT_ADMIN),
+            ],
+        ],
+    ],
+];
 $oOptions->show($aSettings, $aErrormessage);
 
 // Show the list of inactivated campaigns
@@ -162,9 +164,9 @@ if (!empty($session['aInactivatedCampaignsIds']) && is_array($session['aInactiva
     echo '<br /><br /><br />';
     echo '<b>' . $strInactivatedCampaigns . '</b><br/>';
     echo '<ul>';
-    foreach($session['aInactivatedCampaignsIds'] as $aCampaign) {
-        $campaignUrl = 'campaign-edit.php?clientid='.$aCampaign[1].'&amp;campaignid='.$aCampaign[0];
-        echo '<li><a href="'.$campaignUrl.'" target="_blank">'.smarty_modifier_escape($aCampaign[2]).'</a></li>';
+    foreach ($session['aInactivatedCampaignsIds'] as $aCampaign) {
+        $campaignUrl = 'campaign-edit.php?clientid=' . $aCampaign[1] . '&amp;campaignid=' . $aCampaign[0];
+        echo '<li><a href="' . $campaignUrl . '" target="_blank">' . smarty_modifier_escape($aCampaign[2]) . '</a></li>';
     }
     echo '<ul>';
     unset($session['aInactivatedCampaignsIds']);
@@ -173,5 +175,3 @@ if (!empty($session['aInactivatedCampaignsIds']) && is_array($session['aInactiva
 
 // Display the page footer
 phpAds_PageFooter();
-
-?>

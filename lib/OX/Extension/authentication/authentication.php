@@ -32,16 +32,16 @@ class Plugins_Authentication extends OX_Component
      *
      * @var array
      */
-    var $aSignupErrors = array();
+    public $aSignupErrors = [];
 
-    var $aValidationErrors = array();
+    public $aValidationErrors = [];
 
     /**
      * Checks if credentials are passed and whether the plugin should carry on the authentication
      *
      * @return boolean  True if credentials were passed, else false
      */
-    function suppliedCredentials()
+    public function suppliedCredentials()
     {
         return isset($_POST['username']) || isset($_POST['password']);
     }
@@ -52,17 +52,21 @@ class Plugins_Authentication extends OX_Component
      * @return DataObjects_Users  returns users dataobject on success authentication
      *                            or null if user wasn't succesfully authenticated
      */
-    function &authenticateUser()
+    public function authenticateUser()
     {
         $aCredentials = $this->_getCredentials();
         if (PEAR::isError($aCredentials)) {
             OA_Auth::displayError($aCredentials);
         }
-        return $this->checkPassword($aCredentials['username'],
-            $aCredentials['password']);
+
+
+        return $this->checkPassword(
+            $aCredentials['username'],
+            $aCredentials['password'],
+        );
     }
 
-        /**
+    /**
      * A to get the login credential supplied as POST parameters
      *
      * Additional checks are also performed and error eventually returned
@@ -70,7 +74,7 @@ class Plugins_Authentication extends OX_Component
      * @param bool $performCookieCheck
      * @return mixed Array on success, PEAR_Error otherwise
      */
-    function _getCredentials($performCookieCheck = true)
+    public function _getCredentials($performCookieCheck = true)
     {
         if (empty($_POST['username']) || empty($_POST['password'])) {
             return new PEAR_Error($GLOBALS['strEnterBoth']);
@@ -84,20 +88,18 @@ class Plugins_Authentication extends OX_Component
             return new PEAR_Error($GLOBALS['strSessionIDNotMatch']);
         }
 
-        return array(
+        return [
             'username' => MAX_commonGetPostValueUnslashed('username'),
-            'password' => MAX_commonGetPostValueUnslashed('password')
-        );
+            'password' => MAX_commonGetPostValueUnslashed('password'),
+        ];
     }
 
     /**
      * A method to check a username and password
      *
-     * @param string $username
-     * @param string $password
-     * @return mixed A DataObjects_Users instance, or false if no matching user was found
+     * @return DataObjects_Users|false A DataObjects_Users instance, or false if authentication was unsuccessful
      */
-    function checkPassword($username, $password)
+    public function checkPassword(string $username, string $password, bool $allowMd5 = true)
     {
         // Introduce a random delay in case of failures, as recommended by:
         // https://www.owasp.org/index.php/Blocking_Brute_Force_Attacks
@@ -107,11 +109,11 @@ class Plugins_Authentication extends OX_Component
 
         $oLock = OA_DB_AdvisoryLock::factory();
 
-        // Username check is case insensitive
+        // Username check is case-insensitive
         $username = strtolower($username);
 
         // Try to acquire an excusive advisory lock for the username
-        $lock = $oLock->get('auth.'.md5($username));
+        $lock = $oLock->get('auth.' . md5($username));
 
         if (!$lock) {
             // We couldn't acquire the lock immediately, which means that
@@ -127,17 +129,23 @@ class Plugins_Authentication extends OX_Component
             usleep($waitMs * 4000);
         }
 
+        /** @var DataObjects_Users $doUser */
         $doUser = OA_Dal::factoryDO('users');
-        $doUser->username = $username;
-        $doUser->password = md5($password);
+        $doUser->username = $username ?: '';
 
-        $doUser->find();
+        if ($doUser->find()) {
+            $doUser->fetch();
 
-        if ($doUser->fetch()) {
-            $oLock->release();
+            if ($this->performPasswordCheck($doUser, $password, $allowMd5)) {
+                $oLock->release();
 
-            return $doUser;
+                return $doUser;
+            }
         }
+
+        // Log for fail2ban, if enabled
+        $oBadLoginLogger = new \RV\Auth\BadLoginLogger();
+        $oBadLoginLogger->log();
 
         if ($lock) {
             // The password was wrong, but no other login attempt was in place
@@ -154,11 +162,11 @@ class Plugins_Authentication extends OX_Component
      * Cleans up the session and carry on any additional tasks required to logout the user
      *
      */
-    function logout()
+    public function logout(): never
     {
         phpAds_SessionDataDestroy();
         $dalAgency = OA_Dal::factoryDAL('agency');
-        header ("Location: " . $dalAgency->getLogoutUrl(OA_Permission::getAgencyId()));
+        header("Location: " . $dalAgency->getLogoutUrl(OA_Permission::getAgencyId()));
         exit;
     }
 
@@ -171,13 +179,9 @@ class Plugins_Authentication extends OX_Component
      * @param string $sessionID
      * @param bool $inlineLogin
      */
-    function displayLogin($sMessage = '', $sessionID = 0, $inLineLogin = false)
+    public function displayLogin($sMessage = '', $sessionID = 0, $inLineLogin = false)
     {
-        global $strUsername, $strPassword, $strLogin, $strWelcomeTo, $strEnterUsername,
-               $strNoAdminInteface, $strForgotPassword;
-
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $aPref = $GLOBALS['_MAX']['PREF'];
 
         @header('Cache-Control: max-age=0, no-cache, proxy-revalidate, must-revalidate');
 
@@ -199,14 +203,14 @@ class Plugins_Authentication extends OX_Component
                     foreach ($vals['error'] as $key => $val) {
                         $errDetails .= '<li>' . htmlspecialchars($key) . ' &nbsp; => &nbsp; ' . htmlspecialchars($val) . '</li>';
                     }
-					phpAds_Die( ' Error: ' . $err, $errDetails );
+                    phpAds_Die('Error:', $errDetails);
                 }
             }
         }
 
         $oTpl = new OA_Admin_Template('login.html');
 
-        $appName = !empty($aConf['ui']['applicationName']) ? $aConf['ui']['applicationName'] : PRODUCT_NAME;
+        $appName = empty($aConf['ui']['applicationName']) ? PRODUCT_NAME : $aConf['ui']['applicationName'];
 
         $oTpl->assign('uiEnabled', $aConf['ui']['enabled']);
         $oTpl->assign('sessionID', $sessionID);
@@ -226,19 +230,27 @@ class Plugins_Authentication extends OX_Component
      * @param OA_Dll_UserInfo $oUserInfo
      * @return boolean
      */
-    function dllValidation(&$oUser, &$oUserInfo)
+    public function dllValidation(&$oUser, &$oUserInfo)
     {
         if (!isset($oUserInfo->userId)) {
-            if (!$oUser->checkStructureRequiredStringField($oUserInfo, 'username', 64) ||
-                !$oUser->checkStructureRequiredStringField($oUserInfo, 'password', 32)) {
+            if (!$oUser->checkStructureRequiredStringField($oUserInfo, 'username', 64)) {
                 return false;
             }
         }
 
-        if (isset($oUserInfo->password)) {
-            // Save MD5 hash of the password
-            $oUserInfo->password = md5($oUserInfo->password);
+        if (!isset($oUserInfo->password)) {
+            return true;
         }
+
+        if (!self::validatePassword($oUserInfo->password)) {
+            $oUser->raiseError(OA_Dll_User::ERROR_PASSWORD_TOO_SHORT);
+
+            return false;
+        }
+
+        // Save the hash of the password
+        $oUserInfo->password = $this->getPasswordHash($oUserInfo->password);
+
         return true;
     }
 
@@ -247,21 +259,21 @@ class Plugins_Authentication extends OX_Component
      *
      * @param OA_Admin_Template $oTpl
      */
-    function setTemplateVariables(&$oTpl)
+    public function setTemplateVariables(&$oTpl)
     {
         if (preg_match('/-user-start\.html$/', $oTpl->templateName)) {
-            $oTpl->assign('fields', array(
-               array(
-                   'fields'    => array(
-                       array(
-                           'name'      => 'login',
-                           'label'     => $GLOBALS['strUsernameToLink'],
-                           'value'     => '',
-                           'id'        => 'user-key'
-                       ),
-                   )
-               ),
-            ));
+            $oTpl->assign('fields', [
+                [
+                    'fields' => [
+                        [
+                            'name' => 'login',
+                            'label' => $GLOBALS['strUsernameToLink'],
+                            'value' => '',
+                            'id' => 'user-key',
+                        ],
+                    ],
+                ],
+            ]);
         }
     }
 
@@ -271,60 +283,46 @@ class Plugins_Authentication extends OX_Component
      * @param array $userData  Array containing users data (see users table)
      * @return array  Array formatted for use in template object as in user access pages
      */
-    function getUserDetailsFields($userData)
+    public function getUserDetailsFields($userData)
     {
         $userExists = !empty($userData['user_id']);
-        $userDetailsFields = array();
+        $userDetailsFields = [];
         $aLanguages = RV_Admin_Languages::getAvailableLanguages();
 
-        $userDetailsFields[] = array(
-                'name'      => 'login',
-                'label'     => $GLOBALS['strUsername'],
-                'value'     => $userData['username'],
-                'freezed'   => !empty($userData['user_id'])
-            );
-        $userDetailsFields[] = array(
-                'name'      => 'passwd',
-                'label'     => $GLOBALS['strPassword'],
-                'type'      => 'password',
-                'value'     => '',
-                'hidden'   => !empty($userData['user_id'])
-            );
-        $userDetailsFields[] = array(
-                'name'      => 'passwd2',
-                'label'     => $GLOBALS['strPasswordRepeat'],
-                'type'      => 'password',
-                'value'     => '',
-                'hidden'   => !empty($userData['user_id'])
-            );
-        $userDetailsFields[] = array(
-                'name'      => 'contact_name',
-                'label'     => $GLOBALS['strContactName'],
-                'value'     => $userData['contact_name'],
-                'freezed'   => $userExists
-            );
-        $userDetailsFields[] = array(
-                'name'      => 'email_address',
-                'label'     => $GLOBALS['strEMail'],
-                'value'     => $userData['email_address'],
-                'freezed'   => $userExists
-            );
-        $userDetailsFields[] = array(
-                'type'      => 'select',
-                'name'      => 'language',
-                'label'     => $GLOBALS['strLanguage'],
-                'options'   => $aLanguages,
-                'value'     => (!empty($userData['language'])) ? $userData['language'] : $GLOBALS['_MAX']['PREF']['language'],
-                'disabled'   => $userExists
-            );
+        $userDetailsFields[] = [
+            'name' => 'login',
+            'label' => $GLOBALS['strUsername'],
+            'value' => $userData['username'],
+            'freezed' => $userExists || !empty($userData['username']),
+        ];
+        $userDetailsFields[] = [
+            'name' => 'contact_name',
+            'label' => $GLOBALS['strContactName'],
+            'value' => $userData['contact_name'],
+            'freezed' => $userExists,
+        ];
+        $userDetailsFields[] = [
+            'name' => 'email_address',
+            'label' => $GLOBALS['strEMail'],
+            'value' => $userData['email_address'],
+            'freezed' => $userExists,
+        ];
+        $userDetailsFields[] = [
+            'type' => 'select',
+            'name' => 'language',
+            'label' => $GLOBALS['strLanguage'],
+            'options' => $aLanguages,
+            'value' => (empty($userData['language'])) ? $GLOBALS['_MAX']['PREF']['language'] : $userData['language'],
+            'disabled' => $userExists,
+        ];
 
         return $userDetailsFields;
     }
 
-    function getMatchingUserId($email, $login)
+    public function getMatchingUserId($email, $login)
     {
         $doUsers = OA_Dal::factoryDO('users');
-        return $doUsers->getUserIdByProperty('username', $login);
+        return $doUsers->getUserIdByProperty('username', strtolower($login));
     }
 
     /**
@@ -334,7 +332,7 @@ class Plugins_Authentication extends OX_Component
      * @return array  Array containing error strings or empty
      *                array if no validation errors were found
      */
-    function validateUsersEmail($email)
+    public function validateUsersEmail($email)
     {
         if (!$this->isValidEmail($email)) {
             $this->addValidationError($GLOBALS['strInvalidEmail']);
@@ -347,49 +345,68 @@ class Plugins_Authentication extends OX_Component
      * @param string $email
      * @return boolean
      */
-    function isValidEmail($email)
+    public function isValidEmail($email)
     {
-        $rule = new HTML_QuickForm_Rule_Email;
+        $rule = new HTML_QuickForm_Rule_Email();
         return $rule->validate($email);
     }
 
-    function saveUser($userid, $login, $password, $contactName,
-        $emailAddress, $language, $accountId)
-    {
+    public function saveUser(
+        $userid,
+        $login,
+        $password,
+        $contactName,
+        $emailAddress,
+        $language,
+        $accountId,
+    ) {
+        /** @var DataObjects_Users $doUsers */
         $doUsers = OA_Dal::factoryDO('users');
         $doUsers->loadByProperty('user_id', $userid);
 
-        return $this->saveUserDo($doUsers, $login, $password, $contactName,
-        $emailAddress, $language, $accountId);
+        return $this->saveUserDo(
+            $doUsers,
+            $login,
+            $password,
+            $contactName,
+            $emailAddress,
+            $language,
+            $accountId,
+        );
     }
 
     /**
      * Method used in user access pages. Either creates new user if
      * necessary or update existing one.
      *
-     * @param DB_DataObject_Users $doUsers  Users dataobject with any preset variables
+     * @param DataObjects_Users $doUsers  Users dataobject with any preset variables
      * @param string $login  User name
-     * @param string $password  Password
+     * @param string|null $password  Password
      * @param string $contactName  Contact name
      * @param string $emailAddress  Email address
      * @param integer $accountId  a
      * @return integer  User ID or false on error
      */
-    function saveUserDo(&$doUsers, $login, $password, $contactName,
-        $emailAddress, $language, $accountId)
-    {
+    public function saveUserDo(
+        $doUsers,
+        $login,
+        $password,
+        $contactName,
+        $emailAddress,
+        $language,
+        $accountId,
+    ) {
         $doUsers->contact_name = $contactName;
         $doUsers->email_address = $emailAddress;
         $doUsers->language = $language;
         if ($doUsers->user_id) {
             $doUsers->update();
             return $doUsers->user_id;
-        } else {
-            $doUsers->default_account_id = $accountId;
-            $doUsers->username = $login;
-            $doUsers->password = md5($password);
-            return $doUsers->insert();
         }
+        $doUsers->default_account_id = $accountId;
+        $doUsers->username = $login;
+        $doUsers->password = null === $password ? '' : $this->getPasswordHash($password);
+        return $doUsers->insert();
     }
 
     /**
@@ -397,7 +414,7 @@ class Plugins_Authentication extends OX_Component
      *
      * @return array
      */
-    function getSignupErrors()
+    public function getSignupErrors()
     {
         return $this->aSignupErrors;
     }
@@ -407,7 +424,7 @@ class Plugins_Authentication extends OX_Component
      *
      * @param string $errorMessage
      */
-    function addSignupError($error)
+    public function addSignupError($error)
     {
         if (PEAR::isError($error)) {
             $errorMessage = $error->getMessage();
@@ -424,7 +441,7 @@ class Plugins_Authentication extends OX_Component
      *
      * @return array
      */
-    function getValidationErrors()
+    public function getValidationErrors()
     {
         return $this->aValidationErrors;
     }
@@ -434,23 +451,17 @@ class Plugins_Authentication extends OX_Component
      *
      * @param string $aValidationErrors
      */
-    function addValidationError($error)
+    public function addValidationError($error)
     {
         $this->aValidationErrors[] = $error;
     }
 
     /**
-     * A method to change a user password
-     *
-     * @param DataObjects_Users $doUsers
-     * @param string $newPassword
-     * @param string $oldPassword
-     * @return mixed True on success, PEAR_Error otherwise
+     * A method to get a hash of a password.
      */
-    function changePassword(&$doUsers, $newPassword, $oldPassword)
+    public function getPasswordHash(string $password): string
     {
-        $doUsers->password = md5($newPassword);
-        return true;
+        return \RV\Manager\PasswordManager::getPasswordHash($password);
     }
 
     /**
@@ -460,13 +471,13 @@ class Plugins_Authentication extends OX_Component
      * @param string $newPassword
      * @return mixed True on success, PEAR_Error otherwise
      */
-    function setNewPassword($userId, $newPassword)
+    public function setNewPassword($userId, $newPassword)
     {
         $doUsers = OA_Dal::staticGetDO('users', $userId);
         if (!$doUsers) {
             return false;
         }
-        $doUsers->password = md5($newPassword);
+        $doUsers->password = $this->getPasswordHash($newPassword);
         return $doUsers->update();
     }
 
@@ -475,23 +486,26 @@ class Plugins_Authentication extends OX_Component
      *
      * @param DataObjects_Users $doUsers
      * @param string $emailAddress
-     * @param string $password
-     * @return bool
+     * @return PEAR_Error|true
      */
-    function changeEmail(&$doUsers, $emailAddress, $password)
+    public function changeEmail($doUsers, $emailAddress)
     {
+        if (!$this->isValidEmail($emailAddress)) {
+            return MAX::raiseError($GLOBALS['strInvalidEmail'], MAX_ERROR_INVALIDARGS, PEAR_ERROR_RETURN);
+        }
+
         $doUsers->email_address = $emailAddress;
-        $doUsers->email_updated = $doUsers->formatDate(new Date());
+        $doUsers->email_updated = gmdate(OA_DATETIME_FORMAT);
         return true;
     }
 
     // These were pulled straight from the internal class...
-        /**
+    /**
      * Validates user login - required for linking new users
      *
      * @param string $login
      */
-    function validateUsersLogin($login)
+    public function validateUsersLogin($login)
     {
         if (empty($login)) {
             $this->addValidationError($GLOBALS['strInvalidUsername']);
@@ -501,24 +515,33 @@ class Plugins_Authentication extends OX_Component
     }
 
     /**
-     * Validates user password - required for linking new users
+     * Validates user password, also comparing
      *
      * @param string $password
-     * @return array  Array containing error strings or empty
-     *                array if no validation errors were found
      */
-    function validateUsersPassword($password)
+    public function validateUsersPassword($password, $passwordConfirm)
     {
-        if (!strlen($password) || strstr("\\", $password)) {
-            $this->addValidationError($GLOBALS['strInvalidPassword']);
-        }
-    }
+        $aConf = $GLOBALS['_MAX']['CONF'];
 
-    function validateUsersPasswords($password1, $password2)
-    {
-        if ($password1 != $password2) {
-            $this->addValidationError($GLOBALS['strNotSamePasswords']);
+        if ('' === $password) {
+            $this->addValidationError($GLOBALS['strInvalidPassword']);
+
+            return;
         }
+
+        if (!empty($aConf['security']['passwordMinLength'])) {
+            if (!self::validatePassword($password)) {
+                $this->addValidationError($GLOBALS['strPasswordTooShort']);
+
+                return;
+            }
+        }
+
+        if ($password === $passwordConfirm) {
+            return;
+        }
+
+        $this->addValidationError($GLOBALS['strNotSamePasswords']);
     }
 
     /**
@@ -529,24 +552,58 @@ class Plugins_Authentication extends OX_Component
      * @return array  Array containing error strings or empty
      *                array if no validation errors were found
      */
-    function validateUsersData($data)
+    public function validateUsersData($data)
     {
+        if (!phpAds_SessionValidateToken($data['token'])) {
+            return ['Invalid request token'];
+        }
+
         if (empty($data['userid'])) {
             $this->validateUsersLogin($data['login']);
-            $this->validateUsersPasswords($data['passwd'], $data['passwd2']);
-            $this->validateUsersPassword($data['passwd']);
-        }
-        $this->validateUsersEmail($data['email_address']);
+            $this->validateUsersEmail($data['email_address']);
+        } else {
+            /** @var DataObjects_Users $doUser */
+            $doUser = OA_Dal::factoryDO('users');
+            $doUser->user_id = $data['userid'];
+            $doUser->username = $data['login'];
+            $doUser->email_address = $data['email_address'];
 
-        if (!phpAds_SessionValidateToken($data['token'])) {
-            $this->addValidationError('Invalid request token');
+            if (!$doUser->count()) {
+                $this->addValidationError('Invalid user data provided');
+            }
         }
 
         return $this->getValidationErrors();
     }
+
+    private function performPasswordCheck(DataObjects_Users $doUser, string $password, bool $allowMd5): bool
+    {
+        $doUser->setUnsafePassword(!self::validatePassword($password));
+
+        if ($allowMd5 && $doUser->password === md5($password)) {
+            $doUser->setResetRequired();
+
+            return true;
+        }
+
+        if (!\RV\Manager\PasswordManager::verifyPassword($password, $doUser->password)) {
+            return false;
+        }
+
+        if (\RV\Manager\PasswordManager::needsRehash($doUser)) {
+            \RV\Manager\PasswordManager::updateHash($doUser, $password);
+        }
+
+        return true;
+    }
+
+    private static function validatePassword(string $password): bool
+    {
+        $passwordMinLength = $GLOBALS['_MAX']['CONF']['security']['passwordMinLength'] ?? OA_Auth::DEFAULT_MIN_PASSWORD_LENGTH;
+
+        return RV::strlen($password) >= $passwordMinLength;
+    }
 }
 
 
-class Plugins_Authentication_Exception extends Exception
-{
-}
+class Plugins_Authentication_Exception extends Exception {}

@@ -15,16 +15,10 @@ $className = 'prescript_install_testPlugin';
 
 class prescript_install_testPlugin
 {
-
-    function __construct()
-    {
-
-    }
-
-    function execute($aParams=array())
+    public function execute($aParams = [])
     {
         $oManager = new OX_Plugin_ComponentGroupManager();
-        $oManager->_logMessage('testPluginPackage 0.0.2 : '. get_class($this));
+        $oManager->_logMessage('testPluginPackage 0.0.2 : ' . get_class($this));
         return true;
     }
 }

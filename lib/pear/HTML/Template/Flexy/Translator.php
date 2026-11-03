@@ -194,7 +194,7 @@ class HTML_Template_Flexy_Translator {
                 $value = $this->getTranslation($page,$word,$displayLang);
                 // we posted something..
                 if (isset($post[$displayLang][$md5])) {
-                    $nval = get_magic_quotes_gpc() ? stripslashes($post[$displayLang][$md5]) : $post[$displayLang][$md5];
+                    $nval = $post[$displayLang][$md5];
 
                     if ($value != $nval) {
 
@@ -327,7 +327,7 @@ class HTML_Template_Flexy_Translator {
         while (($name = readdir($dh)) !== false) {
             $fname = $d ? $d .'/'. $name : $name;
 
-            if ($name{0} == '.') {
+            if ($name[0] == '.') {
                 continue;
             }
 
@@ -378,7 +378,7 @@ class HTML_Template_Flexy_Translator {
         while (($name = readdir($dh)) !== false) {
             $fname = $d ? $d .'/'. $name : $name;
 
-            if ($name{0} == '.') {
+            if ($name[0] == '.') {
                 continue;
             }
 

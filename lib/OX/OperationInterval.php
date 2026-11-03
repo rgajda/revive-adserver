@@ -21,7 +21,6 @@ require_once MAX_PATH . '/lib/pear/Date.php';
  */
 class OX_OperationInterval
 {
-
     /**
      * A class to test if an operation interval value is valid.
      *
@@ -30,13 +29,14 @@ class OX_OperationInterval
      * @param mixed True if the operation interval value is valid, a {@link PEAR_Error}
      *              object with error type MAX_ERROR_INVALIDOPERATIONINT otherwise.
      */
-    function checkOperationIntervalValue($oi)
+    public static function checkOperationIntervalValue($oi)
     {
         if ($oi < 1) {
             // Operation interval must be at least every minute
             $error = 'The operation interval of ' . $oi . ' is invalud';
             return MAX::raiseError($error, MAX_ERROR_INVALIDOPERATIONINT);
-        } elseif ($oi < 60) {
+        }
+        if ($oi < 60) {
             // Operation interval is more often than once an hour
             if ((60 % $oi) != 0) {
                 // Operation interval must be a factor of 60 minutes
@@ -65,7 +65,7 @@ class OX_OperationInterval
      * @return mixed The operation interval ID as an integer, or false if the date
      *               range spans more than one operation interval.
      */
-    function convertDateRangeToOperationIntervalID($oStart, $oEnd, $operationInterval = 0)
+    public static function convertDateRangeToOperationIntervalID($oStart, $oEnd, $operationInterval = 0)
     {
         if ($operationInterval < 1) {
             $operationInterval = OX_OperationInterval::getOperationInterval();
@@ -108,7 +108,7 @@ class OX_OperationInterval
      *                                    currently defined operation interval.
      * @return integer The operation interval ID that the time is in.
      */
-    function convertDateToOperationIntervalID($oDate, $operationInterval = 0)
+    public static function convertDateToOperationIntervalID($oDate, $operationInterval = 0)
     {
         if ($operationInterval < 1) {
             $operationInterval = OX_OperationInterval::getOperationInterval();
@@ -138,12 +138,10 @@ class OX_OperationInterval
      * @param boolean $cacheResult  If true the data should be cached
      * @param Date $oDate
      */
-    function addOperationIntervalTimeSpan($oDate, $operationInterval = null)
+    public static function addOperationIntervalTimeSpan($oDate, $operationInterval = null)
     {
         $oDateCopy = new Date($oDate);
-        if (is_null($operationInterval)) {
-            $operationInterval = OX_OperationInterval::getOperationInterval();
-        }
+        $operationInterval ??= OX_OperationInterval::getOperationInterval();
         $oDateCopy->addSeconds($operationInterval * 60);
         return $oDateCopy;
     }
@@ -160,7 +158,7 @@ class OX_OperationInterval
      * @param boolean $cacheResult  If true the data should be cached
      * @return array An array of the start and end Dates of the operation interval.
      */
-    function convertDateToOperationIntervalStartAndEndDates($oDate, $operationInterval = 0, $cacheResult = true)
+    public static function convertDateToOperationIntervalStartAndEndDates($oDate, $operationInterval = 0, $cacheResult = true)
     {
         // Convert to UTC
         $oDateCopy = new Date($oDate);
@@ -173,10 +171,10 @@ class OX_OperationInterval
             $oStart->setTZbyID('UTC');
             $oEnd = new Date($cachedDates['end']);
             $oEnd->setTZbyID('UTC');
-            return array(
+            return [
                 'start' => $oStart,
-                'end'   => $oEnd
-                );
+                'end' => $oEnd,
+            ];
         }
         if ($operationInterval < 1) {
             $operationInterval = OX_OperationInterval::getOperationInterval();
@@ -198,13 +196,13 @@ class OX_OperationInterval
         $oEnd->addSeconds(($operationInterval * 60) - 1);
         // Cache result - cache as string to save memory
         if ($cacheResult) {
-            $aCache[$oDate->getDate()][$operationInterval] = array(
+            $aCache[$oDate->getDate()][$operationInterval] = [
                 'start' => $oStart->getDate(),
-                'end'   => $oEnd->getDate(),
-            );
+                'end' => $oEnd->getDate(),
+            ];
         }
         // Return the result
-        return array('start' => $oStart, 'end' => $oEnd);
+        return ['start' => $oStart, 'end' => $oEnd];
     }
 
     /**
@@ -219,7 +217,7 @@ class OX_OperationInterval
      *                                   currently defined operation interval.
      * @return array An array of the start and end Dates of the operation interval.
      */
-    function convertDateToPreviousOperationIntervalStartAndEndDates($oDate, $operationInterval = 0)
+    public static function convertDateToPreviousOperationIntervalStartAndEndDates($oDate, $operationInterval = 0)
     {
         // Get the start and end Dates of the operation interval that
         // contains the current date
@@ -244,7 +242,7 @@ class OX_OperationInterval
      *                                   currently defined operation interval.
      * @return array An array of the start and end Dates of the operation interval.
      */
-    function convertDateToNextOperationIntervalStartAndEndDates($oDate, $operationInterval = 0)
+    public static function convertDateToNextOperationIntervalStartAndEndDates($oDate, $operationInterval = 0)
     {
         // Get the start and end Dates of the operation interval that
         // contains the current date
@@ -268,18 +266,16 @@ class OX_OperationInterval
      * @param integer $intervals The number of intervals to go back. Default is 1.
      * @return integer The previous operation interval ID.
      */
-    function previousOperationIntervalID($operationIntervalID, $operationInterval = null, $intervals = 1)
+    public static function previousOperationIntervalID($operationIntervalID, $operationInterval = null, $intervals = 1)
     {
         // Set the operation interval length, if required
-        if (is_null($operationInterval)) {
-            $operationInterval = OX_OperationInterval::getOperationInterval();
-        }
+        $operationInterval ??= OX_OperationInterval::getOperationInterval();
         // Go backward the required number of intervals
         $newOperationIntervalID = $operationIntervalID - $intervals;
         // Have we passed the end?
         $highestIntervalID = (MINUTES_PER_WEEK / $operationInterval) - 1;
         if ($newOperationIntervalID < 0) {
-            $newOperationIntervalID = $highestIntervalID - ($intervals - $operationIntervalID) + 1;
+            return $highestIntervalID - ($intervals - $operationIntervalID) + 1;
         }
         return $newOperationIntervalID;
     }
@@ -295,18 +291,16 @@ class OX_OperationInterval
      * @param integer $intervals The number of intervals to go forward. Default is 1.
      * @return integer The next operation interval ID.
      */
-    function nextOperationIntervalID($operationIntervalID, $operationInterval = null, $intervals = 1)
+    public static function nextOperationIntervalID($operationIntervalID, $operationInterval = null, $intervals = 1)
     {
         // Set the operation interval length, if required
-        if (is_null($operationInterval)) {
-            $operationInterval = OX_OperationInterval::getOperationInterval();
-        }
+        $operationInterval ??= OX_OperationInterval::getOperationInterval();
         // Go forward the required number of intervals
         $newOperationIntervalID = $operationIntervalID + $intervals;
         // Have we passed the end?
         $highestIntervalID = (MINUTES_PER_WEEK / $operationInterval) - 1;
         if ($newOperationIntervalID > $highestIntervalID) {
-            $newOperationIntervalID = $highestIntervalID - $operationIntervalID;
+            return $highestIntervalID - $operationIntervalID;
         }
         return $newOperationIntervalID;
     }
@@ -323,22 +317,17 @@ class OX_OperationInterval
      * @return bool Returns true if the date is an operation interval start date,
      *              false otherwise.
      */
-    function checkDateIsStartDate($oDate, $operationInterval = null)
+    public static function checkDateIsStartDate($oDate, $operationInterval = null)
     {
         // Set the operation interval length, if required
-        if (is_null($operationInterval)) {
-            $operationInterval = OX_OperationInterval::getOperationInterval();
-        }
+        $operationInterval ??= OX_OperationInterval::getOperationInterval();
         // Get the start/end dates for the operation interval the supplied
         // date is in
         $oDateCopy = new Date();
         $oDateCopy->copy($oDate);
         $aDates = OX_OperationInterval::convertDateToOperationIntervalStartAndEndDates($oDateCopy, $operationInterval);
         // Do the start dates match?
-        if ($oDate->equals($aDates['start'])) {
-            return true;
-        }
-        return false;
+        return $oDate->equals($aDates['start']);
     }
 
     /**
@@ -353,22 +342,17 @@ class OX_OperationInterval
      * @return bool Returns true if the date is an operation interval end date,
      *              false otherwise.
      */
-    function checkDateIsEndDate($oDate, $operationInterval = null)
+    public static function checkDateIsEndDate($oDate, $operationInterval = null)
     {
         // Set the operation interval length, if required
-        if (is_null($operationInterval)) {
-            $operationInterval = OX_OperationInterval::getOperationInterval();
-        }
+        $operationInterval ??= OX_OperationInterval::getOperationInterval();
         // Get the start/end dates for the operation interval the supplied
         // date is in
         $oDateCopy = new Date();
         $oDateCopy->copy($oDate);
         $aDates = OX_OperationInterval::convertDateToOperationIntervalStartAndEndDates($oDateCopy, $operationInterval);
         // Do the start dates match?
-        if ($oDate->equals($aDates['end'])) {
-            return true;
-        }
-        return false;
+        return $oDate->equals($aDates['end']);
     }
 
     /**
@@ -379,7 +363,7 @@ class OX_OperationInterval
      * @param Date $end The end date to check.
      * @return boolean Returns true if the dates are in the same hour, false otherwise.
      */
-    function checkDatesInSameHour($start, $end)
+    public static function checkDatesInSameHour($start, $end)
     {
         if ($start->getYear() != $end->getYear()) {
             return false;
@@ -390,10 +374,7 @@ class OX_OperationInterval
         if ($start->getDay() != $end->getDay()) {
             return false;
         }
-        if ($start->getHour() != $end->getHour()) {
-            return false;
-        }
-        return true;
+        return $start->getHour() == $end->getHour();
     }
 
     /**
@@ -408,7 +389,7 @@ class OX_OperationInterval
      * @return bool Returns true if the dates are correct interval
      *              start/end dates, false otherwise.
      */
-    function checkIntervalDates($oStart, $oEnd, $operationInterval = 0)
+    public static function checkIntervalDates($oStart, $oEnd, $operationInterval = 0)
     {
         if ($operationInterval < 1) {
             $operationInterval = OX_OperationInterval::getOperationInterval();
@@ -453,14 +434,15 @@ class OX_OperationInterval
         return true;
     }
 
-     /**
-     * A method to return the operation interval value set in global ini file.
-     *
-     * @static
-     * @return integer The value of the operation interval value from the
-     *                 global ini file.
-     */
-    function getOperationInterval() {
+    /**
+    * A method to return the operation interval value set in global ini file.
+    *
+    * @static
+    * @return integer The value of the operation interval value from the
+    *                 global ini file.
+    */
+    public static function getOperationInterval()
+    {
         return $GLOBALS['_MAX']['CONF']['maintenance']['operationInterval'];
     }
 
@@ -470,7 +452,7 @@ class OX_OperationInterval
      * @static
      * @return integer The number of seconds per operation interval.
      */
-    function secondsPerOperationInterval()
+    public static function secondsPerOperationInterval()
     {
         return (60 * OX_OperationInterval::getOperationInterval());
     }
@@ -482,7 +464,7 @@ class OX_OperationInterval
      * @static
      * @return integer The number of operation intervals per day.
      */
-    function operationIntervalsPerDay()
+    public static function operationIntervalsPerDay()
     {
         return (SECONDS_PER_DAY / OX_OperationInterval::secondsPerOperationInterval());
     }
@@ -494,7 +476,7 @@ class OX_OperationInterval
      * @static
      * @return integer The number of operation intervals per week.
      */
-    function operationIntervalsPerWeek()
+    public static function operationIntervalsPerWeek()
     {
         return (7 * OX_OperationInterval::operationIntervalsPerDay());
     }
@@ -508,7 +490,7 @@ class OX_OperationInterval
      * @param object $oEndDate PEAR::Date object
      * @return integer number of operation intervals remaining
      */
-    function getIntervalsRemaining($oStartDate, $oEndDate)
+    public static function getIntervalsRemaining($oStartDate, $oEndDate)
     {
         $operationIntervalSeconds = (OX_OperationInterval::getOperationInterval() * 60);
 
@@ -519,14 +501,24 @@ class OX_OperationInterval
         $oEndCopy->toUTC();
 
         // Get timestamp of start date/time - in seconds
-        $startDateSeconds = mktime($oStartCopy->getHour(), $oStartCopy->getMinute(),
-            $oStartCopy->getSecond(), $oStartCopy->getMonth(),
-            $oStartCopy->getDay(), $oStartCopy->getYear());
+        $startDateSeconds = mktime(
+            $oStartCopy->getHour(),
+            $oStartCopy->getMinute(),
+            $oStartCopy->getSecond(),
+            $oStartCopy->getMonth(),
+            $oStartCopy->getDay(),
+            $oStartCopy->getYear(),
+        );
 
         // Get timestamp of end date/time - in seconds
-        $endDateSeconds = mktime($oEndCopy->getHour(), $oEndCopy->getMinute(),
-            $oEndCopy->getSecond(), $oEndCopy->getMonth(),
-            $oEndCopy->getDay(), $oEndCopy->getYear());
+        $endDateSeconds = mktime(
+            $oEndCopy->getHour(),
+            $oEndCopy->getMinute(),
+            $oEndCopy->getSecond(),
+            $oEndCopy->getMonth(),
+            $oEndCopy->getDay(),
+            $oEndCopy->getYear(),
+        );
 
         // calculate interval length in seconds
         $interval = $endDateSeconds - $startDateSeconds;
@@ -534,7 +526,4 @@ class OX_OperationInterval
         // find number of operation intervals during interval
         return ($interval <= 0) ? 0 : round($interval / $operationIntervalSeconds);
     }
-
 }
-
-?>

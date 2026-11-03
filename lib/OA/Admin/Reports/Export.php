@@ -12,7 +12,7 @@
 
 // Include required files
 require_once MAX_PATH . '/lib/OA/Admin/ExcelWriter.php';
-require_once LIB_PATH . '/Extension/reports/ReportsScope.php';
+require_once LIB_PATH . '/Extension/reports/ReportTrait.php';
 require_once MAX_PATH . '/lib/OA/Admin/Menu.php';
 
 /**
@@ -21,15 +21,16 @@ require_once MAX_PATH . '/lib/OA/Admin/Menu.php';
  * @package    OpenXAdmin
  * @subpackage Reports
  */
-class OA_Admin_Reports_Export extends Plugins_ReportsScope
+class OA_Admin_Reports_Export
 {
+    use ReportTrait;
 
     /**
      * The stats controller with stats ready to export.
      *
      * @var OA_Admin_Statistics_Common
      */
-    var $oStatsController;
+    public $oStatsController;
 
     /**
      * The constructor method. Stores the stats controller with the
@@ -38,19 +39,18 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
      * @param OA_Admin_Statistics_Common $oStatsController
      * @return OA_Admin_Reports_Export
      */
-    function __construct($oStatsController)
+    public function __construct($oStatsController)
     {
         $this->oStatsController = $oStatsController;
         // Set the Excel Report writer
-        $oWriter = new OA_Admin_ExcelWriter();
-        $this->useReportWriter($oWriter);
+        $this->useReportWriter(new OA_Admin_ExcelWriter());
     }
 
     /**
      * The method to generate a plugin-style report XLS from an already
      * prepared statistics page OA_Admin_Statistics_Common object.
      */
-    function export()
+    public function export()
     {
         // Prepare the report name
         // Get system navigation
@@ -58,7 +58,7 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
         // Get section by pageId
         $oCurrentSection = $oMenu->get($this->oStatsController->pageId);
         if ($oCurrentSection == null) {
-            phpAds_Die($GLOBALS['strErrorOccurred'], 'Menu system error: <strong>' . OA_Permission::getAccountType(true) . '::' . htmlspecialchars($ID) . '</strong> not found for the current user');
+            phpAds_Die($GLOBALS['strErrorOccurred'], 'Menu system error: <strong>' . OA_Permission::getAccountType(true) . '::' . htmlspecialchars($this->oStatsController->pageId) . '</strong> not found for the current user');
         }
         // Get name
         $reportName = $oCurrentSection->getName();
@@ -78,7 +78,7 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
         $this->_oReportWriter->openWithFilename($reportFileName);
         // Get the header and data arrays from the same statistics controllers
         // that prepare stats for the user interface stats pages
-        list($aHeaders, $aData) = $this->getHeadersAndDataFromStatsController(null, $this->oStatsController);
+        [$aHeaders, $aData] = $this->getHeadersAndDataFromStatsController(null, $this->oStatsController);
         // Add the worksheet
         $name = ucfirst($this->oStatsController->entity) . ' ' . ucfirst($this->oStatsController->breakdown);
         $this->createSubReport($reportName, $aHeaders, $aData);
@@ -93,10 +93,10 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
      * @access private
      * @return array The array of index/value sub-headings.
      */
-    function _getReportParametersForDisplay()
+    public function _getReportParametersForDisplay()
     {
         global $strClient, $strCampaign, $strBanner, $strAffiliate, $strZone;
-        $aParams = array();
+        $aParams = [];
         // Deal with the possible entity types
         foreach ($this->oStatsController->aPageParams as $key => $value) {
             unset($string);
@@ -110,7 +110,7 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
                     $aAdvertiser = $doClients->toArray();
                     $name = $aAdvertiser['clientname'];
                 }
-            } else if ($key == 'campaignid') {
+            } elseif ($key == 'campaignid') {
                 $string = $strCampaign;
                 $doCampaigns = OA_Dal::factoryDO('campaigns');
                 $doCampaigns->campaignid = $value;
@@ -119,7 +119,7 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
                     $aCampaign = $doCampaigns->toArray();
                     $name = $aCampaign['campaignname'];
                 }
-            } else if ($key == 'bannerid') {
+            } elseif ($key == 'bannerid') {
                 $string = $strBanner;
                 $doBanners = OA_Dal::factoryDO('banners');
                 $doBanners->bannerid = $value;
@@ -128,7 +128,7 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
                     $aBanner = $doBanners->toArray();
                     $name = $aBanner['description'];
                 }
-            } else if ($key == 'affiliateid') {
+            } elseif ($key == 'affiliateid') {
                 $string = $strAffiliate;
                 $doAffiliates = OA_Dal::factoryDO('affiliates');
                 $doAffiliates->affiliateid = $value;
@@ -137,7 +137,7 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
                     $aPublisher = $doAffiliates->toArray();
                     $name = $aPublisher['name'];
                 }
-            } else if ($key == 'zoneid') {
+            } elseif ($key == 'zoneid') {
                 $string = $strZone;
                 $doZones = OA_Dal::factoryDO('zones');
                 $doZones->zoneid = $value;
@@ -160,7 +160,4 @@ class OA_Admin_Reports_Export extends Plugins_ReportsScope
         }
         return $aParams;
     }
-
 }
-
-?>

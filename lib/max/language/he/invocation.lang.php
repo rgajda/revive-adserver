@@ -30,14 +30,10 @@ $GLOBALS['strInvocationTemplate'] = "שמור את הבאנר בתוך משתנ�
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "רענן אחרי";
-$GLOBALS['strIframeResizeToBanner'] = "התאם גודל מסגרת למידות הבאנר";
 $GLOBALS['strIframeMakeTransparent'] = "רקע מסגרת שקוף";
-$GLOBALS['strIframeIncludeNetscape4'] = "בכל קוד התאמה עבור שכבת ilayer של Netscape 4 ";
 
 // PopUp
 $GLOBALS['strPopUpStyle'] = "סוג קופץ";
-$GLOBALS['strPopUpStylePopUp'] = "קופץ מעל";
-$GLOBALS['strPopUpStylePopUnder'] = "קופץ מתחת";
 $GLOBALS['strPopUpCreateInstance'] = "האירוע שבו יקפוץ החלון";
 $GLOBALS['strPopUpImmediately'] = "מיידית";
 $GLOBALS['strPopUpOnClose'] = "כאשר העמוד נסגר";
@@ -49,19 +45,11 @@ $GLOBALS['strWindowOptions'] = "אופציות חלון";
 $GLOBALS['strShowToolbars'] = "כלים";
 $GLOBALS['strShowLocation'] = "מיקום";
 $GLOBALS['strShowMenubar'] = "תפריט";
-$GLOBALS['strShowStatus'] = "סטטוס";
+$GLOBALS['strShowStatus'] = "Status";
 $GLOBALS['strWindowResizable'] = "שינוי גודל";
 $GLOBALS['strShowScrollbars'] = "גוללים";
-
-// XML-RPC
-$GLOBALS['strXmlRpcLanguage'] = "שפת אירוח";
-
-// Support for 3rd party server clicktracking
 
 // Support for cachebusting code
 
 // IMG invocation selected for tracker with appended code
 $GLOBALS['strWarning'] = "אזהרה";
-
-// Local Invocation
-

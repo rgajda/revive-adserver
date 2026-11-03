@@ -12,7 +12,7 @@
 
 $file = '/lib/max/Delivery/remotehost.php';
 ###START_STRIP_DELIVERY
-if(isset($GLOBALS['_MAX']['FILES'][$file])) {
+if (isset($GLOBALS['_MAX']['FILES'][$file])) {
     return;
 }
 ###END_STRIP_DELIVERY
@@ -36,6 +36,7 @@ function MAX_remotehostSetInfo($run = false)
 {
     if (empty($GLOBALS['_OA']['invocationType']) || $run || ($GLOBALS['_OA']['invocationType'] != 'xmlrpc')) {
         MAX_remotehostProxyLookup();
+        MAX_remotehostAnonymise();
         MAX_remotehostReverseLookup();
         //MAX_remotehostSetClientInfo();  // now moved into plugin
         MAX_remotehostSetGeoInfo();
@@ -61,13 +62,13 @@ function MAX_remotehostProxyLookup()
         if (!empty($_SERVER['HTTP_VIA']) || !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $proxy = true;
         } elseif (!empty($_SERVER['REMOTE_HOST'])) {
-            $aProxyHosts = array(
+            $aProxyHosts = [
                 'proxy',
                 'cache',
-                'inktomi'
-            );
+                'inktomi',
+            ];
             foreach ($aProxyHosts as $proxyName) {
-                if (strpos($_SERVER['REMOTE_HOST'], $proxyName) !== false) {
+                if (str_contains($_SERVER['REMOTE_HOST'], $proxyName)) {
                     $proxy = true;
                     break;
                 }
@@ -77,41 +78,59 @@ function MAX_remotehostProxyLookup()
         if ($proxy) {
             OX_Delivery_logMessage('proxy detected', 7);
 
-            // Try to find the "real" IP address the viewer has come from
-            $aHeaders = array(
-                'HTTP_FORWARDED',
-                'HTTP_FORWARDED_FOR',
-                'HTTP_X_FORWARDED',
-                'HTTP_X_FORWARDED_FOR',
-                'HTTP_CLIENT_IP'
-            );
-            foreach ($aHeaders as $header) {
-                if (!empty($_SERVER[$header])) {
-                    $ip = $_SERVER[$header];
-                    break;
-                }
-            }
-            if (!empty($ip)) {
-                // The "remote IP" may be a list, ensure that
-                // only the FIRST non-private value is used in that case
-                // See http://en.wikipedia.org/wiki/X-Forwarded-For#Format
-                foreach (explode(',', $ip) as $ip) {
-                    $ip = trim($ip);
-                    // If the found address is not unknown or a private network address
-                    if (($ip != 'unknown') && (!MAX_remotehostPrivateAddress($ip))) {
-                        // Set the "real" remote IP address, and unset
-                        // the remote host (as it will be wrong for the
-                        // newly found IP address) and HTTP_VIA header
-                        // (so that we don't accidently do this twice)
-                        $_SERVER['REMOTE_ADDR'] = $ip;
-                        $_SERVER['REMOTE_HOST'] = '';
-                        $_SERVER['HTTP_VIA']    = '';
-                        OX_Delivery_logMessage('real address set to '.$ip, 7);
-                        break;
-                    }
-                }
-            }
+            MAX_remotehostSetRealIpAddress();
         }
+    }
+}
+
+function MAX_remotehostSetRealIpAddress(): void
+{
+    // Try to find the "real" IP address the viewer has come from
+    $aHeaders = [
+        'HTTP_FORWARDED',
+        'HTTP_FORWARDED_FOR',
+        'HTTP_X_FORWARDED',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_CLIENT_IP',
+    ];
+
+    foreach ($aHeaders as $header) {
+        if (!empty($_SERVER[$header])) {
+            $ip = $_SERVER[$header];
+            break;
+        }
+    }
+
+    if (empty($ip)) {
+        return;
+    }
+
+    // The "remote IP" may be a list, ensure that
+    // only the FIRST non-private value is used in that case
+    // See http://en.wikipedia.org/wiki/X-Forwarded-For#Format
+    foreach (explode(',', $ip) as $ip) {
+        // Allow IPv4, stripping port number, if any
+        if (!preg_match('#^(\d+\.\d+\.\d+\.\d+)(?::\d+)?$#D', trim($ip), $m)) {
+            continue;
+        }
+
+        $ip = $m[1];
+
+        // If the found address is not unknown or a private network address
+        if (MAX_remotehostPrivateAddress($ip)) {
+            continue;
+        }
+
+        // Set the "real" remote IP address, and unset
+        // the remote host (as it will be wrong for the
+        // newly found IP address) and HTTP_VIA header
+        // (so that we don't accidently do this twice)
+        $_SERVER['REMOTE_ADDR'] = $ip;
+        $_SERVER['REMOTE_HOST'] = '';
+        $_SERVER['HTTP_VIA'] = '';
+        OX_Delivery_logMessage('real address set to ' . $ip, 7);
+
+        return;
     }
 }
 
@@ -151,12 +170,22 @@ function MAX_remotehostSetGeoInfo()
         require_once MAX_PATH . '/init-delivery-parse.php';
     }
     $aConf = $GLOBALS['_MAX']['CONF'];
-    $type = (!empty($aConf['geotargeting']['type'])) ? $aConf['geotargeting']['type'] : null;
+    $type = (empty($aConf['geotargeting']['type'])) ? null : $aConf['geotargeting']['type'];
     if (!is_null($type) && $type != 'none') {
         $aComponent = explode(':', $aConf['geotargeting']['type']);
         if (!empty($aComponent[1]) && (!empty($aConf['pluginGroupComponents'][$aComponent[1]]))) {
-            $GLOBALS['_MAX']['CLIENT_GEO'] = OX_Delivery_Common_hook('getGeoInfo', array(), $type);
+            $GLOBALS['_MAX']['CLIENT_GEO'] = OX_Delivery_Common_hook('getGeoInfo', [], $type);
         }
+    }
+}
+
+/**
+ * A function to anonymise the IP address if required, by zeroing its last byte.
+ */
+function MAX_remotehostAnonymise()
+{
+    if (!empty($GLOBALS['_MAX']['CONF']['privacy']['anonymiseIp'])) {
+        $_SERVER['REMOTE_ADDR'] = preg_replace('/\d+$/', '0', $_SERVER['REMOTE_ADDR']);
     }
 }
 
@@ -170,41 +199,44 @@ function MAX_remotehostSetGeoInfo()
  */
 function MAX_remotehostPrivateAddress($ip)
 {
-	$ip = ip2long($ip);
+    $ip = ip2long($ip);
 
-	if (!$ip) return false;
+    if (!$ip) {
+        return false;
+    }
 
-	return (MAX_remotehostMatchSubnet($ip, '10.0.0.0', 8) ||
-		MAX_remotehostMatchSubnet($ip, '172.16.0.0', 12) ||
-		MAX_remotehostMatchSubnet($ip, '192.168.0.0', 16) ||
-		MAX_remotehostMatchSubnet($ip, '127.0.0.0', 8)
+    return (MAX_remotehostMatchSubnet($ip, '10.0.0.0', 8) ||
+        MAX_remotehostMatchSubnet($ip, '172.16.0.0', 12) ||
+        MAX_remotehostMatchSubnet($ip, '192.168.0.0', 16) ||
+        MAX_remotehostMatchSubnet($ip, '127.0.0.0', 8)
     );
 }
 
 function MAX_remotehostMatchSubnet($ip, $net, $mask)
 {
-	$net = ip2long($net);
+    $net = ip2long($net);
 
-	if (!is_integer($ip)) {
+    if (!is_int($ip)) {
         $ip = ip2long($ip);
     }
 
-	if (!$ip || !$net) {
-		return false;
+    if (!$ip || !$net) {
+        return false;
     }
 
-	if (is_integer($mask)) {
-		// Netmask notation x.x.x.x/y used
-
-		if ($mask > 32 || $mask <= 0)
-			return false;
-		elseif ($mask == 32)
-			$mask = ~0;
-		else
-			$mask = ~((1 << (32 - $mask)) - 1);
-	} elseif (!($mask = ip2long($mask))) {
-		return false;
+    if (is_int($mask)) {
+        // Netmask notation x.x.x.x/y used
+        if ($mask > 32 || $mask <= 0) {
+            return false;
+        }
+        if ($mask == 32) {
+            $mask = ~0;
+        } else {
+            $mask = ~((1 << (32 - $mask)) - 1);
+        }
+    } elseif (!($mask = ip2long($mask))) {
+        return false;
     }
 
-	return ($ip & $mask) == ($net & $mask) ? true : false;
+    return ($ip & $mask) == ($net & $mask);
 }

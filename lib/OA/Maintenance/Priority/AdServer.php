@@ -24,21 +24,17 @@ require_once MAX_PATH . '/lib/OA/Task/Runner.php';
  */
 class OA_Maintenance_Priority_AdServer
 {
-
     /**
      * The local instance of the task runner
      *
      * @var OA_Task_Runner
      */
-    var $oTaskRunner;
+    public $oTaskRunner;
 
     /** @var array array of addMaintenancePriorityTask components. */
     private $aComponents;
 
-    /**
-     * The constructor method.
-     */
-    function __construct()
+    public function __construct()
     {
         $this->aComponents = OX_Component::getListOfRegisteredComponentsForHook('addMaintenancePriorityTask');
 
@@ -86,7 +82,7 @@ class OA_Maintenance_Priority_AdServer
      *
      * @return boolean True if the MPE ran correctly, false otherwise.
      */
-    function updatePriorities()
+    public function updatePriorities()
     {
         // Run the required tasks
         // TODO: OA_Task::run should really return a boolean we could check here.
@@ -101,7 +97,4 @@ class OA_Maintenance_Priority_AdServer
             }
         }
     }
-
 }
-
-?>

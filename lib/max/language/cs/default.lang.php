@@ -120,6 +120,8 @@ $GLOBALS['strOverrideAds'] = "Přepsat reklamní kampaň";
 $GLOBALS['strHighAds'] = "Smlouva reklamní kampaně";
 $GLOBALS['strECPMAds'] = "eCPM reklamní kampaň";
 $GLOBALS['strLowAds'] = "Reklamy s nízkou prioritou";
+$GLOBALS['strLimitations'] = "Pravidla pro doručení";
+$GLOBALS['strNoLimitations'] = "Žádná pravidla pro doručení";
 $GLOBALS['strCapping'] = "Omezení";
 
 // Properties
@@ -150,15 +152,17 @@ $GLOBALS['strNewUserWillBeCreated'] = "Bude vytvořen nový uživatel";
 $GLOBALS['strToLinkProvideEmail'] = "Chcete-li přidat uživatele, zadejte jeho e-mail";
 $GLOBALS['strToLinkProvideUsername'] = "Chcete-li přidat uživatele, zadejte jeho uživatelské jméno";
 $GLOBALS['strUserLinkedToAccount'] = "Uživatel byl přidán k účtu";
+$GLOBALS['strUserLinkedAndWelcomeSent'] = "Uživatel byl přidán k účtu. Obdrží e-mail pro nastavení svého hesla.";
 $GLOBALS['strUserAccountUpdated'] = "Uživatelský účet aktualizován";
-$GLOBALS['strUserUnlinkedFromAccount'] = "Uživatel byl odebrán z účtu";
+$GLOBALS['strUserUnlinkedFromAccount'] = "Uživatel byl odstraněn z účtu";
 $GLOBALS['strUserWasDeleted'] = "Uživatel byl odstraněn";
 $GLOBALS['strUserNotLinkedWithAccount'] = "Takový uživatel není propojen s účtem";
-$GLOBALS['strCantDeleteOneAdminUser'] = "Nelze odstranit uživatele. Alespoň jeden uživatel musí být propojeny s účtem správce.";
+$GLOBALS['strCantDeleteOneAdminUser'] = "Nemůžete smazat tohoto uživatele. Alespoň jeden uživatel musí být propojen s administračním účtem.";
 $GLOBALS['strLinkUserHelp'] = "Chcete-li přidat <b>existující uživatele</b>, zadejte %1\$s a klepněte na tlačítko %2\$s < br / > přidat <b>nového uživatele</b>, zadejte požadovanou %1\$s a klepněte na %2\$s";
 $GLOBALS['strLinkUserHelpUser'] = "Jméno";
 $GLOBALS['strLinkUserHelpEmail'] = "e-mailová adresa";
 $GLOBALS['strLastLoggedIn'] = "Poslední přihlášení";
+$GLOBALS['strDateLinked'] = "Datum propojení";
 
 // Login & Permissions
 $GLOBALS['strUserAccess'] = "Uživatelský přístup";
@@ -169,6 +173,7 @@ $GLOBALS['strAuthentification'] = "Autentifikace";
 $GLOBALS['strWelcomeTo'] = "Vítejte do";
 $GLOBALS['strEnterUsername'] = "Pro přihlásení zadejte vaše uživatelské jméno a heslo";
 $GLOBALS['strEnterBoth'] = "Prosím zadejte vaše jméno i heslo";
+$GLOBALS['strEnableCookies'] = "Je třeba povolit soubory cookie, než budete moci použít {$PRODUCT_NAME}";
 $GLOBALS['strSessionIDNotMatch'] = "Chyba relace cookie, přihlaste se znovu";
 $GLOBALS['strLogin'] = "Přihlásit";
 $GLOBALS['strLogout'] = "Odhlásit";
@@ -178,10 +183,8 @@ $GLOBALS['strPasswordRepeat'] = "Zopakujte heslo";
 $GLOBALS['strAccessDenied'] = "Přístup odepřen";
 $GLOBALS['strUsernameOrPasswordWrong'] = "Uživatelské jméno nebo heslo nejsou správné. Opakujte akci.";
 $GLOBALS['strPasswordWrong'] = "Toto není správné heslo";
-$GLOBALS['strNotAdmin'] = "Zřejmě nemáte dostatečné oprávnění";
 $GLOBALS['strDuplicateClientName'] = "Zadané uživatelské jméno již existuje. Prosím zadejte jiné jméno.";
 $GLOBALS['strInvalidPassword'] = "Zadané heslo je špatné. Prosím zadejte jiné heslo.";
-$GLOBALS['strInvalidEmail'] = "E-mail nemá správný formát, prosím vložte správnou e-mailovou adresu.";
 $GLOBALS['strNotSamePasswords'] = "Dvě hesla která jste zadal nejsou stejná.";
 $GLOBALS['strRepeatPassword'] = "Zopakujte heslo";
 $GLOBALS['strDeadLink'] = "Váš odkaz je neplatný.";
@@ -233,7 +236,7 @@ $GLOBALS['strDayOfWeek'] = "Den v týdnu";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
 $GLOBALS['strDayFullNames'][0] = 'Neděle';
 $GLOBALS['strDayFullNames'][1] = 'Pondělí';
@@ -244,7 +247,7 @@ $GLOBALS['strDayFullNames'][5] = 'Pátek';
 $GLOBALS['strDayFullNames'][6] = 'Sobota';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
 $GLOBALS['strDayShortCuts'][0] = 'Ne';
 $GLOBALS['strDayShortCuts'][1] = 'Po';
@@ -265,6 +268,7 @@ $GLOBALS['strClients'] = "Inzerenti";
 $GLOBALS['strClientsAndCampaigns'] = "Inzerenti & Kampaně";
 $GLOBALS['strAddClient'] = "Přidat inzerenta";
 $GLOBALS['strClientProperties'] = "Nastavení inzerenta";
+$GLOBALS['strClientHistory'] = "Statistiky inzerenta";
 $GLOBALS['strNoClients'] = "Zatím nejsou definováni žádní inzerenti. Pro vytvoření kampaně, nejprve <a href='advertiser-edit.php'>přidejte nového inzerenta</a>.";
 $GLOBALS['strConfirmDeleteClient'] = "Opravdu chcete smazat tohoto inzerenta?";
 $GLOBALS['strConfirmDeleteClients'] = "Opravdu chcete smazat tohoto inzerenta?";
@@ -283,9 +287,10 @@ $GLOBALS['strSendDeactivationWarning'] = "Zaslat upozornění při deaktivaci ka
 $GLOBALS['strAllowClientModifyBanner'] = "Povolit uživateli měnit vlastní bannery";
 $GLOBALS['strAllowClientDisableBanner'] = "Povolit uživateli deaktivovat vlastní bannery";
 $GLOBALS['strAllowClientActivateBanner'] = "Povolit uživateli aktivovat vlastní bannery";
-$GLOBALS['strAllowCreateAccounts'] = "Povolit tomuto uživateli vytvářet nové účty";
+$GLOBALS['strAllowCreateAccounts'] = "Povolit tomuto uživateli spravovat uživatele tohoto účtu";
 $GLOBALS['strAdvertiserLimitation'] = "Na webové stránce zobrazit pouze jeden banner od tohoto inzerenta";
 $GLOBALS['strAllowAuditTrailAccess'] = "Povolit tomuto uživateli přístup auditu";
+$GLOBALS['strAllowDeleteItems'] = "Povolit tomuto uživateli mazat existující položky";
 
 // Campaign
 $GLOBALS['strCampaign'] = "Kampaň";
@@ -296,14 +301,20 @@ $GLOBALS['strCampaignForAdvertiser'] = "pro inzerenta";
 $GLOBALS['strLinkedCampaigns'] = "Připojené kampaně";
 $GLOBALS['strCampaignProperties'] = "Nastavení kampaně";
 $GLOBALS['strCampaignOverview'] = "Přehled kampaně";
+$GLOBALS['strCampaignHistory'] = "Statistiky kampaně";
 $GLOBALS['strNoCampaigns'] = "V tuto chvíli nejsou definované žádné kampaně";
 $GLOBALS['strNoCampaignsAddAdvertiser'] = "Momentálně zde nejsou žádné kampaně definované, protože zde nejsou žádní inzerenti. Chcete-li vytvořit kampaň, musíte nejdříve <a href='advertiser-edit.php'>přidat nového inzerenta </a>.";
 $GLOBALS['strConfirmDeleteCampaign'] = "Opravdu chcete smazat tuto kampaň?";
 $GLOBALS['strConfirmDeleteCampaigns'] = "Opravdu chcete smazat tuto kampaň?";
+$GLOBALS['strShowParentAdvertisers'] = "Zobrazit nadřazené inzerenty";
+$GLOBALS['strHideParentAdvertisers'] = "Skrýt nadřazené inzerenty";
 $GLOBALS['strHideInactiveCampaigns'] = "Skrýt neaktivní kampaně";
 $GLOBALS['strInactiveCampaignsHidden'] = "neaktivních kampaní skryto";
 $GLOBALS['strPriorityInformation'] = "Informace o prioritě";
+$GLOBALS['strECPMInformation'] = "Priorizace eCPM";
+$GLOBALS['strRemnantEcpmDescription'] = "eCPM je automaticky vypočítáván na základě výkonu této kampaně.<br />Bude použit pro upřednostňování Remnant kampaní mezi sebou.";
 $GLOBALS['strHiddenCampaign'] = "Kampaň";
+$GLOBALS['strHiddenAd'] = "Reklama";
 $GLOBALS['strHiddenAdvertiser'] = "Inzerent";
 $GLOBALS['strHiddenTracker'] = "Sledovač";
 $GLOBALS['strHiddenWebsite'] = "Webová stránka";
@@ -332,9 +343,23 @@ $GLOBALS['strActivationDateComment'] = "Kampaň začne na začatku tohoto dne";
 $GLOBALS['strCampaignWeight'] = "Váha kampaně";
 $GLOBALS['strAnonymous'] = "Skrýt inzerenta a vydavatele této kampaně.";
 $GLOBALS['strTargetPerDay'] = "za den.";
+$GLOBALS['strCampaignWarningRemnantNoWeight'] = "Priorita této kampaně byla nastavena na nízkou,
+ale váha byla nastavena na nulu nebo nebyla
+zadána. Takto bude kampaň okamžitě
+deaktivována a její bannery nebudou doručeny
+dokud její váha nebude nastavena na platné číslo.
+
+Jste si jist že chcete pokračovat?";
+$GLOBALS['strCampaignWarningNoTarget'] = "Priorita této kampaně byla nastavena na vysokou,
+ale cílový počet AdViews nebyl zadán.
+Takto bude kampaň okamžitě deaktivována a
+její bannery nebudou doručeny dokdu nebude
+nastaven platný počet AdViews.
+
+Jste si jist že chcete pokračovat?";
 $GLOBALS['strCampaignStatusPending'] = "Čekající";
 $GLOBALS['strCampaignStatusInactive'] = "aktivní";
-$GLOBALS['strCampaignStatusRunning'] = "Spuštěné";
+$GLOBALS['strCampaignStatusRunning'] = "Probíhající";
 $GLOBALS['strCampaignStatusPaused'] = "Pozastaveno";
 $GLOBALS['strCampaignStatusAwaiting'] = "Čekající";
 $GLOBALS['strCampaignStatusExpired'] = "Kompletní";
@@ -440,17 +465,9 @@ $GLOBALS['strStatusText'] = "Stavový text";
 $GLOBALS['strBannerWeight'] = "Váha banneru";
 $GLOBALS['strAdserverTypeGeneric'] = "Generický HTML Banner";
 $GLOBALS['strDoNotAlterHtml'] = "Neměňte HTML";
-$GLOBALS['strSwfTransparency'] = "Povolit průhledné pozadí";
 $GLOBALS['strBackToBanners'] = "Zpět na bannery";
 
 // Banner (advanced)
-
-// Banner (swf)
-$GLOBALS['strCheckSWF'] = "Převést pevné odkazy uvnitř Flash souboru";
-$GLOBALS['strConvertSWFLinks'] = "Převést Flash odkazy";
-$GLOBALS['strHardcodedLinks'] = "Pevné odkazy";
-$GLOBALS['strCompressSWF'] = "Komprimovat SWF soubor pro rychlejší stahování (vyžaduje přehrávač Flash 6)";
-$GLOBALS['strOverwriteSource'] = "Přepsat zdrojový parametr";
 
 // Display Delviery Rules
 $GLOBALS['strModifyBannerAcl'] = "Nastavení doručování";
@@ -481,16 +498,16 @@ $GLOBALS['strDeliveryCappingTotal'] = "celkem";
 $GLOBALS['strDeliveryCappingSession'] = "za relaci";
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 $GLOBALS['strCappingCampaign']['limit'] = "Omezit zobrazení kampaně na:";
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 $GLOBALS['strCappingZone']['limit'] = "Omezit zobrazení zóny na:";
 
@@ -672,14 +689,22 @@ $GLOBALS['strBackToTheList'] = "Přejít zpět na výpis reportů";
 $GLOBALS['strCharset'] = "Znaková sada";
 $GLOBALS['strAutoDetect'] = "Automatický výběr";
 
-
 // Errors
 $GLOBALS['strNoMatchesFound'] = "Žedné odpovídající záznamy nebyly nalezeny";
 $GLOBALS['strErrorOccurred'] = "Nastala chyba";
 $GLOBALS['strErrorDBPlain'] = "Nastala chyba při přístupu do databáze";
 $GLOBALS['strErrorDBSerious'] = "Byl zjištěn závažný problém při přístupu do databáze";
+$GLOBALS['strErrorDBNoDataPlain'] = "Vzhledem k promlémům s databází, {$PRODUCT_NAME} nemůže načíst ani ukládat data.";
+$GLOBALS['strErrorDBNoDataSerious'] = "Vzhledem k závažným promlémům s databází, {$PRODUCT_NAME} nemůže načíst data";
 $GLOBALS['strErrorDBCorrupt'] = "Databázová tabulka je pravděpodobně poškozena a potřebuje opravit. Pro více informací o opravování poškozených tabulek prosím čtěte kapitolu <i>Troubleshooting</i> v příručce <i>Administrator guide</i>.";
 $GLOBALS['strErrorDBContact'] = "Prosím kontaktujte správce tohoto serveru a oznamte jemu nebo jí tento problém.";
+$GLOBALS['strErrorDBSubmitBug'] = "Pokud je tento problém reprodukovatelný, může být způsoben chybou v {$PRODUCT_NAME}. Prosím poskytněte následující informace tvůrcům {$PRODUCT_NAME}. Také se pokuste popsat kroky které vedly k této chybě jak nejpřesněji je to jen možné.";
+$GLOBALS['strMaintenanceNotActive'] = "Skript pro správu systému nebyl spuštěn v průběhu posledních 24 hodin.
+Aby mohl {$PRODUCT_NAME} korektně fungovat je nutné aby běžel každou
+hodinu.
+
+Prosím přečtěte si příručku Administrators guide pro informace
+o konfiguraci skriptu pro správu systému.";
 $GLOBALS['strUnableToLinkBanner'] = "Nelze propojit tento banner: ";
 $GLOBALS['strErrorEditingZone'] = "Chyba při aktualizaci zóny:";
 
@@ -687,9 +712,12 @@ $GLOBALS['strErrorEditingZone'] = "Chyba při aktualizaci zóny:";
 
 // Email
 $GLOBALS['strMailSubject'] = "Prehled inzerenta";
+$GLOBALS['strMailHeader'] = "Vazeny {contact},";
 $GLOBALS['strMailBannerStats'] = "Nize najdete statistiky banneru pro {clientname}:";
 $GLOBALS['strMailBannerActivatedSubject'] = "Kampaň aktivována";
 $GLOBALS['strMailBannerDeactivatedSubject'] = "Kampaň {id} aktivována";
+$GLOBALS['strMailFooter'] = "S pozdravem,
+   {adminfullname}";
 $GLOBALS['strClientDeactivated'] = "Tato kampan neni v tuto chvili aktivni z duvodu";
 $GLOBALS['strBeforeActivate'] = "datum aktivace zatim nenastalo";
 $GLOBALS['strAfterExpire'] = "nastalo datum deaktivace";
@@ -737,6 +765,7 @@ $GLOBALS['strCTR_short'] = "CTR";
 $GLOBALS['strGlobalSettings'] = "Základní nastavení";
 $GLOBALS['strGeneralSettings'] = "Obecná nastavení";
 $GLOBALS['strMainSettings'] = "Základní nastavení";
+$GLOBALS['strChooseSection'] = 'Vyberte sekci';
 
 // Product Updates
 $GLOBALS['strProductUpdates'] = "Aktualizace produktu";
@@ -755,6 +784,7 @@ $GLOBALS['strNoAgencies'] = "Zatím nejsou definované žádné zóny";
 $GLOBALS['strConfirmDeleteAgency'] = "Opravdu chcete smazat tuto zónu?";
 $GLOBALS['strHideInactiveAgencies'] = "Skrýt neaktivní partnery";
 $GLOBALS['strInactiveAgenciesHidden'] = "neaktivních bannerů skryto";
+$GLOBALS['strAgencyStatusInactive'] = "aktivní";
 
 // Channels
 $GLOBALS['strChannelToWebsite'] = "na webové stránky";
@@ -770,11 +800,20 @@ $GLOBALS['strAddVariable'] = "Přidat proměnnou";
 $GLOBALS['strNoVarsToTrack'] = "Žádné proměnné ke sledování.";
 
 // Password recovery
-$GLOBALS['strPwdRecEnterEmail'] = "Zadejte vaši e-mailovou adresu";
 $GLOBALS['strPwdRecEnterPassword'] = "Zadejte své nové heslo";
+
+// Password recovery - Default
+
+
+// Password recovery - Welcome email
+
+// Password recovery - Hash update
+
+// Password reset warning
 
 // Audit
 $GLOBALS['strFor'] = "pro";
+$GLOBALS['strHas'] = "má";
 
 // Widget - Audit
 
@@ -795,6 +834,21 @@ $GLOBALS['strCampaignGoTo'] = "Přejděte na stránku kampaně";
 
 
 // Report error messages
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

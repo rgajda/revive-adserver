@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "繼續》";
 $GLOBALS['strBtnRecover'] = "恢復》";
 $GLOBALS['strBtnAgree'] = "我同意》";
 $GLOBALS['strBtnRetry'] = "重試";
-$GLOBALS['strWarningRegisterArgcArv'] = "如許運行維護腳本，您需要開啟PHP配置變量中的register_argc_argv";
+$GLOBALS['strTablesPrefix'] = "名稱前綴";
 $GLOBALS['strTablesType'] = "表格類型";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "你以前嘗試升級遇到一個錯誤";
@@ -51,10 +51,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "由於安全原因無法編輯所有設定�
 $GLOBALS['strChooseSection'] = "選擇章節";
 $GLOBALS['strUnableToWriteConfig'] = "無法修改配置文件";
 $GLOBALS['strUnableToWritePrefs'] = "無法向數據庫提交屬性更改 ";
-$GLOBALS['strImageDirLockedDetected'] = "<b>圖片文件夾</b>不可寫<br>在修改文件夾權限之前無法修改或創建相關文件夾。";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "配置設置";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "管理員用戶名";
@@ -86,6 +84,8 @@ $GLOBALS['strQmailPatch'] = "qmail的補丁";
 $GLOBALS['strEnableQmailPatch'] = "啟用qmail補丁";
 $GLOBALS['strEmailHeader'] = "電子郵件標題";
 $GLOBALS['strEmailLog'] = "電子郵件日誌";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "審計追蹤設置";
@@ -144,15 +144,8 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "廣告預覽";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "生成遠程調用XML";
 $GLOBALS['strDeliveryFilenamesLocal'] = "生成本地的";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "字體控制器";
-$GLOBALS['strDeliveryFilenamesFlash'] = "包括Flash（可以使用絕對路徑)";
 $GLOBALS['strDeliveryCaching'] = "全局發送緩存設置";
 $GLOBALS['strDeliveryCacheLimit'] = "緩存刷新頻率（秒)";
-$GLOBALS['strDeliveryExecPhp'] = "可在廣告中使用PHP代碼（可能存在安全隱患)";
-$GLOBALS['strDeliveryCtDelimiter'] = "第三方廣告跟蹤分隔符";
-$GLOBALS['strP3PSettings'] = "P3P隱私策略的全局設置";
-$GLOBALS['strUseP3P'] = "使用P3P策略";
-$GLOBALS['strP3PCompactPolicy'] = "P3P壓縮策略";
-$GLOBALS['strP3PPolicyLocation'] = "P3P策略地點";
 
 // General Settings
 $GLOBALS['uiEnabled'] = "啟用用戶界面";

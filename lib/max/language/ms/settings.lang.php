@@ -20,7 +20,6 @@ $GLOBALS['strBtnContinue'] = "Seterusnya »";
 $GLOBALS['strBtnRecover'] = "Pulihkan »";
 $GLOBALS['strBtnAgree'] = "Saya Setuju »";
 $GLOBALS['strBtnRetry'] = "Cuba lagi";
-$GLOBALS['strWarningRegisterArgcArv'] = "Konfigurasi PHP bagi pembolehubah register_argc_argv perlu diubah kepada on untuk membolehkan proses pemulihan dan pemantauan dijalankan dari command line.";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Cubaan pembaharuan anda yang terdahulu tidak berjaya";
 $GLOBALS['strRecoveryRequired'] = "Terdapat kesilapan semasa memproses pembaharuan anda terdahulu dan {$PRODUCT_NAME} mesti mencuba untuk memulihkan proses pembaharuan itu. Sila klik butang Pulih dibawah";
@@ -70,6 +69,8 @@ $GLOBALS['strPersistentConnections'] = "Gunakan hubungan yang kekal";
 $GLOBALS['strCantConnectToDb'] = "Tidak dapat berhubung dengan pengkalan data";
 
 // Email Settings
+
+// Security settings
 
 // Audit Trail Settings
 

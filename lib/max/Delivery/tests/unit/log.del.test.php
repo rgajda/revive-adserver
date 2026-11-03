@@ -21,19 +21,10 @@ require_once MAX_PATH . '/lib/max/Delivery/remotehost.php';
  */
 class Test_DeliveryLog extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * A method to test the _viewersHostOkayToLog() function.
      */
-    function test_viewersHostOkayToLog()
+    public function test_viewersHostOkayToLog()
     {
         // Use a reference to $GLOBALS['_MAX']['CONF'] so that the configuration
         // options can be changed while the test is running
@@ -100,7 +91,7 @@ class Test_DeliveryLog extends UnitTestCase
         $botUserAgent = 'Yahoo! Slurp';
 
         // Nothing in either restriction list, should return true
-        $conf['logging']['ignoreUserAgents']  = '';
+        $conf['logging']['ignoreUserAgents'] = '';
         $conf['logging']['enforceUserAgents'] = '';
 
         // Empty user-agent
@@ -115,7 +106,7 @@ class Test_DeliveryLog extends UnitTestCase
 
         // Enforce valid
         $conf['logging']['enforceUserAgents'] = $browserUserAgent;
-        $conf['logging']['ignoreUserAgents']  = '';
+        $conf['logging']['ignoreUserAgents'] = '';
 
         // Empty user-agent
         $_SERVER['HTTP_USER_AGENT'] = '';
@@ -129,7 +120,7 @@ class Test_DeliveryLog extends UnitTestCase
 
         // Ignore bots
         $conf['logging']['enforceUserAgents'] = '';
-        $conf['logging']['ignoreUserAgents']  = $botUserAgent;
+        $conf['logging']['ignoreUserAgents'] = $botUserAgent;
 
         // Empty user-agent
         $_SERVER['HTTP_USER_AGENT'] = '';
@@ -143,7 +134,7 @@ class Test_DeliveryLog extends UnitTestCase
 
         // Ignore bots
         $conf['logging']['enforceUserAgents'] = $browserUserAgent;
-        $conf['logging']['ignoreUserAgents']  = $botUserAgent;
+        $conf['logging']['ignoreUserAgents'] = $botUserAgent;
 
         // Empty user-agent
         $_SERVER['HTTP_USER_AGENT'] = '';
@@ -157,7 +148,7 @@ class Test_DeliveryLog extends UnitTestCase
 
         // Check that valid and bot conf settings can be | delimited strings
         $conf['logging']['enforceUserAgents'] = 'BlackBerry|HotJava|' . $browserUserAgent . '|iCab';
-        $conf['loggnig']['ignoreUserAgents']  = 'AdsBot-Google|ask+jeeves|' . $botUserAgent . '|YahooSeeker';
+        $conf['loggnig']['ignoreUserAgents'] = 'AdsBot-Google|ask+jeeves|' . $botUserAgent . '|YahooSeeker';
 
         // Empty user-agent
         $_SERVER['HTTP_USER_AGENT'] = '';
@@ -187,7 +178,7 @@ class Test_DeliveryLog extends UnitTestCase
      * Test 4: Test with a "multiple item" request value defined, and ensure an
      *         array of the values is returned.
      */
-    function test_MAX_Delivery_log_getArrGetVariable()
+    public function test_MAX_Delivery_log_getArrGetVariable()
     {
         // Test 1
         $aReturn = MAX_Delivery_log_getArrGetVariable('foo');
@@ -238,7 +229,7 @@ class Test_DeliveryLog extends UnitTestCase
      * Test 3: Test with an array and integer set, and ensure nothing changed.
      * Test 4: Test with an array and string set, and ensure string converted.
      */
-    function test_MAX_Delivery_log_ensureIntegerSet()
+    public function test_MAX_Delivery_log_ensureIntegerSet()
     {
         // Test 1
         $aArray = 'string';
@@ -248,14 +239,14 @@ class Test_DeliveryLog extends UnitTestCase
         $this->assertEqual($aArray[5], 0);
 
         // Test 2
-        $aArray = array();
+        $aArray = [];
         MAX_Delivery_log_ensureIntegerSet($aArray, 5);
         $this->assertTrue(is_array($aArray));
         $this->assertEqual(count($aArray), 1);
         $this->assertEqual($aArray[5], 0);
 
         // Test 3
-        $aArray = array();
+        $aArray = [];
         $aArray[5] = 10;
         MAX_Delivery_log_ensureIntegerSet($aArray, 5);
         $this->assertTrue(is_array($aArray));
@@ -263,7 +254,7 @@ class Test_DeliveryLog extends UnitTestCase
         $this->assertEqual($aArray[5], 10);
 
         // Test 4
-        $aArray = array();
+        $aArray = [];
         $aArray[5] = 'string';
         MAX_Delivery_log_ensureIntegerSet($aArray, 5);
         $this->assertTrue(is_array($aArray));
@@ -289,7 +280,7 @@ class Test_DeliveryLog extends UnitTestCase
      *         clicked with the click block logging window expired, and ensure that
      *         false is returned.
      */
-    function test_MAX_Delivery_log_isClickBlocked()
+    public function test_MAX_Delivery_log_isClickBlocked()
     {
         $timeNow = MAX_commonGetTimeNow();
 
@@ -297,11 +288,11 @@ class Test_DeliveryLog extends UnitTestCase
         $add3ClickTime = MAX_commonCompressInt($timeNow - 30);
         $add9ClickTime = MAX_commonCompressInt($timeNow - 15);
 
-        $aBlockLoggingClick = array(
-                                  1 => $add1ClickTime,
-                                  3 => $add3ClickTime,
-                                  9 => $add9ClickTime
-                              );
+        $aBlockLoggingClick = [
+            1 => $add1ClickTime,
+            3 => $add3ClickTime,
+            9 => $add9ClickTime,
+        ];
 
         // Test 1
         $GLOBALS['conf']['logging']['blockAdClicksWindow'] = 0;
@@ -328,7 +319,4 @@ class Test_DeliveryLog extends UnitTestCase
         $aReturn = MAX_Delivery_log_isClickBlocked(1, $aBlockLoggingClick);
         $this->assertTrue(!$aReturn);
     }
-
 }
-
-?>

@@ -22,55 +22,55 @@ require_once MAX_PATH . '/lib/OA/Dll.php';
  */
 class OA_Maintenance_Priority_Ad
 {
-
     /**
      * The ad's ID.
      *
      * @var integer
      */
-    var $id;
+    public $id;
 
     /**
      * The ad's activity status (active, or not active).
      *
      * @var boolean
      */
-    var $active;
+    public $active;
 
     /**
      * The ad's type (eg. 'sql').
      *
      * @var string
      */
-    var $type;
+    public $type;
 
     /**
      * The ad's weight.
      *
      * @var integer
      */
-    var $weight;
+    public $weight;
 
-    var $requiredImpressions;
-    var $requestedImpressions;
-    var $toBeDelivered;
+    public $requiredImpressions;
+    public $requestedImpressions;
+    public $toBeDelivered;
 
-    var $zones = array();
+    public $zones = [];
 
-    var $pastRequiredImpressions;
-    var $pastRequestedImpressions;
-    var $pastActualImpressions;
-    var $pastAdZonePriorityFactor;
-    var $pastZoneTrafficFraction;
-    var $pastToBeDelivered;
-    var $campaignPriority;
+    public $pastRequiredImpressions;
+    public $pastRequestedImpressions;
+    public $pastActualImpressions;
+    public $pastAdZonePriorityFactor;
+    public $pastZoneTrafficFraction;
+    public $deliveryLimitationChanged;
+    public $pastToBeDelivered;
+    public $campaignPriority;
 
     /**
      * A local instance of the OA_Dal_Maintenance_Priority class.
      *
      * @var OA_Dal_Maintenance_Priority
      */
-    var $oMaxDalMaintenancePriority;
+    public $oMaxDalMaintenancePriority;
 
     /**
      * The class constructor method.
@@ -84,23 +84,23 @@ class OA_Maintenance_Priority_Ad
      *      'type'   -> The ad type (eg. 'sql').
      *      'weight' -> The ad weight.
      */
-	function __construct($aParams)
+    public function __construct($aParams)
     {
         // Test the input values
         $valid = true;
         if (!is_array($aParams)) {
             $valid = false;
         } else {
-            if (!(count($aParams) == 1 || count($aParams) == 4)) {
+            if (count($aParams) != 1 && count($aParams) != 4) {
                 $valid = false;
             }
-            if (is_numeric($aParams['ad_id'])) {
-                $aParams['ad_id'] = (int)$aParams['ad_id'];
+            if (isset($aParams['ad_id']) && is_numeric($aParams['ad_id'])) {
+                $aParams['ad_id'] = (int) $aParams['ad_id'];
             } else {
                 $valid = false;
             }
             if (count($aParams) == 4) {
-                if (!is_bool($aParams['status'])) {
+                if (isset($aParams['status'])) {
                     if ($aParams['status'] == OA_ENTITY_STATUS_RUNNING) {
                         $aParams['active'] = true;
                     } else {
@@ -108,7 +108,7 @@ class OA_Maintenance_Priority_Ad
                     }
                 }
                 if (is_numeric($aParams['weight'])) {
-                    $aParams['weight'] = (int)$aParams['weight'];
+                    $aParams['weight'] = (int) $aParams['weight'];
                 } else {
                     $valid = false;
                 }
@@ -119,15 +119,14 @@ class OA_Maintenance_Priority_Ad
         }
         if (!$valid) {
             $this->_abort();
-            return;
         }
         // Store the required supplied values
-        $this->id     = $aParams['ad_id'];
-        $this->active = isset($aParams['active']) ? $aParams['active'] : null;
-        $this->type   = isset($aParams['type']) ? $aParams['type'] : null;
-        $this->weight = isset($aParams['weight']) ? $aParams['weight'] : null;
+        $this->id = $aParams['ad_id'];
+        $this->active = $aParams['active'] ?? null;
+        $this->type = $aParams['type'] ?? null;
+        $this->weight = $aParams['weight'] ?? null;
         // Set the object's data access layer objects
-        $this->oMaxDalMaintenancePriority = &$this->_getOA_Dal_Maintenance_Priority();
+        $this->oMaxDalMaintenancePriority = $this->_getOA_Dal_Maintenance_Priority();
     }
 
     /**
@@ -136,10 +135,10 @@ class OA_Maintenance_Priority_Ad
      * @access private
      * @return OA_Dal_Maintenance_Priority
      */
-    function &_getOA_Dal_Maintenance_Priority()
+    public function _getOA_Dal_Maintenance_Priority()
     {
-        $oServiceLocator =& OA_ServiceLocator::instance();
-        $oDal =& $oServiceLocator->get('OA_Dal_Maintenance_Priority');
+        $oServiceLocator = OA_ServiceLocator::instance();
+        $oDal = &$oServiceLocator->get('OA_Dal_Maintenance_Priority');
         if (!$oDal) {
             $oDal = new OA_Dal_Maintenance_Priority();
             $oServiceLocator->register('OA_Dal_Maintenance_Priority', $oDal);
@@ -162,24 +161,17 @@ class OA_Maintenance_Priority_Ad
      *                   [executionorder]    => 1
      *               )
      */
-	function getDeliveryLimitations()
-	{
-		return $this->oMaxDalMaintenancePriority->getAllDeliveryLimitationsByTypeId($this->id, 'ad');
-	}
-
-	/**
-     * A private method to abort script execution when an attempt is made
-     * to instantiate the entity with incorrect parameters.
-     *
-     * @access private
-     */
-    function _abort()
+    public function getDeliveryLimitations()
     {
-            $error = 'Unable to instantiate ' . __CLASS__ . ' object, aborting execution.';
-            OA::debug($error, PEAR_LOG_EMERG);
-            exit();
+        return $this->oMaxDalMaintenancePriority->getAllDeliveryLimitationsByTypeId($this->id, 'ad');
     }
 
+    /**
+     * A private method to abort script execution when an attempt is made
+     * to instantiate the entity with incorrect parameters.
+     */
+    protected function _abort(): never
+    {
+        throw new \RuntimeException('Unable to instantiate ' . self::class . ' object, aborting execution.');
+    }
 }
-
-?>

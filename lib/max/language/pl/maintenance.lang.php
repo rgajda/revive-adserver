@@ -60,6 +60,8 @@ $GLOBALS['strMoveToDirectory'] = "Przenieś obrazy przechowywane w bazie danych 
 $GLOBALS['strStorageExplaination'] = "	Pliki graficzne wykorzystywane przez banery lokalne są przechowane w bazie danych lub katalogu. Jeśli przechowujesz je w
 	katalogu zmniejszy to obciążenie bazy danych i poprawi szybkość działania.";
 
+// Security
+
 // Encoding
 $GLOBALS['strEncoding'] = "Kodowanie";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME} przechowuje wszystkie dane w formacie UTF-8.<br />W miarę możliwości dane będą automatycznie konwertowane do tego kodowania.<br />Jeśli po aktualizacji znaki nie będą wyświetlane poprawnie i wiesz, które kodowanie zostało zastosowane, możesz użyć tego narzędzia do przekonwertowania danych z tego formatu do formatu UTF-8";
@@ -111,6 +113,7 @@ $GLOBALS['strAndPlain'] = "i";
 
 //  Deliver Limitations
 $GLOBALS['strErrorsFound'] = "Znaleziono błędy";
+$GLOBALS['strRepairCompiledLimitations'] = "Stwierdzono pewne nieprawidłowości powyżej, można naprawić je, korzystając z przycisku poniżej, aby ponownie skompilować ograniczenia dla każdego banera/kanału systemu<br />";
 $GLOBALS['strRecompile'] = "Przekompiluj";
 
 //  Append codes
@@ -123,3 +126,5 @@ $GLOBALS['strRepairAppenedCodes'] = "Stwierdzono pewne nieprawidłowości powyż
 
 $GLOBALS['strPlugins'] = "Moduły dodatkowe";
 
+
+// Users

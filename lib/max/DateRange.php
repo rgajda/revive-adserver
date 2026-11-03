@@ -17,28 +17,26 @@ class DateRange
 {
     /* The date/time considered to be 'now'
      *  @var Date */
-    var $_now;
+    public $_now;
 
-    /* @var Date */
-    var $_start;
+    /** @var Date */
+    public $_start;
 
-    /* @var Date */
-    var $_end;
+    /** @var Date */
+    public $_end;
 
-    /* @var int */
-    var $_first_day_of_week;
+    /** @var int */
+    public $_first_day_of_week;
 
     /**
      * PHP4-style constructor
      *
      * @param Date now
      */
-    function __construct($now = null)
+    public function __construct($now = null)
     {
-        if (is_null($now)) {
-            // default to the current datetime
-            $now = new Date();
-        }
+        // default to the current datetime
+        $now ??= new Date();
         $this->_now = $now;
         $this->_start = $now;
         $this->_end = $now;
@@ -47,14 +45,14 @@ class DateRange
     /**
      * Factory method to produce a date range loaded with today's date.
      */
-    function newToday($now)
+    public function newToday($now)
     {
         $range = new DateRange($now);
         $range->useToday();
         return $range;
     }
 
-    function useToday()
+    public function useToday()
     {
         $today_start = $this->_midnight($this->_now);
         $today_end = $this->_add24Hours($today_start);
@@ -63,7 +61,7 @@ class DateRange
         $this->_end = $today_end;
     }
 
-    function useYesterday()
+    public function useYesterday()
     {
         $yesterday_end = $this->_midnight($this->_now);
         $yesterday_start = $this->_subtractDays($yesterday_end, 1);
@@ -72,7 +70,7 @@ class DateRange
         $this->_end = $yesterday_end;
     }
 
-    function useThisWeek()
+    public function useThisWeek()
     {
         $start_of_this_week = $this->startOfThisWeek();
         $start_of_next_week = $this->_addDays($start_of_this_week, 7);
@@ -84,7 +82,7 @@ class DateRange
     /**
      * Set the date range to the previous Sunday-Sunday period.
      */
-    function useLastWeek()
+    public function useLastWeek()
     {
         $start_of_this_week = $this->startOfThisWeek();
         $start_of_previous_week = $this->_subtractDays($start_of_this_week, 7);
@@ -96,12 +94,12 @@ class DateRange
     /**
      * Set the date range to be the 7-day period ending yesterday.
      */
-    function useLast7Days()
+    public function useLast7Days()
     {
         $this->useLastDays(7);
     }
 
-    function useLastDays($number_of_days)
+    public function useLastDays($number_of_days)
     {
         $week_end = $this->_midnight($this->_now);
         $week_start = $this->_subtractDays($week_end, $number_of_days);
@@ -113,7 +111,7 @@ class DateRange
     /**
      * Set the date range to be from the first of last month to the last.
      */
-    function useLastMonth()
+    public function useLastMonth()
     {
         $this_month_start = $this->_startOfMonth($this->_now);
         $last_month_start = $this->_startOfPreviousMonth($this_month_start);
@@ -126,7 +124,7 @@ class DateRange
      * Set the date range to be from the first of this month to the last of this month.
      *
      */
-    function useThisMonth()
+    public function useThisMonth()
     {
         $this_month_start = $this->_startOfMonth($this->_now);
         $next_month_sometime = $this->_addDays($this_month_start, 40);
@@ -139,7 +137,7 @@ class DateRange
     /**
      * Set the date range to be from the first of next month to the last of next month.
      */
-    function useNextMonth()
+    public function useNextMonth()
     {
         $this_month_start = $this->_startOfMonth($this->_now);
         $next_month_start = $this->_startOfNextMonth($this_month_start);
@@ -149,7 +147,7 @@ class DateRange
         $this->_end = $following_month_start;
     }
 
-    function useMonthRemainder()
+    public function useMonthRemainder()
     {
         $start_of_today = $this->_midnight($this->_now);
         $end_of_month = $this->_startOfNextMonth($start_of_today);
@@ -158,7 +156,7 @@ class DateRange
         $this->_end = $end_of_month;
     }
 
-    function useTextSpecifier($specifier)
+    public function useTextSpecifier($specifier)
     {
         switch ($specifier) {
             case 'today':
@@ -187,12 +185,12 @@ class DateRange
                 $this->_end = null;
                 break;
             default:
-                trigger_error(PRODUCT_NAME." encountered date range description that it didn't recognise: '$specifier'");
+                trigger_error(PRODUCT_NAME . " encountered date range description that it didn't recognise: '$specifier'");
                 break;
         }
     }
 
-    function _startOfPreviousMonth($this_month_start)
+    public function _startOfPreviousMonth($this_month_start)
     {
         $day = $this_month_start->getDay();
         $last_month_final_day = $this->_subtractDays($this_month_start, $day);
@@ -203,7 +201,7 @@ class DateRange
         return $last_month_start;
     }
 
-    function _startOfNextMonth($current_date)
+    public function _startOfNextMonth($current_date)
     {
         $days_this_month = $current_date->getDaysInMonth();
         $current_day = $current_date->getDay();
@@ -213,7 +211,7 @@ class DateRange
         return $next_month_start;
     }
 
-    function _midnight($date)
+    public function _midnight($date)
     {
         $processed_date = new Date($date);
         $processed_date->setHour(0);
@@ -222,26 +220,26 @@ class DateRange
         return $processed_date;
     }
 
-    function _nextMidnight($date)
+    public function _nextMidnight($date)
     {
         return $this->_add24Hours($this->_midnight($date));
     }
 
-    function _startOfMonth($date)
+    public function _startOfMonth($date)
     {
         $processed_date = $this->_midnight($date);
         $processed_date->setDay(1);
         return $processed_date;
     }
 
-    function _add24Hours($base_date)
+    public function _add24Hours($base_date)
     {
         $modified_date = new Date($base_date);
-        $modified_date->addSeconds(60*60*24);
+        $modified_date->addSeconds(60 * 60 * 24);
         return $modified_date;
     }
 
-    function _subtractDays($base_date, $days)
+    public function _subtractDays($base_date, $days)
     {
         $modified_date = new Date($base_date);
         $span = new Date_Span((string) $days, '%D');
@@ -249,7 +247,7 @@ class DateRange
         return $modified_date;
     }
 
-    function _addDays($base_date, $days)
+    public function _addDays($base_date, $days)
     {
         $modified_date = new Date($base_date);
         $span = new Date_Span((string) $days, '%D');
@@ -262,7 +260,7 @@ class DateRange
      *
      * @return Date A date object representing the start of the range
      */
-    function getStartDate()
+    public function getStartDate()
     {
         return $this->_start;
     }
@@ -272,7 +270,7 @@ class DateRange
      *
      * @return Date A date object representing the end of the range
      */
-    function getEndDate()
+    public function getEndDate()
     {
         return $this->_end;
     }
@@ -282,23 +280,21 @@ class DateRange
      *
      * @todo Extract some of the logic into separate methods
      */
-    function useValuesFromQueryArray($values, $base_key)
+    public function useValuesFromQueryArray($values, $base_key)
     {
         $preset_key = $base_key . '_preset';
         $start_key = $base_key . '_start';
         $end_key = $base_key . '_end';
 
         $preset_string = $values[$preset_key];
-        if (!isset($preset_string)) {
-            $preset_string = 'specific';
-        }
+        $preset_string ??= 'specific';
         $start_string = $values[$start_key];
         $end_string = $values[$end_key];
 
 
         if ($preset_string == 'specific') {
-            if (!($start_string && $end_string)) {
-                trigger_error(PRODUCT_NAME." was asked to generate a date range but wasn't given dates.");
+            if (!$start_string || !$end_string) {
+                trigger_error(PRODUCT_NAME . " was asked to generate a date range but wasn't given dates.");
             }
             $this->setDateRangeByNaturalHumanStrings($start_string, $end_string);
         } else {
@@ -306,7 +302,7 @@ class DateRange
         }
     }
 
-    function setDateRangeByInclusiveDates($start_date, $end_date)
+    public function setDateRangeByInclusiveDates($start_date, $end_date)
     {
         $internal_end_date = $this->_nextMidnight($end_date);
         $this->_start = $start_date;
@@ -316,26 +312,26 @@ class DateRange
     /**
      * Set the start and end dates of this range from string representations of dates.
      */
-    function setDateRangeByNaturalHumanStrings($start_string, $end_string)
+    public function setDateRangeByNaturalHumanStrings($start_string, $end_string)
     {
         $start_date = new Date($start_string);
         $human_end_date = new Date($end_string);
         $this->setDateRangeByInclusiveDates($start_date, $human_end_date);
     }
 
-    function getStartSql()
+    public function getStartSql()
     {
         $sql = $this->_start->format('%Y-%m-%d %H:%M:%S');
         return "'" . $sql . "'";
     }
 
-    function getEndSqlForComparingTimestamps()
+    public function getEndSqlForComparingTimestamps()
     {
         $sql = $this->_end->format('%Y-%m-%d %H:%M:%S');
         return "'" . $sql . "'";
     }
 
-    function getEndSqlForComparingDays()
+    public function getEndSqlForComparingDays()
     {
         $previous_day = $this->getHumanEndDate();
         $sql = $previous_day->format('%Y-%m-%d');
@@ -347,7 +343,7 @@ class DateRange
      *
      * @return string
      */
-    function getStartDateForDisplay()
+    public function getStartDateForDisplay()
     {
         $display = $this->formatDateForDisplay($this->_start);
         return $display;
@@ -362,37 +358,37 @@ class DateRange
      *
      * @return string
      */
-    function getEndDateForDisplay()
+    public function getEndDateForDisplay()
     {
         $previous_day = $this->getHumanEndDate();
         $display = $this->formatDateForDisplay($previous_day);
         return $display;
     }
 
-    function formatDateForDisplay($date)
+    public function formatDateForDisplay($date)
     {
         return $date->format('%d/%m/%Y');
     }
 
-    function formatDateForFilename($date)
+    public function formatDateForFilename($date)
     {
         return $date->format('%Y-%b-%d');
     }
 
-    function getStartDateForFilename()
+    public function getStartDateForFilename()
     {
         $filename = $this->formatDateForFilename($this->_start);
         return $filename;
     }
 
-    function getEndDateForFilename()
+    public function getEndDateForFilename()
     {
         $previous_day = $this->getHumanEndDate();
         $display = $this->formatDateForFilename($previous_day);
         return $display;
     }
 
-    function getHumanEndDate()
+    public function getHumanEndDate()
     {
         return $this->_subtractDays($this->_end, 1);
     }
@@ -402,14 +398,18 @@ class DateRange
      *
      * @return int The number of whole days covered by the range.
      */
-    function countDays()
+    public function countDays()
     {
         $start = $this->getStartDate();
         $end = $this->getEndDate();
 
         $days = Date_Calc::dateDiff(
-            $start->getDay(), $start->getMonth(), $start->getYear(),
-            $end->getDay(), $end->getMonth(), $end->getYear()
+            $start->getDay(),
+            $start->getMonth(),
+            $start->getYear(),
+            $end->getDay(),
+            $end->getMonth(),
+            $end->getYear(),
         );
         return $days;
     }
@@ -422,14 +422,13 @@ class DateRange
      * @param int $weekday_number
      * @parma int $number_representing_sunday
      */
-    function countDayOfWeekOccurances($weekday_number, $number_representing_sunday = 0)
+    public function countDayOfWeekOccurances($weekday_number, $number_representing_sunday = 0)
     {
         $active_day = $this->getStartDate();
         $end = $this->getEndDate();
 
         $occurances = 0;
-        while ($active_day->before($end))
-        {
+        while ($active_day->before($end)) {
             $active_weekday = $active_day->getDayOfWeek();
             $zero_based_weekday = ($number_representing_sunday + $weekday_number) % 7;
             if ($active_weekday == $zero_based_weekday) {
@@ -446,7 +445,7 @@ class DateRange
      * @param DateRange $other_range
      * @return bool True if the other range ends after this one.
      */
-    function endsAfter($other_range)
+    public function endsAfter($other_range)
     {
         $this_end = $this->getEndDate();
         $other_end = $other_range->getEndDate();
@@ -459,7 +458,7 @@ class DateRange
      * @param DateRange $other_range
      * @return bool True if the other range starts before this one.
      */
-    function startsBefore($other_range)
+    public function startsBefore($other_range)
     {
         $this_start = $this->getStartDate();
         $other_start = $other_range->getStartDate();
@@ -473,7 +472,7 @@ class DateRange
      *
      * @return bool True if the range is empty.
      */
-    function endsBeforeStarts()
+    public function endsBeforeStarts()
     {
         return $this->_end->before($this->_start);
     }
@@ -481,7 +480,7 @@ class DateRange
     /**
      * @param int $day_number
      */
-    function setStartOfWeek($day_number)
+    public function setStartOfWeek($day_number)
     {
         $this->_first_day_of_week = $day_number;
     }
@@ -493,7 +492,7 @@ class DateRange
      *
      * @return Date The first second of the current week
      */
-    function startOfThisWeek()
+    public function startOfThisWeek()
     {
         $base_date = $this->_now;
         $days_since_sunday = $base_date->getDayOfWeek();
@@ -503,7 +502,4 @@ class DateRange
 
         return $start_of_week;
     }
-
 }
-
-?>

@@ -22,15 +22,7 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
  */
 class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
 {
-    var $aIds = array();
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
+    public $aIds = [];
 
     /**
      * Method to test the updatePriorities method.
@@ -41,7 +33,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
      * Test 4: Test with an obscene number of items, and ensure that the packet size is
      *         not exceeded (no asserts, test suite will simply fail if unable to work).
      */
-    function testUpdatePriorities()
+    public function testUpdatePriorities()
     {
         /**
          * @TODO Locate where clean up doesn't happen before this test, and fix!
@@ -49,32 +41,32 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         TestEnv::restoreEnv();
 
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
         // Insert the data into the ad_zone_assoc table, as an ad is linked to a zone
         $this->_generateTestData();
 
         // Test 1
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $oServiceLocator->remove('now');
         $aData =
-            array(
-                array(
-                    'ads' => array(
-                        array(
-                            'ad_id'                      => $this->aIds['ad'],
-                            'zone_id'                    => $this->aIds['zone'],
-                            'required_impressions'       => '1000',
-                            'requested_impressions'      => '1000',
-                            'priority'                   => '0.45',
-                            'priority_factor'            => null,
-                            'priority_factor_limited'    => false,
-                            'past_zone_traffic_fraction' => null
-                        )
-                    )
-                )
-            );
+            [
+                [
+                    'ads' => [
+                        [
+                            'ad_id' => $this->aIds['ad'],
+                            'zone_id' => $this->aIds['zone'],
+                            'required_impressions' => '1000',
+                            'requested_impressions' => '1000',
+                            'priority' => '0.45',
+                            'priority_factor' => null,
+                            'priority_factor_limited' => false,
+                            'past_zone_traffic_fraction' => null,
+                        ],
+                    ],
+                ],
+            ];
         $result = $oMaxDalMaintenance->updatePriorities($aData);
         $this->assertFalse($result);
 
@@ -89,7 +81,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
                 zone_id,
                 priority
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['ad_zone_assoc'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['ad_zone_assoc'], true) . "
             WHERE
                 ad_id = {$this->aIds['ad']} AND zone_id = {$this->aIds['zone']}";
         $rc = $oDbh->query($query);
@@ -116,7 +108,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
                 expired,
                 expired_by
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['data_summary_ad_zone_assoc'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['data_summary_ad_zone_assoc'], true) . "
             WHERE
                 ad_id = {$this->aIds['ad']}";
         $rc = $oDbh->query($query);
@@ -142,32 +134,32 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
 
         // Test 3
         $aData =
-            array(
-                array(
-                    'ads' => array(
-                        array(
-                            'ad_id'                      => $this->aIds['ad'],
-                            'zone_id'                    => $this->aIds['zone'],
-                            'required_impressions'       => 2000,
-                            'requested_impressions'      => 2000,
-                            'priority'                   => 0.9,
-                            'priority_factor'            => 0.1,
-                            'priority_factor_limited'    => false,
-                            'past_zone_traffic_fraction' => 0.99
-                        ),
-                        array(
-                            'ad_id'                      => $this->aIds['ad']+1,
-                            'zone_id'                    => $this->aIds['ad']+1,
-                            'required_impressions'       => 500,
-                            'requested_impressions'      => 500,
-                            'priority'                   => 0.1,
-                            'priority_factor'            => 0.2,
-                            'priority_factor_limited'    => true,
-                            'past_zone_traffic_fraction' => 0.45
-                        )
-                    )
-                )
-            );
+            [
+                [
+                    'ads' => [
+                        [
+                            'ad_id' => $this->aIds['ad'],
+                            'zone_id' => $this->aIds['zone'],
+                            'required_impressions' => 2000,
+                            'requested_impressions' => 2000,
+                            'priority' => 0.9,
+                            'priority_factor' => 0.1,
+                            'priority_factor_limited' => false,
+                            'past_zone_traffic_fraction' => 0.99,
+                        ],
+                        [
+                            'ad_id' => $this->aIds['ad'] + 1,
+                            'zone_id' => $this->aIds['ad'] + 1,
+                            'required_impressions' => 500,
+                            'requested_impressions' => 500,
+                            'priority' => 0.1,
+                            'priority_factor' => 0.2,
+                            'priority_factor_limited' => true,
+                            'past_zone_traffic_fraction' => 0.45,
+                        ],
+                    ],
+                ],
+            ];
         $oOldDate = new Date();
         $oOldDate->copy($oDate);
         $oDate = new Date();
@@ -180,7 +172,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
                 zone_id,
                 priority
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['ad_zone_assoc'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['ad_zone_assoc'], true) . "
             WHERE
                 ad_id = {$this->aIds['ad']} AND zone_id = {$this->aIds['zone']}";
         $rc = $oDbh->query($query);
@@ -207,7 +199,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
                 expired,
                 expired_by
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['data_summary_ad_zone_assoc'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['data_summary_ad_zone_assoc'], true) . "
             WHERE
                 ad_id = {$this->aIds['ad']}
                 AND expired IS NOT NULL";
@@ -250,7 +242,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
                 expired,
                 expired_by
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['data_summary_ad_zone_assoc'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['data_summary_ad_zone_assoc'], true) . "
             WHERE
                 ad_id = {$this->aIds['ad']}
                 AND expired IS NULL";
@@ -293,9 +285,9 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
                 expired,
                 expired_by
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['data_summary_ad_zone_assoc'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['data_summary_ad_zone_assoc'], true) . "
             WHERE
-                ad_id = ".($this->aIds['ad']+1);
+                ad_id = " . ($this->aIds['ad'] + 1);
         $rc = $oDbh->query($query);
         $aRow = $rc->fetchRow();
         $currentOperationIntervalID = OX_OperationInterval::convertDateToOperationIntervalID($oDate);
@@ -304,8 +296,8 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         $this->assertEqual($aRow['operation_interval_id'], $currentOperationIntervalID);
         $this->assertEqual($aRow['interval_start'], $aDates['start']->format('%Y-%m-%d %H:%M:%S'));
         $this->assertEqual($aRow['interval_end'], $aDates['end']->format('%Y-%m-%d %H:%M:%S'));
-        $this->assertEqual($aRow['ad_id'], $this->aIds['ad']+1);
-        $this->assertEqual($aRow['zone_id'], $this->aIds['ad']+1);
+        $this->assertEqual($aRow['ad_id'], $this->aIds['ad'] + 1);
+        $this->assertEqual($aRow['zone_id'], $this->aIds['ad'] + 1);
         $this->assertEqual($aRow['required_impressions'], 500);
         $this->assertEqual($aRow['requested_impressions'], 500);
         $this->assertEqual($aRow['priority'], 0.1);
@@ -318,23 +310,23 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         $this->assertNull($aRow['expired_by']);
 
         // Test 4
-        $aData = array();
+        $aData = [];
         for ($i = 1; $i < 5000; $i++) {
             $aData[$i] =
-                array(
-                    'ads' => array(
-                        array(
-                            'ad_id'                      => $i,
-                            'zone_id'                    => $i,
-                            'required_impressions'       => 2000,
-                            'requested_impressions'      => 2000,
-                            'priority'                   => 0.9,
-                            'priority_factor'            => 0.1,
-                            'priority_factor_limited'    => false,
-                            'past_zone_traffic_fraction' => 0.99
-                        )
-                    )
-                );
+                [
+                    'ads' => [
+                        [
+                            'ad_id' => $i,
+                            'zone_id' => $i,
+                            'required_impressions' => 2000,
+                            'requested_impressions' => 2000,
+                            'priority' => 0.9,
+                            'priority_factor' => 0.1,
+                            'priority_factor_limited' => false,
+                            'past_zone_traffic_fraction' => 0.99,
+                        ],
+                    ],
+                ];
         }
         $oOldDate = new Date();
         $oOldDate->copy($oDate);
@@ -349,7 +341,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
      *
      * @access private
      */
-    function _generateTestData()
+    public function _generateTestData()
     {
         $oNow = new Date();
 
@@ -371,8 +363,8 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         $this->aIds['campaign'] = DataGenerator::generateOne($doCampaigns, true);
 
         // Add a banner
-        $doBanners   = OA_Dal::factoryDO('banners');
-        $doBanners->campaignid=$this->aIds['campaign'];
+        $doBanners = OA_Dal::factoryDO('banners');
+        $doBanners->campaignid = $this->aIds['campaign'];
         $doBanners->status = OA_ENTITY_STATUS_RUNNING;
         $doBanners->contenttype = 'txt';
         $doBanners->pluginversion = 0;
@@ -415,7 +407,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         $doAgency->password = 'password';
         $doAgency->permissions = 0;
         $doAgency->language = 'en_GB';
-        $doAgency->logout_url= 'logout.php';
+        $doAgency->logout_url = 'logout.php';
         $doAgency->active = 1;
         $doAgency->updated = $oNow->format('%Y-%m-%d %H:%M:%S');
         $this->aIds['agency'] = DataGenerator::generateOne($doAgency);
@@ -459,7 +451,7 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         $doZones->zonename = 'Default Zone';
         $doZones->description = '';
         $doZones->delivery = 0;
-        $doZones->zonetype =3;
+        $doZones->zonetype = 3;
         $doZones->category = '';
         $doZones->width = 728;
         $doZones->height = 90;
@@ -482,7 +474,4 @@ class Test_OA_Dal_Maintenance_Priority_updatePriorities extends UnitTestCase
         $doAdZone->to_be_delivered = 1;
         $this->aIds['ad_zone'] = DataGenerator::generateOne($doAdZone);
     }
-
 }
-
-?>

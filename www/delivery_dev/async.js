@@ -235,6 +235,7 @@
 
                     i.scrolling = "no";
                     i.frameBorder = 0;
+                    i.allow = "autoplay";
                     i.width = data.width > 0 ? data.width : 0;
                     i.height = data.height > 0 ? data.height : 0;
                     s.border = 0;
@@ -250,17 +251,22 @@
                  * @param {string} html
                  */
                 loadFrame: function (iframe, html) {
-                    var d = iframe.contentDocument || iframe.contentWindow.document;
+                    var srcdoc = '<!DOCTYPE html>';
+                    srcdoc += '<html>';
+                    srcdoc += '<head><base target="_top"><meta charset="UTF-8"></head>';
+                    srcdoc += '<body border="0" margin="0" style="margin: 0;padding: 0;">';
+                    srcdoc += html;
+                    srcdoc += '<body>';
+                    srcdoc += '</html>';
 
-                    d.open();
-                    d.writeln('<!DOCTYPE html>');
-                    d.writeln('<html>');
-                    d.writeln('<head><base target="_top"><meta charset="UTF-8"></head>');
-                    d.writeln('<body border="0" margin="0" style="margin: 0; padding: 0">');
-                    d.writeln(html);
-                    d.writeln('</body>');
-                    d.writeln('</html>');
-                    d.close();
+                    if ('srcdoc' in iframe && "1" === iframe.parentElement.getAttribute(this.getDataAttr('srcdoc'))) {
+                        iframe.srcdoc = srcdoc; // If srcdoc is supported and enabled we can just assign it
+                    } else {
+                        var d = iframe.contentWindow.document || iframe.contentDocument;
+                        d.open();
+                        d.write(srcdoc); // If srcdoc is not supported write entire srcdoc string to document
+                        d.close();
+                    }
                 },
 
                 /**
@@ -305,9 +311,16 @@
 
                                     ins.parentNode.replaceChild(newIns, ins);
                                 }
+
+                                this.dispatchEvent('loaded', {
+                                    "id": id,
+                                    "data": d
+                                });
                             }
                         }
                     }
+
+                    this.dispatchEvent('completed', data);
                 },
 
                 /**

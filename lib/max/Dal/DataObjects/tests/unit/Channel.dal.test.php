@@ -13,6 +13,8 @@
 require_once MAX_PATH . '/lib/OA/Dal.php';
 require_once MAX_PATH . '/lib/max/Dal/tests/util/DalUnitTestCase.php';
 
+Language_Loader::load();
+
 /**
  * A class for testing non standard DataObjects_Channel methods
  *
@@ -22,20 +24,12 @@ require_once MAX_PATH . '/lib/max/Dal/tests/util/DalUnitTestCase.php';
  */
 class DataObjects_ChannelTest extends DalUnitTestCase
 {
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    function tearDown()
+    public function tearDown()
     {
         DataGenerator::cleanUp();
     }
 
-    function testDelete()
+    public function testDelete()
     {
         $doChannel = OA_Dal::factoryDO('channel');
         $doChannel->acls_updated = '2007-04-03 19:29:54';
@@ -59,7 +53,7 @@ class DataObjects_ChannelTest extends DalUnitTestCase
         $this->assertEqual(1, $doAcls->count());
     }
 
-    function testDuplicate()
+    public function testDuplicate()
     {
         $GLOBALS['strCopyOf'] = 'Copy of ';
         //  create test channel
@@ -104,7 +98,7 @@ class DataObjects_ChannelTest extends DalUnitTestCase
         $doAcls->orderBy('executionorder');
         if ($doAcls->find()) {
             while ($doAcls->fetch()) {
-                $aAcls[] = clone($doAcls);
+                $aAcls[] = clone ($doAcls);
             }
         }
 
@@ -113,7 +107,7 @@ class DataObjects_ChannelTest extends DalUnitTestCase
         $doNewAcls->orderBy('executionorder');
         if ($doNewAcls->find()) {
             while ($doNewAcls->fetch()) {
-                $aNewAcls[] = clone($doNewAcls);
+                $aNewAcls[] = clone ($doNewAcls);
             }
         }
 
@@ -125,7 +119,4 @@ class DataObjects_ChannelTest extends DalUnitTestCase
             }
         }
     }
-
 }
-
-?>

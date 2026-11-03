@@ -30,19 +30,11 @@ $GLOBALS['strInvocationComments'] = "إرفاق التعليقات";
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "إعادة العرض بعد";
-$GLOBALS['strIframeResizeToBanner'] = "تعديل حجم الاطار ليتناسب مع حجم الاعلان";
 
 // PopUp
 $GLOBALS['strShowStatus'] = "الحالة";
-
-// XML-RPC
-
-// Support for 3rd party server clicktracking
 
 // Support for cachebusting code
 
 // IMG invocation selected for tracker with appended code
 $GLOBALS['strWarning'] = "تحذير";
-
-// Local Invocation
-

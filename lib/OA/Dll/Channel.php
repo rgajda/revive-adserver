@@ -30,7 +30,6 @@ require_once MAX_PATH . '/lib/RV/Admin/Languages.php';
 
 class OA_Dll_Channel extends OA_Dll
 {
-
     /**
      * This method sets the ChannelInfo from a data array.
      *
@@ -41,17 +40,17 @@ class OA_Dll_Channel extends OA_Dll
      *
      * @return boolean
      */
-    function _setChannelDataFromArray(&$oChannel, $channelData)
+    public function _setChannelDataFromArray(&$oChannel, $channelData)
     {
-        $channelData['channelId']     = $channelData['channelid'];
-        $channelData['agencyId']      = $channelData['agencyid'];
-        $channelData['websiteId']   = $channelData['affiliateid'];
-        $channelData['channelName']   = $channelData['name'];
-        $channelData['description']   = $channelData['description'];
-        $channelData['comments']      = $channelData['comments'];
+        $channelData['channelId'] = $channelData['channelid'];
+        $channelData['agencyId'] = $channelData['agencyid'];
+        $channelData['websiteId'] = $channelData['affiliateid'];
+        $channelData['channelName'] = $channelData['name'];
+        $channelData['description'] = $channelData['description'];
+        $channelData['comments'] = $channelData['comments'];
 
         $oChannel->readDataFromArray($channelData);
-        return  true;
+        return true;
     }
 
     /**
@@ -65,10 +64,9 @@ class OA_Dll_Channel extends OA_Dll
      * @return boolean  Returns false if fields are not valid and true if valid.
      *
      */
-    function _validate(&$oChannel)
+    public function _validate(&$oChannel)
     {
         if (isset($oChannel->channelId)) {
-
             // If modifying, check the channelId is valid.
             if (!$this->checkStructureRequiredIntegerField($oChannel, 'channelId') ||
                 !$this->checkIdExistence('channel', $oChannel->channelId)) {
@@ -100,14 +98,7 @@ class OA_Dll_Channel extends OA_Dll
                 return false;
             }
         }
-
-
-        if (!$this->checkStructureNotRequiredStringField($oChannel, 'description', 255) ||
-            !$this->checkStructureNotRequiredStringField($oChannel, 'comments')) {
-            return false;
-        }
-
-        return true;
+        return $this->checkStructureNotRequiredStringField($oChannel, 'description', 255) && $this->checkStructureNotRequiredStringField($oChannel, 'comments');
     }
 
     /**
@@ -128,30 +119,42 @@ class OA_Dll_Channel extends OA_Dll
      * @return boolean  True if the operation was successful
      *
      */
-    function modify(&$oChannel)
+    public function modify(&$oChannel)
     {
         if (!isset($oChannel->channelId)) {
             // Add
             $oChannel->setDefaultForAdd();
+        } elseif (!$this->checkPermissions(
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+            'channel',
+            $oChannel->channelId,
+        )) {
+            return false;
+        }
 
-            // Check permission for the website.
-            if (isset($oChannel->websiteId) && $oChannel->websiteId != 0) {
-                if (!$this->checkPermissions(
-                        array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-                        'affiliates', $oChannel->websiteId)) {
-                    return false;
-                }
+        if (!empty($oChannel->websiteId)) {
+            if (!$this->checkPermissions(
+                [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+                'affiliates',
+                $oChannel->websiteId,
+            )) {
+                return false;
             }
-        } else {
-            if (!$this->checkPermissions(array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-                'channel', $oChannel->channelId)) {
+        }
+
+        if (!empty($oChannel->agencyId)) {
+            if (!$this->checkPermissions(
+                [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+                'agency',
+                $oChannel->agencyId,
+            )) {
                 return false;
             }
         }
 
         // Prepare the dataobject array.
         $channelData = (array) $oChannel;
-        $channelData['agencyid']  = $oChannel->agencyId;
+        $channelData['agencyid'] = $oChannel->agencyId;
         $channelData['name'] = $oChannel->channelName;
         $channelData['description'] = $oChannel->description;
         $channelData['affiliateid'] = $oChannel->websiteId;
@@ -169,9 +172,8 @@ class OA_Dll_Channel extends OA_Dll
                 $doChannel->update();
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -184,7 +186,7 @@ class OA_Dll_Channel extends OA_Dll
      * @return boolean  True if the operation was successful
      *
      */
-    function delete($channelId)
+    public function delete($channelId)
     {
         if (!$this->checkPermissions(OA_ACCOUNT_ADMIN)) {
             return false;
@@ -198,11 +200,7 @@ class OA_Dll_Channel extends OA_Dll
         $doChannel->channelid = $channelId;
         $result = $doChannel->delete();
 
-        if ($result) {
-            return true;
-        } else {
-            return false;
-        }
+        return (bool) $result;
     }
 
     /**
@@ -215,7 +213,7 @@ class OA_Dll_Channel extends OA_Dll
      *
      * @return boolean
      */
-    function getChannel($channelId, &$oChannel)
+    public function getChannel($channelId, &$oChannel)
     {
         if ($this->checkIdExistence('channel', $channelId)) {
             if (!$this->checkPermissions(null, 'channel', $channelId)) {
@@ -225,16 +223,13 @@ class OA_Dll_Channel extends OA_Dll
             $doChannel->get($channelId);
             $channelData = $doChannel->toArray();
 
-            $oChannel = new OA_Dll_ChannelInfo;
+            $oChannel = new OA_Dll_ChannelInfo();
 
             $this->_setChannelDataFromArray($oChannel, $channelData);
             return true;
-
-        } else {
-
-            $this->raiseError('Unknown channelId Error');
-            return false;
         }
+        $this->raiseError('Unknown channelId Error');
+        return false;
     }
 
     /**
@@ -249,33 +244,33 @@ class OA_Dll_Channel extends OA_Dll
      *
      * @return boolean
      */
-    function getChannelList($agencyId, $websiteId, &$aChannelList)
+    public function getChannelList($agencyId, $websiteId, &$aChannelList)
     {
         if (!$this->checkPermissions(OA_ACCOUNT_ADMIN)) {
             return false;
         }
 
-        $aChannelList = array();
+        $aChannelList = [];
 
         $doChannel = OA_Dal::factoryDO('channel');
-        if (isset($agencyId))
+        if (isset($agencyId)) {
             if (!$this->checkIdExistence('agency', $agencyId)) {
                 return false;
-            } else {
-                $doChannel->agencyid = $agencyId;
             }
-        if (isset($websiteId))
+            $doChannel->agencyid = $agencyId;
+        }
+        if (isset($websiteId)) {
             if (!$this->checkIdExistence('affiliates', $websiteId)) {
                 return false;
-            } else {
-                $doChannel->affiliateid = $websiteId;
             }
+            $doChannel->affiliateid = $websiteId;
+        }
         $doChannel->find();
 
         while ($doChannel->fetch()) {
             $channelData = $doChannel->toArray();
 
-            $oChannel = new OA_Dll_ChannelInfo;
+            $oChannel = new OA_Dll_ChannelInfo();
             $this->_setChannelDataFromArray($oChannel, $channelData);
 
             $aChannelList[] = $oChannel;
@@ -293,13 +288,13 @@ class OA_Dll_Channel extends OA_Dll
      *
      * @return boolean
      */
-    function getChannelTargeting($channelId, &$aTargetingList)
+    public function getChannelTargeting($channelId, &$aTargetingList)
     {
         if ($this->checkIdExistence('channel', $channelId)) {
             if (!$this->checkPermissions(null, 'channel', $channelId)) {
                 return false;
             }
-            $aTargetingList = array();
+            $aTargetingList = [];
 
             $doChannelTargeting = OA_Dal::factoryDO('acls_channel');
             $doChannelTargeting->channelid = $channelId;
@@ -315,12 +310,9 @@ class OA_Dll_Channel extends OA_Dll
             }
 
             return true;
-
-        } else {
-
-            $this->raiseError('Unknown channelId Error');
-            return false;
         }
+        $this->raiseError('Unknown channelId Error');
+        return false;
     }
 
     /**
@@ -332,18 +324,17 @@ class OA_Dll_Channel extends OA_Dll
      *
      * @return boolean
      */
-    function _validateTargeting($oTargeting)
+    public function _validateTargeting($oTargeting)
     {
         if (!isset($oTargeting->data)) {
             $this->raiseError('Field \'data\' in structure does not exists');
             return false;
         }
 
-        if (!$this->checkStructureRequiredStringField($oTargeting,  'logical', 255) ||
-            !$this->checkStructureRequiredStringField($oTargeting,  'type', 255) ||
-            !$this->checkStructureRequiredStringField($oTargeting,  'comparison', 255) ||
-            !$this->checkStructureNotRequiredStringField($oTargeting,  'data', 255)) {
-
+        if (!$this->checkStructureRequiredStringField($oTargeting, 'logical', 255) ||
+            !$this->checkStructureRequiredStringField($oTargeting, 'type', 255) ||
+            !$this->checkStructureRequiredStringField($oTargeting, 'comparison', 255) ||
+            !$this->checkStructureNotRequiredStringField($oTargeting, 'data', 255)) {
             return false;
         }
 
@@ -368,18 +359,18 @@ class OA_Dll_Channel extends OA_Dll
      *
      * @return boolean
      */
-    function setChannelTargeting($channelId, &$aTargeting)
+    public function setChannelTargeting($channelId, &$aTargeting)
     {
         if ($this->checkIdExistence('channel', $channelId)) {
             if (!$this->checkPermissions(null, 'channel', $channelId)) {
                 return false;
             }
 
+            $aTargetingArray = [];
             foreach ($aTargeting as $executionOrder => $oTargeting) {
-
                 // Prepend "deliveryLimitations:" to any component-identifiers
                 // (for 2.6 backwards compatibility)
-                if (substr($oTargeting->type, 0, 20) != 'deliveryLimitations:') {
+                if (!str_starts_with($oTargeting->type, 'deliveryLimitations:')) {
                     $aTargeting[$executionOrder]->type = 'deliveryLimitations:' .
                         $aTargeting[$executionOrder]->type;
                 }
@@ -387,6 +378,14 @@ class OA_Dll_Channel extends OA_Dll
                 if (!$this->_validateTargeting($oTargeting)) {
                     return false;
                 }
+
+                $aTargetingArray[] = $oTargeting->toArray();
+            }
+
+            $res = OX_AclCheckInputsFields($aTargetingArray, 'channel-acl.php');
+            if ($res !== true) {
+                $this->raiseError($res[0]);
+                return false;
             }
 
             $doChannelTargeting = OA_Dal::factoryDO('acls_channel');
@@ -396,9 +395,8 @@ class OA_Dll_Channel extends OA_Dll
 
             // Create the new targeting options
             $executionOrder = 0;
-            $aAcls = array();
-            foreach ($aTargeting as $oTargeting) {
-                $channelTargetingData = $oTargeting->toArray();
+            $aAcls = [];
+            foreach ($aTargetingArray as $channelTargetingData) {
                 $doAclChannel = OA_Dal::factoryDO('acls_channel');
                 $doAclChannel->setFrom($channelTargetingData);
                 $doAclChannel->channelid = $channelId;
@@ -418,10 +416,8 @@ class OA_Dll_Channel extends OA_Dll
             $doChannel->update();
 
             return true;
-        } else {
-            $this->raiseError('Unknown channelId Error');
-            return false;
         }
+        $this->raiseError('Unknown channelId Error');
+        return false;
     }
 }
-

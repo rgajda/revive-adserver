@@ -77,7 +77,7 @@
  * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
  * @param boolean $withtext     Should "text below banner" be appended to the generated code
  * @param string  $charset      Character set to convert the rendered output into
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
  * @param boolean $logView      Should this view be logged (views in admin should not be logged
  *                              also - 3rd party callback logging should not be logged at view time)
  * @param boolean $richMedia    Does this invocation method allow for serving 3rd party/html ads
@@ -89,107 +89,153 @@
  *
  * @return string   The HTML to display this ad
  */
-function MAX_adRender(&$aBanner, $zoneId=0, $source='', $target='', $ct0='', $withText=false, $charset = '', $logClick=true, $logView=true, $richMedia=true, $loc='', $referer='', &$context = array())
+function MAX_adRender(array &$aBanner, int $zoneId = 0, string $source = '', string $target = '', string $ct0 = '', bool $withText = false, string $charset = '', bool $logClick = true, bool $logView = true, bool $richMedia = true, string $loc = '', ?string $referer = null, array &$context = [])
 {
-    $conf = $GLOBALS['_MAX']['CONF'];
+    $aBanner['bannerContent'] = "";
 
-    // Sanitize these user-inputted variables before passing to the _adRenderX calls
+    // Sanitize these user-inputted variables before passing to the _adRender* calls
     if (empty($target)) {
-        $target = !empty($aBanner['target']) ? $aBanner['target'] : '_blank';
+        $target = empty($aBanner['target']) ? '_blank' : $aBanner['target'];
     }
     $target = htmlspecialchars($target, ENT_QUOTES);
     $source = htmlspecialchars($source, ENT_QUOTES);
-	$aBanner['bannerContent'] = "";
 
-	// Pre adRender hook
-	OX_Delivery_Common_hook('preAdRender', array(&$aBanner, &$zoneId, &$source, &$ct0, &$withText, &$logClick, &$logView, null, &$richMedia, &$loc, &$referer));
+    // Pre adRender hook
+    OX_Delivery_Common_hook('preAdRender', [&$aBanner, &$zoneId, &$source, &$ct0, &$withText, &$logClick, &$logView, null, &$richMedia, &$loc, &$referer]);
 
-	$functionName = _getAdRenderFunction($aBanner, $richMedia);
-	$code = OX_Delivery_Common_hook('adRender', array(&$aBanner, &$zoneId, &$source, &$ct0, &$withText, &$logClick, &$logView, null, &$richMedia, &$loc, &$referer), $functionName);
+    $functionName = _getAdRenderFunction($aBanner, $richMedia);
+    $code = OX_Delivery_Common_hook('adRender', [&$aBanner, &$zoneId, &$source, &$ct0, &$withText, &$logClick, &$logView, null, &$richMedia, &$loc, &$referer], $functionName);
 
-    // Transform any code
-
-    // Get a timestamp
-    list($usec, $sec) = explode(' ', microtime());
-    $time = (float)$usec + (float)$sec;
-    // Get a random number
-    $random = MAX_getRandomNumber();
-    global $cookie_random;  // Temporary fix to get doubleclick tracking working (Bug # 88)
-    $cookie_random = $random;
-    // Get the click URL
-    $clickUrl = _adRenderBuildClickUrl($aBanner, $zoneId, $source, $ct0, $logClick, true);
-	// Get URL and image prefixes, stripping the traling slash
+    // Get URL and image prefixes, stripping the traling slash
     $urlPrefix = rtrim(MAX_commonGetDeliveryUrl(), '/');
     $imgUrlPrefix = rtrim(_adRenderBuildImageUrlPrefix(), '/');
 
-    $code = str_replace('{clickurl}', $clickUrl, $code);  // This step needs to be done separately because {clickurl} can contain {random}...
+    // Build magic macros with logurl first
+    $aMagicMacros = [
+        '{timestamp}' => MAX_commonGetTimeNow(),
+        '{random}' => MAX_getRandomNumber(),
+        '{target}' => $target,
+        '{url_prefix}' => $urlPrefix,
+        '{img_url_prefix}' => $imgUrlPrefix,
+        '{bannerid}' => $aBanner['ad_id'],
+        '{zoneid}' => $zoneId,
+        '{source}' => $source,
+        '{pageurl}' => urlencode($loc),
+        '{width}' => $aBanner['width'],
+        '{height}' => $aBanner['height'],
+        '{websiteid}' => $aBanner['affiliate_id'] ?? 0,
+        '{campaignid}' => $aBanner['placement_id'],
+        '{advertiserid}' => $aBanner['client_id'],
+        '{referer}' => $referer ?? '',
+        '{rel}' => _adRenderBuildRelAttribute($aBanner),
+        '{logurl}' => '', // Placeholder
+        '{logurl_enc}' => '', // Placeholder
+        '{logurl_html}' => '', // Placeholder
+        '{clickurl}' => '', // Placeholder
+        '{clickurl_enc}' => '', // Placeholder
+        '{clickurl_html}' => '', // Placeholder
+    ];
 
-    if (strpos($code, '{logurl}') !== false) {
-        $logUrl = _adRenderBuildLogURL($aBanner, $zoneId, $source, $loc, $referer, '&');
-        $code = str_replace('{logurl}', $logUrl, $code);  // This step needs to be done separately because {logurl} does contain {random}...
-    }
-    if (strpos($code, '{logurl_enc}') !== false) {
-        $logUrl_enc = urlencode(_adRenderBuildLogURL($aBanner, $zoneId, $source, $loc, $referer, '&'));
-        $code = str_replace('{logurl_enc}', $logUrl_enc, $code);  // This step needs to be done separately because {logurl} does contain {random}...
-    }
-    if (strpos($code, '{imgurl}') !== false) {
-        $imgUrl = _adRenderBuildImageUrlPrefix();
-        $code = str_replace('{imgurl}', $imgUrl, $code);  // This step needs to be done separately because {logurl} does contain {random}...
-    }
-    if (strpos($code, '{imgurl_enc}') !== false) {
-        $imgUrl_enc = urlencode(_adRenderBuildImageUrlPrefix());
-        $code = str_replace('{imgurl_enc}', $logUrl, $code);  // This step needs to be done separately because {logurl} does contain {random}...
-    }
-    if (strpos($code, '{clickurlparams}')) {
-        $maxparams = _adRenderBuildParams($aBanner, $zoneId, $source, urlencode($ct0), $logClick, true);
-        $code = str_replace('{clickurlparams}', $maxparams, $code);  // This step needs to be done separately because {clickurlparams} does contain {random}...
-    }
-    $search = array('{timestamp}','{random}','{target}','{url_prefix}','{img_url_prefix}','{bannerid}','{zoneid}','{source}', '{pageurl}', '{width}', '{height}', '{websiteid}', '{campaignid}', '{advertiserid}', '{referer}');
-    $locReplace = isset($GLOBALS['loc']) ? $GLOBALS['loc'] : '';
-    $websiteid = (!empty($aBanner['affiliate_id'])) ? $aBanner['affiliate_id'] : '0';
-    $replace = array($time, $random, $target, $urlPrefix, $imgUrlPrefix, $aBanner['ad_id'], $zoneId, $source, urlencode($locReplace), $aBanner['width'], $aBanner['height'], $websiteid, $aBanner['campaign_id'], $aBanner['client_id'], $referer);
-
-    preg_match_all('#{([a-zA-Z0-9_]*?)(_enc)?}#', $code, $macros);
-    for ($i=0;$i<count($macros[1]);$i++) {
-        if (!in_array($macros[0][$i], $search) && isset($_REQUEST[$macros[1][$i]])) {
-            $search[] = $macros[0][$i];
-            $replace[] = (!empty($macros[2][$i])) ? urlencode(stripslashes($_REQUEST[$macros[1][$i]])) : htmlspecialchars(stripslashes($_REQUEST[$macros[1][$i]]), ENT_QUOTES);
+    // Site Variables in the banner code and destination
+    preg_match_all('#{(\w*?)(_enc)?}#', $aBanner['url'] . "\n" . $code, $aMatches);
+    for ($i = 0; $i < count($aMatches[1]); $i++) {
+        if (isset($aMagicMacros[$aMatches[0][$i]])) {
+            continue;
         }
+
+        if (!isset($_REQUEST[$aMatches[1][$i]])) {
+            continue;
+        }
+
+        $value = stripslashes($_REQUEST[$aMatches[1][$i]]);
+
+        $aMagicMacros[$aMatches[0][$i]] = empty($macros[2][$i]) ?
+            htmlspecialchars($value, ENT_QUOTES) :
+            urlencode($value);
     }
+
     // addUrlParams hook for plugins to add key=value pairs to the log/click URLs
-    $componentParams =  OX_Delivery_Common_hook('addUrlParams', array($aBanner));
+    $componentParams = OX_Delivery_Common_hook('addUrlParams', [$aBanner]);
     if (!empty($componentParams) && is_array($componentParams)) {
         foreach ($componentParams as $params) {
             if (!empty($params) && is_array($params)) {
                 foreach ($params as $key => $value) {
-                    $search[]  = '{' . $key . '}';
-                    $replace[] = urlencode($value);
+                    $key = '{' . $key . '}';
+
+                    if (isset($aMagicMacros[$key])) {
+                        continue;
+                    }
+
+                    $aMagicMacros[$key] = urlencode($value);
                 }
             }
         }
     }
-    $code = str_replace($search, $replace, $code);
 
-    $clickUrl = str_replace($search, $replace, $clickUrl);
-    $aBanner['clickUrl'] = $clickUrl;
-
-    // Now we can finally replace {clickurl_enc}
-    if (strpos($code, '{clickurl_enc}') !== false) {
-        $code = str_replace('{clickurl_enc}', urlencode($clickUrl), $code);
-    }
-
-    $logUrl = _adRenderBuildLogURL($aBanner, $zoneId, $source, $loc, $referer, '&');
-    $logUrl = str_replace($search, $replace, $logUrl);
-    $aBanner['logUrl'] = $logUrl;
+    // Allow plugins to add magic macros
+    _adRenderAddPluginMagicMacros($aMagicMacros, $aBanner, $code);
 
     // Pass over the search / replace patterns
-    $aBanner['aSearch']  = $search;
-    $aBanner['aReplace'] = $replace;
+    $aBanner['aMagicMacros'] = $aMagicMacros;
 
-	// post adRender hook
-	OX_Delivery_Common_hook('postAdRender', array(&$code, $aBanner, &$context));
+    // Now all custom click URLs, either plain or urlencoded, at the top of the list
+    preg_match_all('#{clickurl(|_enc|_html)}((https?(?::|%3[aA]))?(//|%2[fF]%2[fF])[^ ]+?)(?=[\'" ])#', $code, $aMatches);
+    for ($i = 0; $i < count($aMatches[2]); $i++) {
+        if (isset($aMagicMacros[$aMatches[0][$i]])) {
+            continue;
+        }
 
-//    return $code;
+        // Decode custom dest, if urlencoded
+        $dest = '//' === $aMatches[4][$i] ? $aMatches[2][$i] : urldecode($aMatches[2][$i]);
+
+        // Treat protocol relative URL as https
+        if (empty($aMatches[3][$i])) {
+            $dest = 'https:' . $dest;
+        }
+
+        $dest = _adRenderBuildSignedClickUrl($aBanner, $zoneId, $source, $ct0, $logClick, $dest);
+
+        switch ($aMatches[1][$i]) {
+            case '_enc':
+                $dest = urlencode($dest);
+                break;
+
+            case '_html':
+                $dest = htmlspecialchars($dest, ENT_QUOTES);
+                break;
+        }
+
+        // Full click urls needs to be replaced first, as the search pattern might contain macros which
+        // would otherwise be replaced already by the time the end of the array is reached.
+        $aMagicMacros = [$aMatches[0][$i] => $dest] + $aMagicMacros;
+    }
+
+    // And finally log and click URLs
+    $aBanner['logUrl'] = _adRenderBuildLogURL($aBanner, $zoneId, $source, $loc, $referer, '&');
+    $aBanner['clickUrl'] = _adRenderBuildSignedClickUrl($aBanner, $zoneId, $source, $ct0, $logClick);
+
+    // We can remove placeholders now
+    unset($aMagicMacros['{logurl}'], $aMagicMacros['{logurl_enc}'], $aMagicMacros['{logurl_html}'], $aMagicMacros['{clickurl}'], $aMagicMacros['{clickurl_enc}'], $aMagicMacros['{clickurl_html}']);
+
+    // So that the following magic macros are replaced last
+    $aMagicMacros['{logurl}'] = $aBanner['logUrl'];
+    $aMagicMacros['{logurl_enc}'] = urlencode($aBanner['logUrl']);
+    $aMagicMacros['{logurl_html}'] = htmlspecialchars($aBanner['logUrl'], ENT_QUOTES);
+    $aMagicMacros['{clickurl}'] = $aBanner['clickUrl'];
+    $aMagicMacros['{clickurl_enc}'] = urlencode($aBanner['clickUrl']);
+    $aMagicMacros['{clickurl_html}'] = htmlspecialchars($aBanner['clickUrl'], ENT_QUOTES);
+
+    // Update magic macros + Backwards compatible search / replace patterns
+    $aBanner['aMagicMacros'] = $aMagicMacros;
+    $aBanner['aSearch'] = array_keys($aMagicMacros);
+    $aBanner['aReplace'] = array_values($aMagicMacros);
+
+    // Do all the replacement
+    $code = _adRenderReplaceMagicMacros($aBanner, $code);
+
+    // post adRender hook
+    OX_Delivery_Common_hook('postAdRender', [&$code, $aBanner, &$context]);
+
     return MAX_commonConvertEncoding($code, $charset);
 }
 
@@ -219,8 +265,8 @@ function MAX_adRenderImageBeacon($logUrl, $beaconId = 'beacon', $userAgent = nul
         $style = " style='width: 0px; height: 0px;'";
         $divEnd = '</div>';
     }
-        $beacon = "$div<img src='".htmlspecialchars($logUrl, ENT_QUOTES)."' width='0' height='0' alt=''{$style} />{$divEnd}";
-        return $beacon;
+    $beacon = "$div<img src='" . htmlspecialchars($logUrl, ENT_QUOTES) . "' width='0' height='0' alt=''{$style} />{$divEnd}";
+    return $beacon;
 }
 
 /**
@@ -235,10 +281,10 @@ function MAX_adRenderImageBeacon($logUrl, $beaconId = 'beacon', $userAgent = nul
  */
 function MAX_adRenderBlankBeacon($zoneId, $source, $loc, $referer)
 {
-    $logUrl = _adRenderBuildLogURL(array(
+    $logUrl = _adRenderBuildLogURL([
         'ad_id' => 0,
         'placement_id' => 0,
-    ), $zoneId, $source, $loc, $referer, '&');
+    ], $zoneId, $source, $loc, $referer, '&');
 
     return str_replace('{random}', MAX_getRandomNumber(), MAX_adRenderImageBeacon($logUrl));
 }
@@ -251,7 +297,7 @@ function MAX_adRenderBlankBeacon($zoneId, $source, $loc, $referer)
  * @param string  $source       The "source" parameter passed into the adcall
  * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
  * @param int     $withText     Should "text below banner" be appended to the generated code
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
  * @param boolean $logView      Should this view be logged (views in admin should not be logged
  *                              also - 3rd party callback logging should not be logged at view time)
  * @param boolean $useAlt       Should the backup file be used for this code
@@ -262,7 +308,7 @@ function MAX_adRenderBlankBeacon($zoneId, $source, $loc, $referer)
  *
  * @return string               The HTML to display this ad
  */
-function _adRenderImage(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=false, $logClick=true, $logView=true, $useAlt=false, $richMedia=true, $loc='', $referer='', $context=array(), $useAppend=true)
+function _adRenderImage(&$aBanner, $zoneId = 0, $source = '', $ct0 = '', $withText = false, $logClick = true, $logView = true, $useAlt = false, $richMedia = true, $loc = '', $referer = '', $context = [], $useAppend = true)
 {
     $conf = $GLOBALS['_MAX']['CONF'];
     $aBanner['bannerContent'] = $imageUrl = _adRenderBuildFileUrl($aBanner, $useAlt);
@@ -274,11 +320,9 @@ function _adRenderImage(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fal
     $append = (!empty($aBanner['append']) && $useAppend) ? $aBanner['append'] : '';
 
     // Create the anchor tag..
-    $clickUrl = _adRenderBuildClickUrl($aBanner, $zoneId, $source, $ct0, $logClick);
-    if (!empty($clickUrl)) {  // There is a link
+    if (!empty($aBanner['url'])) {  // There is a link
         $status = _adRenderBuildStatusCode($aBanner);
-        //$target = !empty($aBanner['target']) ? $aBanner['target'] : '_blank';
-        $clickTag = "<a href='".htmlspecialchars($clickUrl, ENT_QUOTES)."' target='{target}'$status>";
+        $clickTag = "<a href='{clickurl_html}' target='{target}' rel='{rel}'{$status}>";
         $clickTagEnd = '</a>';
     } else {
         $clickTag = '';
@@ -287,10 +331,10 @@ function _adRenderImage(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fal
     // Create the image tag..
     if (!empty($imageUrl)) {
         $imgStatus = empty($clickTag) && !empty($status) ? $status : '';
-        $width = !empty($aBanner['width']) ? $aBanner['width'] : 0;
-        $height = !empty($aBanner['height']) ? $aBanner['height'] : 0;
-        $alt = !empty($aBanner['alt']) ? htmlspecialchars($aBanner['alt'], ENT_QUOTES) : '';
-        $imageTag = "$clickTag<img src='".htmlspecialchars($imageUrl, ENT_QUOTES)."' width='$width' height='$height' alt='$alt' title='$alt' border='0'$imgStatus />$clickTagEnd";
+        $width = empty($aBanner['width']) ? 0 : $aBanner['width'];
+        $height = empty($aBanner['height']) ? 0 : $aBanner['height'];
+        $alt = empty($aBanner['alt']) ? '' : htmlspecialchars($aBanner['alt'], ENT_QUOTES);
+        $imageTag = "$clickTag<img src='" . htmlspecialchars($imageUrl, ENT_QUOTES) . "' width='$width' height='$height' alt='$alt' title='$alt' border='0'$imgStatus />$clickTagEnd";
     } else {
         $imageTag = '';
     }
@@ -302,119 +346,6 @@ function _adRenderImage(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fal
 }
 
 /**
- * This function generates the code to show a "flash" ad
- *
- * @param array   $aBanner      The ad-array for the ad to render code for
- * @param int     $zoneId       The zone ID of the zone used to select this ad (if zone-selected)
- * @param string  $source       The "source" parameter passed into the adcall
- * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
- * @param int     $withText     Should "text below banner" be appended to the generated code
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
- * @param boolean $logView      Should this view be logged (views in admin should not be logged
- *                              also - 3rd party callback logging should not be logged at view time)
- * @param boolean $richMedia    Does this invocation method allow for serving 3rd party/html ads
- * @param string  $loc          The "current page" URL
- * @param string  $referer      The "referring page" URL
- *
- * @return string               The HTML to display this ad
- */
-function _adRenderFlash(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=false, $logClick=true, $logView=true, $useAlt=false, $richMedia=true, $loc='', $referer='', $context=array())
-{
-    $conf = $GLOBALS['_MAX']['CONF'];
-    $prepend = !empty($aBanner['prepend']) ? $aBanner['prepend'] : '';
-    $append = !empty($aBanner['append']) ? $aBanner['append'] : '';
-    $width = !empty($aBanner['width']) ? $aBanner['width'] : 0;
-    $height = !empty($aBanner['height']) ? $aBanner['height'] : 0;
-    $pluginVersion = !empty($aBanner['pluginversion']) ? _adRenderGetRealPluginVersion($aBanner['pluginversion']) : '4';
-    $logURL = _adRenderBuildLogURL($aBanner, $zoneId, $source, $loc, $referer, '&');
-
-    if (!empty($aBanner['alt_filename']) || !empty($aBanner['alt_imageurl'])) {
-        $altImageAdCode = _adRenderImage($aBanner, $zoneId, $source, $ct0, false, $logClick, false, true, true, $loc, $referer, $context, false);
-        $fallBackLogURL = _adRenderBuildLogURL($aBanner, $zoneId, $source, $loc, $referer, '&', true);
-    } else {
-        $alt = !empty($aBanner['alt']) ? htmlspecialchars($aBanner['alt'], ENT_QUOTES) : '';
-        $altImageAdCode = "<img src='" . _adRenderBuildImageUrlPrefix() . '/1x1.gif' . "' alt='".$alt."' title='".$alt."' border='0' />";
-
-        if ($zoneId) {
-            // Log a blank impression instead
-            $fallBackLogURL = _adRenderBuildLogURL(array(
-                    'ad_id' => 0,
-                    'placement_id' => 0,
-                ), $zoneId, $source, $loc, $referer, '&', true);
-        } else {
-            // No zone, skip logging
-            $fallBackLogURL = false;
-        }
-    }
-
-    // Create the anchor tag..
-    $clickUrl = _adRenderBuildClickUrl($aBanner, $zoneId, $source, $ct0, $logClick);
-    if (!empty($clickUrl)) {  // There is a link
-        $status = _adRenderBuildStatusCode($aBanner);
-        $target = !empty($aBanner['target']) ? $aBanner['target'] : '_blank';
-        $swfParams = array('clickTARGET' => $target, 'clickTAG' => $clickUrl);
-        $clickTag = "<a href='".htmlspecialchars($clickUrl, ENT_QUOTES)."' target='$target'$status>";
-        $clickTagEnd = '</a>';
-    } else {
-        $swfParams = array();
-        $clickTag = '';
-        $clickTagEnd = '';
-    }
-
-    if (!empty($aBanner['parameters'])) {
-        $aAdParams = unserialize($aBanner['parameters']);
-        if (isset($aAdParams['swf']) && is_array($aAdParams['swf'])) {
-            // Converted SWF file, use paramters content
-            $swfParams = array();
-            $aBannerSwf = $aBanner;
-            // Set the flag to let _adRenderBuildClickUrl know that we're not using clickTAG
-            $aBannerSwf['noClickTag'] = true;
-            foreach ($aAdParams['swf'] as $iKey => $aSwf) {
-                $aBannerSwf['url'] = $aSwf['link'];
-                $swfParams["alink{$iKey}"] = _adRenderBuildClickUrl($aBannerSwf, $zoneId, $source, $ct0, $logClick);
-                $swfParams["atar{$iKey}"]  = $aSwf['tar'];
-            }
-        }
-    }
-    $fileUrl = _adRenderBuildFileUrl($aBanner, false);
-    $id = 'rv_swf_{random}';
-
-    $swfId = (!empty($aBanner['alt']) ? $aBanner['alt'] : 'Advertisement');
-    $swfId = 'id-' . preg_replace('/[a-z0-1]+/', '', strtolower($swfId));
-
-    $code = "
-<div id='{$id}' style='display: inline;'>$altImageAdCode</div>
-<script type='text/javascript'><!--/"."/ <![CDATA[
-    var ox_swf = new FlashObject('{$fileUrl}', '{$swfId}', '{$width}', '{$height}', '{$pluginVersion}');\n";
-    foreach ($swfParams as $key => $value) {
-        // URL encode the value, but leave any Openads "magic macros" unescaped to allow substitution
-        $code .= "    ox_swf.addVariable('{$key}', '" . preg_replace('#%7B(.*?)%7D#', '{$1}', urlencode($value)) . "');\n";
-    }
-    if (!empty($aBanner['transparent'])) {
-        $code .= "    ox_swf.addParam('wmode','transparent');\n";
-    } else {
-        $code .= "    ox_swf.addParam('wmode','opaque');\n";
-    }
-    $code .= "    ox_swf.addParam('allowScriptAccess','always');\n";
-
-    if ($logView && $conf['logging']['adImpressions']) {
-        // Only render the log beacon if the user has the minumum required flash player version
-        // Otherwise log a fallback impression (if there is a fallback creative configured)
-        $code .= "    ox_swf.write('{$id}', ".json_encode($logURL).", ".json_encode($fallBackLogURL).");\n";
-    } else {
-        $code .= "    ox_swf.write('{$id}');\n";
-    }
-
-    $code .= "/"."/ ]]> --></script>";
-    if ($fallBackLogURL) {
-        $code .= '<noscript>' . _adRenderImageBeacon($aBanner, $zoneId, $source, $loc, $referer, $fallBackLogURL) . '</noscript>';
-    }
-    $bannerText = $withText && !empty($aBanner['bannertext']) ? "<br />{$clickTag}{$aBanner['bannertext']}{$clickTagEnd}" : '';
-
-    return $prepend . $code . $bannerText . $append;
-}
-
-/**
  * This function generates the code to show an "HTML" ad (usually 3rd party adserver code)
  *
  * @param array   $aBanner      The ad-array for the ad to render code for
@@ -422,7 +353,7 @@ function _adRenderFlash(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fal
  * @param string  $source       The "source" parameter passed into the adcall
  * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
  * @param int     $withText     Should "text below banner" be appended to the generated code
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
  * @param boolean $logView      Should this view be logged (views in admin should not be logged
  *                              also - 3rd party callback logging should not be logged at view time)
  * @param boolean $useAlt       Should the backup file be used for this code
@@ -432,13 +363,13 @@ function _adRenderFlash(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fal
  *
  * @return string               The HTML to display this ad
  */
-function _adRenderHtml(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=false, $logClick=true, $logView=true, $useAlt=false, $richMedia=true, $loc='', $referer='', $context=array())
+function _adRenderHtml(&$aBanner, $zoneId = 0, $source = '', $ct0 = '', $withText = false, $logClick = true, $logView = true, $useAlt = false, $richMedia = true, $loc = '', $referer = '', $context = [])
 {
     // This is a wrapper to the "parent" bannerTypeHtml function
-    $aConf = $GLOBALS['_MAX']['CONF'];
     if (!function_exists('Plugin_BannerTypeHtml_delivery_adRender')) {
-        @include LIB_PATH . '/Extension/bannerTypeHtml/bannerTypeHtmlDelivery.php';
+        _includeDeliveryPluginFile('/lib/OX/Extension/bannerTypeHtml/bannerTypeHtmlDelivery.php');
     }
+
     return Plugin_BannerTypeHtml_delivery_adRender($aBanner, $zoneId, $source, $ct0, $withText, $logClick, $logView, $useAlt, $richMedia, $loc, $referer);
 }
 
@@ -450,7 +381,7 @@ function _adRenderHtml(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fals
  * @param string  $source       The "source" parameter passed into the adcall
  * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
  * @param int     $withText     Should "text below banner" be appended to the generated code
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
  * @param boolean $logView      Should this view be logged (views in admin should not be logged
  *                              also - 3rd party callback logging should not be logged at view time)
  * @param boolean $useAlt       Should the backup file be used for this code
@@ -460,7 +391,7 @@ function _adRenderHtml(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=fals
  *
  * @return string               The HTML to display this ad
  */
-function _adRenderText(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=false, $logClick=true, $logView=true, $useAlt=false, $richMedia=false, $loc='', $referer='', $context=array())
+function _adRenderText(&$aBanner, $zoneId = 0, $source = '', $ct0 = '', $withText = false, $logClick = true, $logView = true, $useAlt = false, $richMedia = false, $loc = '', $referer = '', $context = [])
 {
     // This is a wrapper to the "parent" bannerTypeHtml function
     $aConf = $GLOBALS['_MAX']['CONF'];
@@ -489,7 +420,7 @@ function _adRenderBuildFileUrl($aBanner, $useAlt = false, $params = '')
         }
     } else {
         $fileName = $useAlt ? $aBanner['alt_filename'] : $aBanner['filename'];
-        $params = !empty($params) ? $params : '';
+        $params = empty($params) ? '' : $params;
         if (!empty($fileName)) {
             if ($aBanner['type'] == 'web') {
                 $fileUrl = _adRenderBuildImageUrlPrefix() . "/{$fileName}";
@@ -515,7 +446,7 @@ function _adRenderBuildFileUrl($aBanner, $useAlt = false, $params = '')
 function _adRenderBuildImageUrlPrefix()
 {
     $conf = $GLOBALS['_MAX']['CONF'];
-    return $GLOBALS['_MAX']['SSL_REQUEST'] ? 'https://' . $conf['webpath']['imagesSSL'] : 'http://' .  $conf['webpath']['images'];
+    return $GLOBALS['_MAX']['SSL_REQUEST'] ? 'https://' . $conf['webpath']['imagesSSL'] : 'http://' . $conf['webpath']['images'];
 }
 
 /**
@@ -559,24 +490,52 @@ function _adRenderBuildLogURL($aBanner, $zoneId = 0, $source = '', $loc = '', $r
     $url .= "?" . $conf['var']['adId'] . "=" . $aBanner['ad_id'];
     $url .= $amp . $conf['var']['campaignId'] . "=" . $aBanner['placement_id'];
     $url .= $amp . $conf['var']['zoneId'] . "=" . $zoneId;
-    if (!empty($source)) $url .= $amp . $conf['var']['channel'] . "=" . $source;
-    if (!empty($aBanner['block_ad'])) $url .= $amp . $conf['var']['blockAd'] . "=" . $aBanner['block_ad'];
-    if (!empty($aBanner['cap_ad'])) $url .= $amp . $conf['var']['capAd'] . "=" . $aBanner['cap_ad'];
-    if (!empty($aBanner['session_cap_ad'])) $url .= $amp . $conf['var']['sessionCapAd'] . "=" . $aBanner['session_cap_ad'];
-    if (!empty($aBanner['block_campaign'])) $url .= $amp . $conf['var']['blockCampaign'] . "=" . $aBanner['block_campaign'];
-    if (!empty($aBanner['cap_campaign'])) $url .= $amp . $conf['var']['capCampaign'] . "=" . $aBanner['cap_campaign'];
-    if (!empty($aBanner['session_cap_campaign'])) $url .= $amp . $conf['var']['sessionCapCampaign'] . "=" . $aBanner['session_cap_campaign'];
-    if (!empty($aBanner['block_zone'])) $url .= $amp . $conf['var']['blockZone'] . "=" . $aBanner['block_zone'];
-    if (!empty($aBanner['cap_zone'])) $url .= $amp . $conf['var']['capZone'] . "=" . $aBanner['cap_zone'];
-    if (!empty($aBanner['session_cap_zone'])) $url .= $amp . $conf['var']['sessionCapZone'] . "=" . $aBanner['session_cap_zone'];
-    if (!empty($logLastAction)) $url .= $amp . $conf['var']['lastView'] . "=" . $logLastAction;
-    if (!empty($loc)) $url .= $amp . "loc=" . urlencode($loc);
-    if (!empty($referer)) $url .= $amp . "referer=" . urlencode($referer);
-    if (!empty($fallBack)) $url .= $amp . $conf['var']['fallBack'] . '=1';
+    if (!empty($source)) {
+        $url .= $amp . $conf['var']['channel'] . "=" . $source;
+    }
+    if (!empty($aBanner['block_ad'])) {
+        $url .= $amp . $conf['var']['blockAd'] . "=" . $aBanner['block_ad'];
+    }
+    if (!empty($aBanner['cap_ad'])) {
+        $url .= $amp . $conf['var']['capAd'] . "=" . $aBanner['cap_ad'];
+    }
+    if (!empty($aBanner['session_cap_ad'])) {
+        $url .= $amp . $conf['var']['sessionCapAd'] . "=" . $aBanner['session_cap_ad'];
+    }
+    if (!empty($aBanner['block_campaign'])) {
+        $url .= $amp . $conf['var']['blockCampaign'] . "=" . $aBanner['block_campaign'];
+    }
+    if (!empty($aBanner['cap_campaign'])) {
+        $url .= $amp . $conf['var']['capCampaign'] . "=" . $aBanner['cap_campaign'];
+    }
+    if (!empty($aBanner['session_cap_campaign'])) {
+        $url .= $amp . $conf['var']['sessionCapCampaign'] . "=" . $aBanner['session_cap_campaign'];
+    }
+    if (!empty($aBanner['block_zone'])) {
+        $url .= $amp . $conf['var']['blockZone'] . "=" . $aBanner['block_zone'];
+    }
+    if (!empty($aBanner['cap_zone'])) {
+        $url .= $amp . $conf['var']['capZone'] . "=" . $aBanner['cap_zone'];
+    }
+    if (!empty($aBanner['session_cap_zone'])) {
+        $url .= $amp . $conf['var']['sessionCapZone'] . "=" . $aBanner['session_cap_zone'];
+    }
+    if (!empty($logLastAction)) {
+        $url .= $amp . $conf['var']['lastView'] . "=" . $logLastAction;
+    }
+    if (!empty($loc)) {
+        $url .= $amp . "loc=" . urlencode($loc);
+    }
+    if (!empty($referer)) {
+        $url .= $amp . "referer=" . urlencode($referer);
+    }
+    if (!empty($fallBack)) {
+        $url .= $amp . $conf['var']['fallBack'] . '=1';
+    }
     $url .= $amp . "cb={random}";
 
     // addUrlParams hook for plugins to add key=value pairs to the log/click URLs
-    $componentParams =  OX_Delivery_Common_hook('addUrlParams', array($aBanner));
+    $componentParams = OX_Delivery_Common_hook('addUrlParams', [$aBanner]);
     if (!empty($componentParams) && is_array($componentParams)) {
         foreach ($componentParams as $params) {
             if (!empty($params) && is_array($params)) {
@@ -586,6 +545,22 @@ function _adRenderBuildLogURL($aBanner, $zoneId = 0, $source = '', $loc = '', $r
             }
         }
     }
+
+    $url = _adRenderReplaceMagicMacros($aBanner, $url);
+
+    $aParams = [];
+    if (($conf['delivery']['logUrlValidity'] ?? 0) > 0) {
+        // Timestamp signature
+        $aParams[$conf['var']['timestamp']] = (string) MAX_commonGetTimeNow();
+    }
+
+    $aParams[$conf['var']['signature']] = OX_Delivery_Common_getSignature(
+        ['lg', $aBanner['ad_id'], $zoneId],
+        $aParams[$conf['var']['timestamp']] ?? '',
+    );
+
+    $url .= $amp . http_build_query($aParams, '', $amp);
+
     return $url;
 }
 
@@ -610,20 +585,18 @@ function _adRenderImageBeacon($aBanner, $zoneId = 0, $source = '', $loc = '', $r
 }
 
 /**
- * This function builds the custom params string (the params string uses a custom delimiter to avoid problems
- * when passing in plain (non-url encoded) destination URLs
+ * This function builds a query string params for the signed click cl.php script.
  *
- * @param array   $aBanner      The ad-array for the ad to render code for
- * @param int     $zoneId       The zone ID of the zone used to select this ad (if zone-selected)
- * @param string  $source       The "source" parameter passed into the adcall
- * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
- * @param boolean $overrideDest Should the URL from the banner override a passed in destination?
+ * @param array $aBanner
+ * @param int $zoneId
+ * @param string $source
+ * @param string|null $ct0
+ * @param bool $logClick
+ * @param string|null $customDestination
  *
- * @return string The params string
+ * @return string
  */
-
-function _adRenderBuildParams($aBanner, $zoneId=0, $source='', $ct0='', $logClick=true, $overrideDest=false)
+function _adRenderBuildClickQueryString(array $aBanner, int $zoneId = 0, string $source = '', bool $logClick = true, ?string $customDestination = null): string
 {
     // HACK - sometimes $aBanner has the banner ID as bannerid, and others it is ad_id.  This needs
     //  to be sorted in all parts of the application to reference ad_id rather than bannerid.
@@ -634,14 +607,128 @@ function _adRenderBuildParams($aBanner, $zoneId=0, $source='', $ct0='', $logClic
     $conf = $GLOBALS['_MAX']['CONF'];
     $delimiter = $GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'];
 
-    $logLastClick = (!empty($aBanner['clickwindow'])) ? '1' : '';
+    $logLastClick = (empty($aBanner['clickwindow'])) ? '' : '1';
     // If there is an OpenX->OpenX internal redirect, log both zones information
     if (!empty($GLOBALS['_MAX']['adChain'])) {
         foreach ($GLOBALS['_MAX']['adChain'] as $index => $ad) {
             $aBanner['bannerid'] .= $delimiter . $ad['bannerid'];
             $aBanner['placement_id'] .= $delimiter . $ad['placement_id'];
             $zoneId .= $delimiter . $ad['zoneid'];
-            $logLastClick .= (!empty($aBanner['clickwindow'])) ? '1' : '0';
+            $logLastClick .= (empty($aBanner['clickwindow'])) ? '0' : '1';
+        }
+    }
+
+    $aParams = [
+        $conf['var']['adId'] => $aBanner['bannerid'] ?? '0',
+        $conf['var']['zoneId'] => $zoneId,
+    ];
+
+    if (!empty($source)) {
+        $aParams['source'] = $source;
+    }
+
+    if (!$logClick) {
+        $aParams[$conf['var']['logClick']] = 'no';
+    }
+
+    if (!empty($logLastClick)) {
+        $aParams[$conf['var']['lastClick']] = $logLastClick;
+    }
+
+    // addUrlParams hook for plugins to add key=value pairs to the log/click URLs
+    $componentParams = OX_Delivery_Common_hook('addUrlParams', [$aBanner]);
+    if (!empty($componentParams) && is_array($componentParams)) {
+        foreach ($componentParams as $params) {
+            if (!empty($params) && is_array($params)) {
+                foreach ($params as $key => $value) {
+                    $aParams[$key] = $value;
+                }
+            }
+        }
+    }
+
+    $dest = _adRenderReplaceMagicMacros($aBanner, $customDestination ?? $aBanner['url'] ?? '');
+
+    if ($dest) {
+        // Destination signature
+        $aParams[$conf['var']['signature']] = OX_Delivery_Common_getSignature(
+            [$aBanner['bannerid'] ?? 0, $zoneId],
+            $dest,
+        );
+        $aParams[$conf['var']['dest']] = $dest;
+    } elseif ($conf['delivery']['clickUrlValidity'] > 0) {
+        // Timestamp signature
+        $aParams[$conf['var']['timestamp']] = (string) MAX_commonGetTimeNow();
+        $aParams[$conf['var']['signature']] = OX_Delivery_Common_getSignature(
+            [$aBanner['bannerid'] ?? 0, $zoneId],
+            $aParams[$conf['var']['timestamp']],
+        );
+        $aParams[$conf['var']['dest']] = '';
+    }
+
+    return http_build_query($aParams);
+}
+
+function _adRenderReplaceMagicMacros(array $aBanner, string $input): string
+{
+    if (!isset($aBanner['aMagicMacros'])) {
+        return $input;
+    }
+
+    return str_replace(
+        array_keys($aBanner['aMagicMacros']),
+        array_values($aBanner['aMagicMacros']),
+        $input,
+    );
+}
+
+function _adRenderBuildSignedClickUrl(array $aBanner, int $zoneId = 0, string $source = '', ?string $ct0 = null, bool $logClick = true, ?string $customDestination = null): string
+{
+    $clickUrl = MAX_commonGetDeliveryUrl($GLOBALS['_MAX']['CONF']['file']['signedClick']) . '?' .
+        _adRenderBuildClickQueryString($aBanner, $zoneId, $source, $logClick, $customDestination);
+
+    if (null === $ct0 || !preg_match('#^https?://#', $ct0)) {
+        return $clickUrl;
+    }
+
+    return $ct0 . urlencode($clickUrl);
+}
+
+/**
+ * This function builds the custom params string (the params string uses a custom delimiter to avoid problems
+ * when passing in plain (non-url encoded) destination URLs
+ *
+ * @deprecated Use _adRenderBuildSignedClickUrl
+ *
+ * @param array   $aBanner      The ad-array for the ad to render code for
+ * @param int     $zoneId       The zone ID of the zone used to select this ad (if zone-selected)
+ * @param string  $source       The "source" parameter passed into the adcall
+ * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $overrideDest Should the URL from the banner override a passed in destination?
+ *
+ * @return string The params string
+ */
+
+function _adRenderBuildParams($aBanner, $zoneId = 0, $source = '', $ct0 = '', $logClick = true, $overrideDest = false)
+{
+    // HACK - sometimes $aBanner has the banner ID as bannerid, and others it is ad_id.  This needs
+    //  to be sorted in all parts of the application to reference ad_id rather than bannerid.
+    if (isset($aBanner['ad_id']) && empty($aBanner['bannerid'])) {
+        $aBanner['bannerid'] = $aBanner['ad_id'];
+    }
+
+    $conf = $GLOBALS['_MAX']['CONF'];
+    $delimiter = $GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'];
+
+    $logLastClick = (empty($aBanner['clickwindow'])) ? '' : '1';
+    // If there is an OpenX->OpenX internal redirect, log both zones information
+    if (!empty($GLOBALS['_MAX']['adChain'])) {
+        foreach ($GLOBALS['_MAX']['adChain'] as $index => $ad) {
+            $aBanner['bannerid'] .= $delimiter . $ad['bannerid'];
+            $aBanner['placement_id'] .= $delimiter . $ad['placement_id'];
+            $zoneId .= $delimiter . $ad['zoneid'];
+            $logLastClick .= (empty($aBanner['clickwindow'])) ? '0' : '1';
         }
     }
 
@@ -651,27 +738,16 @@ function _adRenderBuildParams($aBanner, $zoneId=0, $source='', $ct0='', $logClic
         $del = $conf['delivery']['ctDelimiter'];
         $delnum = strlen($del);
         $random = "{$del}{$conf['var']['cacheBuster']}={random}";
-        $bannerId = !empty($aBanner['bannerid']) ? "{$del}{$conf['var']['adId']}={$aBanner['bannerid']}" : '';
+        $bannerId = empty($aBanner['bannerid']) ? '' : "{$del}{$conf['var']['adId']}={$aBanner['bannerid']}";
         $zoneId = "{$del}{$conf['var']['zoneId']}={$zoneId}";
-        $source = !empty($source) ? "{$del}source=" . urlencode($source) : '';
+        $source = empty($source) ? '' : "{$del}source=" . urlencode($source);
+
         $log = $logClick ? '' : "{$del}{$conf['var']['logClick']}=no";
-        // Determine the destination
-        $dest = !empty($aBanner['url']) ? $aBanner['url'] : '';
-        // If the passed in a ct0= value that is not a valid URL (simple checking), then ignore it
-        if (!empty($ct0) && strtolower(substr($ct0, 0, 4)) == 'http') {
-            // Append and urlencode, but allow magic macros
-            $dest = $ct0.preg_replace('/%7B(.*?)%7D/', '{$1}', urlencode($dest));
-        }
-        // Urlencode, but allow magic macros
-        $dest = preg_replace('/%7B(.*?)%7D/', '{$1}', urlencode($dest));
-
-        $maxdest = "{$del}{$conf['var']['dest']}={$dest}";
-
-        $log .= (!empty($logLastClick)) ? $del . $conf['var']['lastClick'] . '=' . $logLastClick : '';
+        $log .= (empty($logLastClick)) ? '' : $del . $conf['var']['lastClick'] . '=' . $logLastClick;
 
         $maxparams = $delnum . $bannerId . $zoneId . $source . $log . $random;
         // addUrlParams hook for plugins to add key=value pairs to the log/click URLs
-        $componentParams =  OX_Delivery_Common_hook('addUrlParams', array($aBanner));
+        $componentParams = OX_Delivery_Common_hook('addUrlParams', [$aBanner]);
         if (!empty($componentParams) && is_array($componentParams)) {
             foreach ($componentParams as $params) {
                 if (!empty($params) && is_array($params)) {
@@ -681,33 +757,34 @@ function _adRenderBuildParams($aBanner, $zoneId=0, $source='', $ct0='', $logClic
                 }
             }
         }
-        $maxparams .= $maxdest;
     }
+
     return $maxparams;
 }
 
 /**
  * This function builds the Click through URL for this ad
  *
+ * @deprecated Use _adRenderBuildSignedClickUrl
+ *
  * @param array   $aBanner      The ad-array for the ad to render code for
  * @param int     $zoneId       The zone ID of the zone used to select this ad (if zone-selected)
  * @param string  $source       The "source" parameter passed into the adcall
  * @param string  $ct0          The 3rd party click tracking URL to redirect to after logging
- * @param bookean $logClick     Should this click be logged (clicks in admin should not be logged)
+ * @param boolean $logClick     Should this click be logged (clicks in admin should not be logged)
  * @param boolean $overrideDest Should the URL from the banner override a passed in destination?
  *
  * @return string The click URL
  */
-function _adRenderBuildClickUrl($aBanner, $zoneId=0, $source='', $ct0='', $logClick=true, $overrideDest=false)
+function _adRenderBuildClickUrl($aBanner, $zoneId = 0, $source = '', $ct0 = '', $logClick = true, $overrideDest = false)
 {
     $conf = $GLOBALS['_MAX']['CONF'];
-    $clickUrl = '';
-    if (is_string($logClick)) {
-        $clickUrl = $logClick;
-    } elseif (!empty($aBanner['url']) || $overrideDest) {
-        $clickUrl = MAX_commonGetDeliveryUrl($conf['file']['click']) . '?' . $conf['var']['params'] . '=' . _adRenderBuildParams($aBanner, $zoneId, $source, $ct0, $logClick, true);
+
+    if (empty($aBanner['url']) && !$overrideDest) {
+        return '';
     }
-    return $clickUrl;
+
+    return MAX_commonGetDeliveryUrl($conf['file']['click']) . '?' . $conf['var']['params'] . '=' . _adRenderBuildParams($aBanner, $zoneId, $source, $ct0, $logClick, $overrideDest);
 }
 
 /**
@@ -719,40 +796,12 @@ function _adRenderBuildClickUrl($aBanner, $zoneId=0, $source='', $ct0='', $logCl
  */
 function _adRenderBuildStatusCode($aBanner)
 {
-    return !empty($aBanner['status']) ? " onmouseover=\"self.status='" . addslashes($aBanner['status']) . "'; return true;\" onmouseout=\"self.status=''; return true;\"" : '';
-
+    return empty($aBanner['status']) ? '' : " onmouseover=\"self.status='" . addslashes($aBanner['status']) . "'; return true;\" onmouseout=\"self.status=''; return true;\"";
 }
 
-/**
- * Calculate the minimum plugin version required to display a file with
- * a certain SWF version. Until version 10, all that was needed was a plugin
- * with a matching major version, but until version 23 SWF and plugin
- * versions were following a "custom" scheme involving minor versions too.
- *
- * For more info:
- * http://sleepydesign.blogspot.it/2012/04/flash-swf-version-meaning.html
- * http://blogs.adobe.com/flashplayer/2013/11/new-version-numbering-2.html
- *
- * @param int $swfVersion
- * @return string
- */
-function _adRenderGetRealPluginVersion($swfVersion)
+function _adRenderBuildRelAttribute($aBanner)
 {
-    if ($swfVersion <= 10) {
-        // SWF and plugin major matching
-        $pluginVersion = $swfVersion;
-    } elseif ($swfVersion >= 23) {
-        // No weird versioning anymore... at last, thanks Adobe! ;)
-        $pluginVersion = $swfVersion - 11;
-    } elseif ($swfVersion == 11 || $swfVersion == 12) {
-        // SWF11 -> 10.2, SWF12 -> 10.3
-        $pluginVersion = 10 + ($swfVersion - 9) / 10;
-    } elseif ($swfVersion >= 13 && $swfVersion <= 22) {
-        // SWF13 -> 11.0 until SWF22 -> 11.9
-        $pluginVersion = 11 + ($swfVersion - 13) / 10;
-    }
-
-    return (string)$pluginVersion;
+    return htmlspecialchars($GLOBALS['_MAX']['CONF']['delivery']['relAttribute'] ?? '', ENT_QUOTES);
 }
 
 function _getAdRenderFunction($aBanner, $richMedia = true)
@@ -760,42 +809,35 @@ function _getAdRenderFunction($aBanner, $richMedia = true)
     $functionName = false;
     if (!empty($aBanner['ext_bannertype'])) {
         return OX_Delivery_Common_getFunctionFromComponentIdentifier($aBanner['ext_bannertype'], 'adRender');
-    } else {
-        switch ($aBanner['contenttype']) {
-            case 'gif'  :
-            case 'jpeg' :
-            case 'png'  :
-                $functionName = '_adRenderImage';
-                break;
-            case 'swf'  :
-                if ($richMedia) {
-                    $functionName = '_adRenderFlash';
-                } else {
-                    $functionName = '_adRenderImage';
-                }
-                break;
-            case 'txt'  :
-                    $functionName = '_adRenderText';
-                break;
-            default :
-                switch ($aBanner['type']) {
-                    case 'html' :
-                        $functionName = '_adRenderHtml';
-                        break;
-                    case 'url' : // External banner without a recognised content type - assume image...
-                        $functionName = '_adRenderImage';
-                        break;
-                    case 'txt' :
-                        $functionName = '_adRenderText';
-                        break;
-                    default:
-                        $functionName = '_adRenderHtml';
-                        break;
-                }
-                break;
-        }
     }
+    $functionName = match ($aBanner['contenttype']) {
+        'gif', 'jpeg', 'png', 'webp', 'avif' => '_adRenderImage',
+        'txt' => '_adRenderText',
+        default => match ($aBanner['type']) {
+            'html' => '_adRenderHtml',
+            'url' => '_adRenderImage',
+            'txt' => '_adRenderText',
+            default => '_adRenderHtml',
+        },
+    };
     return $functionName;
 }
 
-?>
+function _adRenderAddPluginMagicMacros(array &$aMagicMacros, array $aBanner, string $code): void
+{
+    $pluginMagicMacros = OX_Delivery_Common_hook('addMagicMacros', [$aBanner, $code]);
+
+    if (!is_array($pluginMagicMacros)) {
+        return;
+    }
+
+    foreach ($pluginMagicMacros as $pluginMagicMacro) {
+        if (!is_array($pluginMagicMacro)) {
+            continue;
+        }
+
+        foreach ($pluginMagicMacro as $key => $value) {
+            $aMagicMacros[$key] = $value;
+        }
+    }
+}

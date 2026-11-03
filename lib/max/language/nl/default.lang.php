@@ -139,7 +139,7 @@ $GLOBALS['strWidth'] = "Breedte";
 $GLOBALS['strHeight'] = "Hoogte";
 $GLOBALS['strTarget'] = "Doel";
 $GLOBALS['strLanguage'] = "Taal";
-$GLOBALS['strDescription'] = "Beschrijving";
+$GLOBALS['strDescription'] = "Omschrijving";
 $GLOBALS['strVariables'] = "Variabelen";
 $GLOBALS['strID'] = "ID";
 $GLOBALS['strComments'] = "Notities";
@@ -159,12 +159,13 @@ $GLOBALS['strUsernameToLink'] = "Gebruikersnaam van toe te voegen gebruiker";
 $GLOBALS['strNewUserWillBeCreated'] = "Nieuwe gebruiker zal worden aangemaakt";
 $GLOBALS['strToLinkProvideEmail'] = "Om een gebruiker toe te voegen, voer het e-mail adres van de gebruiker in";
 $GLOBALS['strToLinkProvideUsername'] = "Om een gebruiker toe te voegen, voer de gebruikersnaam in";
-$GLOBALS['strUserLinkedToAccount'] = "Gebruiker is toegevoegd aan account";
+$GLOBALS['strUserLinkedToAccount'] = "Gebruiker is toegevoegd aan het account";
+$GLOBALS['strUserLinkedAndWelcomeSent'] = "Gebruiker is toegevoegd aan het account. Deze ontvangt een e-mail om het wachtwoord in te stellen.";
 $GLOBALS['strUserAccountUpdated'] = "Gebruikersaccount bijgewerkt";
 $GLOBALS['strUserUnlinkedFromAccount'] = "Gebruiker is verwijderd uit het account";
 $GLOBALS['strUserWasDeleted'] = "Gebruiker is verwijderd";
 $GLOBALS['strUserNotLinkedWithAccount'] = "Deze gebruiker is niet verbonden met dit account";
-$GLOBALS['strCantDeleteOneAdminUser'] = "U kunt deze gebruiker niet verwijderen. Ten minste één gebruiker moet verbonden zijn met het system administrator account.";
+$GLOBALS['strCantDeleteOneAdminUser'] = "U kunt deze gebruiker niet verwijderen. Ten minste één gebruiker moet verbonden zijn met het administrator account.";
 $GLOBALS['strLinkUserHelp'] = "Om een <b>bestaande gebruiker</b> toe te voegen, type de %1\$s en klik %2\$s <br />Om een <b>nieuwe gebruiker</b> toe te voegen, type de gewenste %1\$s en klik %2\$s";
 $GLOBALS['strLinkUserHelpUser'] = "gebruikersnaam";
 $GLOBALS['strLinkUserHelpEmail'] = "E-mail adres";
@@ -180,7 +181,7 @@ $GLOBALS['strAuthentification'] = "Authenticatie";
 $GLOBALS['strWelcomeTo'] = "Welkom bij";
 $GLOBALS['strEnterUsername'] = "Voer uw gebruikersnaam en wachtwoord om in te loggen";
 $GLOBALS['strEnterBoth'] = "Vul zowel uw gebruikersnaam als uw wachtwoord in";
-$GLOBALS['strEnableCookies'] = "U dient cookies te accepteren voor het gebruik van {$PRODUCT_NAME}";
+$GLOBALS['strEnableCookies'] = "U moet cookies inschakelen voordat u {$PRODUCT_NAME} kunt gebruiken";
 $GLOBALS['strSessionIDNotMatch'] = "Cookie error voor deze sessie, gelieve nogmaals in te loggen";
 $GLOBALS['strLogin'] = "Inloggen";
 $GLOBALS['strLogout'] = "Uitloggen";
@@ -190,10 +191,10 @@ $GLOBALS['strPasswordRepeat'] = "Herhaal het wachtwoord";
 $GLOBALS['strAccessDenied'] = "Toegang geweigerd";
 $GLOBALS['strUsernameOrPasswordWrong'] = "De gebruikersnaam en/of het wachtwoord zijn niet juist. Probeer het alstublieft opnieuw.";
 $GLOBALS['strPasswordWrong'] = "Het wachtwoord is niet correct";
-$GLOBALS['strNotAdmin'] = "Uw account beschikt niet over de vereiste toestemming om deze functie te gebruiken, U kunt inloggen op een andere account om dit te gebruiken.";
+$GLOBALS['strNotAdmin'] = "Uw gebruiker beschikt niet over de vereiste toestemming om deze functie te gebruiken, u kunt inloggen met een andere gebruikersnaam om dit te gebruiken.";
 $GLOBALS['strDuplicateClientName'] = "De gebruikersnaam die u wenst is al in gebruik, gelieve een andere gebruikersnaam te gebruiken.";
 $GLOBALS['strInvalidPassword'] = "Het nieuwe wachtwoord is niet geldig, voer een ander wachtwoord in.";
-$GLOBALS['strInvalidEmail'] = "Het e-mail adres is niet correct opgemaakt, voer svp een juist e-mailadres in.";
+$GLOBALS['strInvalidEmail'] = "Het e-mailadres is niet correct geformatteerd. Voer s.v.p. een correct geformatteerd e-mailadres in.";
 $GLOBALS['strNotSamePasswords'] = "De twee wachtwoorden die u ingevoerd heeft zijn niet hetzelfde";
 $GLOBALS['strRepeatPassword'] = "Herhaal het wachtwoord";
 $GLOBALS['strDeadLink'] = "Deze link is ongeldig";
@@ -213,8 +214,8 @@ $GLOBALS['strTotalConversions'] = "Totaal aantal conversies";
 $GLOBALS['strDateTime'] = "Datum tijd";
 $GLOBALS['strTrackerID'] = "Tracker-ID";
 $GLOBALS['strTrackerName'] = "Tracker naam";
-$GLOBALS['strTrackerImageTag'] = "Afbeelding tag";
-$GLOBALS['strTrackerJsTag'] = "Javascript tag";
+$GLOBALS['strTrackerImageTag'] = "Image Tag";
+$GLOBALS['strTrackerJsTag'] = "Javascript Tag";
 $GLOBALS['strTrackerAlwaysAppend'] = "Altijd de toegevoegde code weergeven, zelfs als geen conversie is geconstateerd door de tracker?";
 $GLOBALS['strBanners'] = "Banners";
 $GLOBALS['strCampaigns'] = "Campagnes";
@@ -245,7 +246,7 @@ $GLOBALS['strDayOfWeek'] = "Dag van de week";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
 $GLOBALS['strDayFullNames'][0] = 'zondag';
 $GLOBALS['strDayFullNames'][1] = 'maandag';
@@ -256,7 +257,7 @@ $GLOBALS['strDayFullNames'][5] = 'vrijdag';
 $GLOBALS['strDayFullNames'][6] = 'zaterdag';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
 $GLOBALS['strDayShortCuts'][0] = 'zo';
 $GLOBALS['strDayShortCuts'][1] = 'ma';
@@ -296,9 +297,10 @@ $GLOBALS['strSendDeactivationWarning'] = "Stuur een e-mail wanneer de campagne g
 $GLOBALS['strAllowClientModifyBanner'] = "Deze gebruiker kan zijn eigen banners wijzigen";
 $GLOBALS['strAllowClientDisableBanner'] = "Deze gebruiker kan zijn eigen banners deactiveren";
 $GLOBALS['strAllowClientActivateBanner'] = "Deze gebruiker kan zijn eigen banners activeren";
-$GLOBALS['strAllowCreateAccounts'] = "Sta deze gebruiker toe nieuwe accounts aan te maken";
+$GLOBALS['strAllowCreateAccounts'] = "Deze gebruiker toestaan de gebruikers van dit account te beheren";
 $GLOBALS['strAdvertiserLimitation'] = "Slechts één banner van deze adverteerder op een webpagina weergeven";
 $GLOBALS['strAllowAuditTrailAccess'] = "Deze gebruiker toegang tot het Audit logboek toestaan";
+$GLOBALS['strAllowDeleteItems'] = "Deze gebruiker kan items verwijderen";
 
 // Campaign
 $GLOBALS['strCampaign'] = "Campagne";
@@ -397,7 +399,7 @@ Weet u zeker dat u wilt doorgaan?";
 $GLOBALS['strCampaignWarningNoTarget'] = "Het type van deze campagne is ingesteld op Contract, maar limiet per dag is niet opgegeven. Hierdoor wordt de campagne worden gedeactiveerd en haar banners zal niet worden geleverd tot een geldige limiet per dag is ingesteld.  Weet u zeker dat u wilt doorgaan?";
 $GLOBALS['strCampaignStatusPending'] = "Wachtend";
 $GLOBALS['strCampaignStatusInactive'] = "Niet actief";
-$GLOBALS['strCampaignStatusRunning'] = "Actief";
+$GLOBALS['strCampaignStatusRunning'] = "Lopend";
 $GLOBALS['strCampaignStatusPaused'] = "Gepauzeerd";
 $GLOBALS['strCampaignStatusAwaiting'] = "Wachtend";
 $GLOBALS['strCampaignStatusExpired'] = "Voltooid";
@@ -410,7 +412,7 @@ $GLOBALS['strCampaignStatusDeleted'] = "Verwijderd";
 $GLOBALS['strCampaignType'] = "Campagnetype";
 $GLOBALS['strType'] = "Type";
 $GLOBALS['strContract'] = "Contract";
-$GLOBALS['strOverride'] = "Override";
+$GLOBALS['strOverride'] = "Overstijgend";
 $GLOBALS['strOverrideInfo'] = "Override campagnes zijn een speciaal soort campagnes die specifiek gebruikt worden om
     Remnant en Contract campagnes te verdringen. Override campagnes worden over het algemeen gebruikt met
     specifieke targeting en/of capping regels om er voor te zorgen dat de banners altijd vertoond worden op bepaalde
@@ -478,8 +480,10 @@ $GLOBALS['strBannerHistory'] = "Banner statistieken";
 $GLOBALS['strNoBanners'] = "Er zijn momenteel geen banners gedefinieerd voor deze campagne.";
 $GLOBALS['strNoBannersAddCampaign'] = "Er zijn momenteel geen websites beschikbaar. Om een zone aan te maken, <a href='affiliate-edit.php'>voeg eerst een nieuwe website toe</a> .";
 $GLOBALS['strNoBannersAddAdvertiser'] = "Er zijn momenteel geen banners beschikbaar. Om een banner aan te maken, <a href='affiliate-edit.php'>voeg eerst een nieuwe adverteerder toe</a> .";
-$GLOBALS['strConfirmDeleteBanner'] = "Verwijderen van deze banner zal ook bijbehorende statistieken verwijderen. \nWeet u zeker dat u deze banner wilt verwijderen?";
-$GLOBALS['strConfirmDeleteBanners'] = "Weet u zeker dat u deze banner wilt verwijderen?";
+$GLOBALS['strConfirmDeleteBanner'] = "Verwijderen van deze banner zal ook bijbehorende statistieken verwijderen. 
+nWeet u zeker dat u deze banner wilt verwijderen?";
+$GLOBALS['strConfirmDeleteBanners'] = "Verwijderen van deze banners zal ook bijbehorende statistieken verwijderen. 
+Weet u zeker dat u de geselecteerde banners wilt verwijderen?";
 $GLOBALS['strShowParentCampaigns'] = "Toon bovenliggende campagnes";
 $GLOBALS['strHideParentCampaigns'] = "Verberg bovenliggende campagnes";
 $GLOBALS['strHideInactiveBanners'] = "Verberg niet-actieve banners";
@@ -522,26 +526,20 @@ $GLOBALS['strTextBelow'] = "Tekst onder banner";
 $GLOBALS['strWeight'] = "Gewicht";
 $GLOBALS['strAlt'] = "Alternative tekst";
 $GLOBALS['strStatusText'] = "Status tekst";
+$GLOBALS['strCampaignsWeight'] = "Gewicht van de campagne";
 $GLOBALS['strBannerWeight'] = "Banner gewicht";
+$GLOBALS['strBannersWeight'] = "Gewicht van de banner";
 $GLOBALS['strAdserverTypeGeneric'] = "Generieke HTML Banner";
 $GLOBALS['strDoNotAlterHtml'] = "Breng geen wijzigingen aan in HTML";
 $GLOBALS['strGenericOutputAdServer'] = "Generiek";
-$GLOBALS['strSwfTransparency'] = "Transparante achtergrond toestaan";
 $GLOBALS['strBackToBanners'] = "Terug naar banners";
 $GLOBALS['strUseWyswygHtmlEditor'] = "Gebruik de WYSIWYG HTML editor";
 $GLOBALS['strChangeDefault'] = "Standaard wijzigen";
+$GLOBALS['strBannerNotSslCompliant'] = "Banner bevat niet-HTTPS assets en zal niet worden weergegeven op HTTPS pagina's";
 
 // Banner (advanced)
 $GLOBALS['strBannerPrependHTML'] = "Altijd de volgende HTML-code aan deze banner toevoegen";
 $GLOBALS['strBannerAppendHTML'] = "Altijd de volgende HTML-code aan deze banner toevoegen";
-
-// Banner (swf)
-$GLOBALS['strCheckSWF'] = "Controleer op vaste links in het Flash bestand";
-$GLOBALS['strConvertSWFLinks'] = "Converteer Flash links";
-$GLOBALS['strHardcodedLinks'] = "Hard-coded links";
-$GLOBALS['strConvertSWF'] = "<br />Het Flash bestand dat u zojuist upgeload heeft bevat vaste links. Pas als deze vaste links geconverteerd zijn zal {$PRODUCT_NAME} AdClicks kunnen volgen voor deze banner. Hieronder vindt u een lijst met alle links welke in het Flash bestand aanwezig zijn. Indien u de links wilt converteren, klik dan op <b>Converteer</b>, klik anders op <b>Annuleer</b>.<br /><br />Notitie: Als u klikt op <b>Converteer</b> zal het Flash bestand welke u zojuist geupload heeft veranderd worden. <br />Bewaar het orginele bestand goed. Ongeacht in welke versie de banner gemaakt is, het geconverteerde bestand zal alleen goed te zien zijn met de Flash 4 player (of hoger).<br /><br />";
-$GLOBALS['strCompressSWF'] = "Comprimeer SWF bestand voor versneld downloaden (Flash 6 speler benodigd)";
-$GLOBALS['strOverwriteSource'] = "Overschrijft de Source parameter";
 
 // Display Delviery Rules
 $GLOBALS['strModifyBannerAcl'] = "Uitleveringsbeperkingen";
@@ -578,19 +576,19 @@ $GLOBALS['strDeliveryCappingTotal'] = "in totaal";
 $GLOBALS['strDeliveryCappingSession'] = "per sessie";
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 $GLOBALS['strCappingBanner']['title'] = "Delivery capping per bezoeker";
 $GLOBALS['strCappingBanner']['limit'] = "Limiteer banner vertoningen tot";
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 $GLOBALS['strCappingCampaign']['title'] = "Delivery capping per bezoeker";
 $GLOBALS['strCappingCampaign']['limit'] = "Limiteer campagne vertoningen tot:";
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 $GLOBALS['strCappingZone']['title'] = "Delivery capping per bezoeker";
 $GLOBALS['strCappingZone']['limit'] = "Limiteer zone vertoningen tot:";
@@ -804,26 +802,7 @@ $GLOBALS['strAutoDetect'] = "Automatisch detecteren";
 $GLOBALS['strCacheBusterComment'] = "  * Vervang alle gevallen van {random} door
   * een gegenereerd toevalsgetal (of timestamp).
   *";
-$GLOBALS['strSSLBackupComment'] = "
-  * Het backup image gedeelte van deze tag is gegenereerd voor gebruik op een
-  * pagina zonder SSL. Als deze tag moet worden geplaatst op een SSL pagina, verander dan
-  *   'http://%s/...'
-  * in
-  *   'https://%s/...'
-  *";
-$GLOBALS['strSSLDeliveryComment'] = "
-  * Deze tag is gegenereerd voor gebruik op een pagina zonder SSL. Als deze tag
-  * moet worden geplaatst op een SSL pagina, verander dan
-  *   'http://%s/...'
-  * in
-  *   'https://%s/...'
-  *";
-
-$GLOBALS['strThirdPartyComment'] = "
-  * Vergeet niet om de '{clickurl}' tekst te vervangen door
-  * de klikteller URL als deze advertentie wordt vertoond via een
-  * ad server van een derde partij.
-  *";
+$GLOBALS['strGenerateHttpsTags'] = "Tags genereren met behulp van de HTTPS protocol";
 
 // Errors
 $GLOBALS['strErrorDatabaseConnection'] = "Database verbindingsfout.";
@@ -859,7 +838,6 @@ $GLOBALS['strUnableToChangeZone'] = "Deze wijziging kan niet worden uitgevoerd o
 $GLOBALS['strDatesConflict'] = "Datums van de campagne die u probeert te koppelen overlappen met de datums van een campagne die reeds gekoppeld is ";
 $GLOBALS['strEmailNoDates'] = "Campagnes die gekoppeld zijn aan email zones moeten een begindatum en een einddatum hebben. {$PRODUCT_NAME} zorgt er voor dat op een bepaalde datum maar 1 actieve banner gekoppeld is aan de email zone. Zorg ervoor dat de campagnes die al gekoppeld zijn aan de zone geen overlappende datums hebben met de campagne die u nu probeert te koppelen.";
 $GLOBALS['strWarningInaccurateStats'] = "Sommige van deze statistieken werden geregistreerd in een niet-UTC tijdzone, en worden mogelijk niet weergegeven in de juiste tijdzone.";
-$GLOBALS['strWarningInaccurateReadMore'] = "Lees hier meer over";
 $GLOBALS['strWarningInaccurateReport'] = "Sommige van deze statistieken in dit rapport werden geregistreerd in een niet-UTC tijdzone, en worden mogelijk niet weergegeven in de juiste tijdzone";
 
 //Validation
@@ -872,6 +850,8 @@ $GLOBALS['strGreaterThanZeroField'] = "Moet groter zijn dan 0";
 $GLOBALS['strXGreaterThanZeroField'] = "%s moet groter zijn dan 0";
 $GLOBALS['strXPositiveWholeNumberField'] = "%s moet een positief geheel getal zijn";
 $GLOBALS['strInvalidWebsiteURL'] = "Ongeldige Website URL";
+$GLOBALS['strUploadedRequired'] = "Uploaden van een bestand is vereist";
+$GLOBALS['strUploadedFileTooBig'] = "Het geüploade bestand is te groot. Zorg ervoor dat het kleiner dan %s bytes is";
 
 // Email
 $GLOBALS['strSirMadam'] = "Meneer/mevrouw";
@@ -970,7 +950,7 @@ $GLOBALS['strECPS_short'] = "ECPS";
 $GLOBALS['strID_short'] = "ID";
 $GLOBALS['strRequests_short'] = "Req.";
 $GLOBALS['strImpressions_short'] = "Impr.";
-$GLOBALS['strClicks_short'] = "Klikken";
+$GLOBALS['strClicks_short'] = "Kliks";
 $GLOBALS['strCTR_short'] = "CTR";
 $GLOBALS['strConversions_short'] = "Conv.";
 $GLOBALS['strPendingConversions_short'] = "Wacht. conv.";
@@ -1007,6 +987,8 @@ $GLOBALS['aProductStatus']['UPGRADE_FAILED'] = "UPGRADE IS MISLUKT";
 
 // Agency
 $GLOBALS['strAgencyManagement'] = "Account beheer";
+$GLOBALS['strGlobalAgency'] = 'Accounts';
+$GLOBALS['strAgencyHistory'] = 'Account statistieken';
 $GLOBALS['strAgency'] = "Account";
 $GLOBALS['strAddAgency'] = "Voeg nieuw account toe";
 $GLOBALS['strAddAgency_Key'] = "<u>N</u>ieuw account toevoegen";
@@ -1017,6 +999,9 @@ $GLOBALS['strConfirmDeleteAgency'] = "Weet u zeker dat u dit account wilt verwij
 $GLOBALS['strHideInactiveAgencies'] = "Inactieve accounts verbergen";
 $GLOBALS['strInactiveAgenciesHidden'] = "inactieve account(s) verborgen";
 $GLOBALS['strSwitchAccount'] = "Overschakelen naar dit account";
+$GLOBALS['strAgencyStatusRunning'] = "Actief";
+$GLOBALS['strAgencyStatusInactive'] = "Niet actief";
+$GLOBALS['strAgencyStatusPaused'] = "Opgeschort";
 
 // Channels
 $GLOBALS['strChannel'] = "Verzameling Uitleveringsregels";
@@ -1024,7 +1009,7 @@ $GLOBALS['strChannels'] = "Verzamelingen Uitleveringsregels";
 $GLOBALS['strChannelManagement'] = "Beheer van verzamelingen Uitleveringsregels";
 $GLOBALS['strAddNewChannel'] = "Nieuwe Verzameling Uitleveringsregels";
 $GLOBALS['strAddNewChannel_Key'] = "Voeg <u>n</u>ieuwe Verzameling Uitleveringsregels toe";
-$GLOBALS['strChannelToWebsite'] = "naar website";
+$GLOBALS['strChannelToWebsite'] = "aan website";
 $GLOBALS['strNoChannels'] = "Er bestaan geen verzamelingen uitleveringsregels";
 $GLOBALS['strNoChannelsAddWebsite'] = "Er zijn nu geen verzamelingen uitleveringsregels beschikbaar, omdat er geen websites zijn. Om een verzameling uitleveringsregels te maken, dient u eerst <a href='affiliate-edit.php'>een nieuwe website toe te voegen</a>.";
 $GLOBALS['strEditChannelLimitations'] = "Bewerk de uitleveringsregels voor de verzameling uitleveringsregels";
@@ -1058,22 +1043,88 @@ $GLOBALS['strTrackerTypeCustom'] = "Aangepaste JS code";
 $GLOBALS['strVariableCode'] = "JavaScript tracking-code";
 
 // Password recovery
-$GLOBALS['strForgotPassword'] = "Wachtwoord vergeten?";
-$GLOBALS['strPasswordRecovery'] = "Wachtwoord herstellen";
+$GLOBALS['strForgotPassword'] = "Vraag een wachtwoord reset e-mail aan";
+$GLOBALS['strPasswordRecovery'] = "Wachtwoord opnieuw instellen";
+$GLOBALS['strWelcomePage'] = "Welkom nieuwe gebruiker!";
+$GLOBALS['strWelcomePageText'] = "<b>Welkom bij {$PRODUCT_NAME}.</b><br>Als nieuwe gebruiker, begin met het instellen van uw eerste wachtwoord. Zorg ervoor dat u een veilig en uniek wachtwoord kiest.";
 $GLOBALS['strEmailRequired'] = "E-mail is een verplicht veld";
-$GLOBALS['strPwdRecWrongId'] = "Verkeerde ID";
-$GLOBALS['strPwdRecEnterEmail'] = "Voer hieronder uw e-mail adres in";
+$GLOBALS['strPwdRecWrongExpired'] = "Onjuiste of verlopen link om het wachtwoord te resetten, vraag een nieuwe aan";
+$GLOBALS['strPwdRecEnterEmail'] = "Voer hieronder uw e-mailadres in om een wachtwoord reset e-mail te ontvangen";
 $GLOBALS['strPwdRecEnterPassword'] = "Voer uw nieuwe wachtwoord hieronder in";
-$GLOBALS['strPwdRecResetLink'] = "Wachtwoord reset link";
-$GLOBALS['strPwdRecEmailPwdRecovery'] = "%s wachtwoord herstel";
 $GLOBALS['strProceed'] = "Doorgaan >";
-$GLOBALS['strNotifyPageMessage'] = "Er is een e-mail aan u verstuurd, met daarin een link die u in staat stelt
-                                         uw wachtwoord te herstellen en in te loggen.<br />Het kan enkele minuten duren voordat deze e-mail aankomt.<br />
-                                         Als u de e-mail niet heeft ontvangen, kijk dan svp ook even in uw spam.<br />
+$GLOBALS['strNotifyPageMessage'] = "Er is een e-mail naar u gestuurd, met daarin een link die u in staat stelt
+                                         om uw wachtwoord opnieuw in te stellen.<br />Het kan een paar minuten duren voor de e-ail aankomt.<br />
+                                         Als u de e-mail niet ontvangt, kijk dan alstublieft in uw spam-map.<br />
                                          <a href=\"index.php\">Terug naar de inlogpagina.</a>";
+
+// Password recovery - Default
+$GLOBALS['strPwdRecEmailPwdRecovery'] = "Uw wachtwoord voor %s opnieuw instellen";
+$GLOBALS['strPwdRecEmailBody'] = "Beste {name},
+
+U, of iemand die zich als u voordoet, heeft onlangs gevraagd om uw wachtwoord voor {application_name} opnieuw in te stellen.
+
+Als u dit verzoek zelf heeft gedaan, dan kunt u het wachtwoord voor uw gebruikersnaam '{username}' opnieuw instellen door op de volgende link te klikken:
+
+{reset_link}
+
+Als u dit verzoek om het wachtwoord opnieuw in te stellen per ongeluk heeft gedaan, of als u helemaal geen verzoek heeft gedaan, dan kunt u deze mail gewoon negeren. Er is niets veranderd aan uw wachtwoord en deze password reset link zal vanzelf vervallen.
+
+Als u deze password reset emails blijft ontvangen, dan kan dat er op duiden dat iemand probeert om toegang te krijgen tot uw gebruikersnaam. Neem in dat geval contact op met uw support afdeling of de systeembeheerder van uw {application_name} systeem, en informeer hen over deze situatie.
+
+{admin_signature}";
+
+$GLOBALS['strPwdRecEmailSincerely'] = "Met vriendelijke groet,";
+
+// Password recovery - Welcome email
+$GLOBALS['strWelcomeEmailSubject'] = "Welkom bij %s: stel uw wachtwoord in";
+$GLOBALS['strWelcomeEmailBody'] = "Beste {name},
+
+Er is een gebruikersnaam voor u gemaakt, waardoor u kunt inloggen op {application_name}.
+
+Uw gebruikersnaam is '{username}'.
+
+Om veiligheidsredenen is het wachtwoord voor je gebruikersnaam nog niet ingesteld.
+
+Om uw wachtwoord in te voeren, klikt u op de volgende link:
+
+{reset_link}
+
+Zorg ervoor dat u een veilig en uniek wachtwoord invult.
+
+{admin_signature}";
+
+// Password recovery - Hash update
+$GLOBALS['strPasswordUpdateEmailSubject'] = "Stel alstublieft een nieuw wachtwoord in voor uw gebruikersnaam %s";
+$GLOBALS['strPasswordUpdateEmailBody'] = "Beste {name},
+
+U ontvangt deze email omdat u een gebruikersnaam heeft bij {application_name}.
+
+Onlangs is de {application_name} software bijgewerkt naar een nieuwe versie, die een moderne en veel veiligere method bevat voor het controleren van wachtwoorden. Deze verandering helpt om {application_name} veiliger te maken voor u en voor iedereen die het gebruikt.
+
+Om volledig gebruik te maken van deze verbetering, is uw wachtwoord ongeldig gemaakt. Daarom willen we u nu uitnodigen om een nieuw wachtwoord in te stellen. Tijdens het invoeren van uw nieuwe wachtwoord zult u een gekleurde balk zien die aangeeft hoe sterk uw nieuwe wachtwoord is. Zorg er alstublieft voor dat u een veilig en uniek wachtwoord invoert.
+
+Klik alstublieft op de volgende link, om het nieuwe wachtwoord voor uw gebruikersnaam '{username}' in te stellen:
+
+{reset_link}
+
+Voor extra veiligheid zal de bovenstaande link na enige tijd verlopen. Als de link niet meer geldig is, dan krijgt u de vraag om uw e-mail adres in te vullen, en een regulier wachtwoord-herstel proces op te starten.
+
+Bedankt voor uw hulp om {application_name} veiliger voor iedereen te maken!
+
+{admin_signature}";
+
+// Password reset warning
+$GLOBALS['strPasswordResetRequiredTitle'] = "Belangrijke opmerking over verbeterde wachtwoordbeveiliging";
+$GLOBALS['strPasswordResetRequired'] = "
+Onlangs is de {$PRODUCT_NAME} software bijgewerkt naar een nieuwe versie, die een modernere en veiligere methode voor het opslaan van wachtwoorden invoert. Om in te kunnen loggen en door te gaan met {$PRODUCT_NAME} moet u eerst een nieuw wachtwoord instellen.
+Kijk in uw inbox voor een wachtwoord reset e-mail!
+Een wachtwoord reset e-mail is verstuurd naar het e-mailadres dat gekoppeld is aan uw gebruikersnaam. Open de e-mail en klik op de link erin. Dit geeft een scherm weer dat u in staat stelt uw nieuwe wachtwoord in te voeren.
+Het kan enkele minuten duren voordat de e-mail binnenkomt. Als je de e-mail niet in uw inbox ziet, controleer dan ook uw spammap.";
+$GLOBALS['strPasswordUnsafeWarning'] = "Uw wachtwoord is niet veilig genoeg. <a href='%s'>Verander het alstublieft zo snel mogelijk</a>.";
 
 // Audit
 $GLOBALS['strAdditionalItems'] = "en extra items";
+$GLOBALS['strAuditSystem'] = "Systeem";
 $GLOBALS['strFor'] = "voor";
 $GLOBALS['strHas'] = "heeft";
 $GLOBALS['strBinaryData'] = "Binaire gegevens";
@@ -1103,6 +1154,8 @@ $GLOBALS['strCampaignAuditTrailSetup'] = "Activeer de Audit Trail om campagnes t
 
 $GLOBALS['strUnsavedChanges'] = "U hebt niet-opgeslagen wijzigingen op deze pagina, zorg ervoor dat u klikt op &quot;Wijzigingen opslaan&quot; als u klaar bent";
 $GLOBALS['strDeliveryLimitationsDisagree'] = "Waarschuwing: de opgeslagen uitleveringsregels <strong>zijn niet in overeenstemming</strong> met de uitleveringsregels die hieronder worden getoond<br />Sla de wijzigingen op om de opgeslagen uitleveringsregels bij te werken";
+$GLOBALS['strDeliveryRulesDbError'] = "WAARSCHUWING: bij het opslaan van de uitleveringsregels, is een database fout opgetreden. Controleer de onderstaande uitleveringsregels aub zorgvuldig, en werk deze bij, indien nodig.";
+$GLOBALS['strDeliveryRulesTruncation'] = "WAARSCHUWING: bij het opslaan van de uitleveringsregels, heeft MySQL de data ingekort, waardoor de oorspronkelijke instellingen zijn hersteld. Verklein aub de omvang van uw regels, en probeer het opnieuw.";
 $GLOBALS['strDeliveryLimitationsInputErrors'] = "Sommige Uitleveringsregels rapporten onjuiste waarden:";
 
 //confirmation messages
@@ -1151,6 +1204,7 @@ $GLOBALS['strWebsiteHasBeenAdded'] = "Website <a href='%s'>%s</a> is toegevoegd,
 $GLOBALS['strWebsiteHasBeenUpdated'] = "Website <a href='%s'>%s</a> is bijgewerkt";
 $GLOBALS['strWebsiteHasBeenDeleted'] = "Website <b>%s</b> is verwijderd";
 $GLOBALS['strWebsitesHaveBeenDeleted'] = "Alle geselecteerde website zijn verwijderd";
+$GLOBALS['strWebsiteHasBeenDuplicated'] = "Website <a href='%s'>%s</a> is gekopieerd naar <a href='%s'>%s</a>";
 
 $GLOBALS['strZoneHasBeenAdded'] = "Zone <a href='%s'>%s</a> is toegevoegd";
 $GLOBALS['strZoneHasBeenUpdated'] = "Zone <a href='%s'>%s</a> is bijgewerkt";
@@ -1166,7 +1220,7 @@ $GLOBALS['strZoneRemovedCampaign'] = "Campagne is ontkoppeld van zone <a href='%
 
 $GLOBALS['strChannelHasBeenAdded'] = "Verzameling uitleveringsregels <a href='%s'>%s</a> is toegevoegd. <a href='%s'>Stel de uitleveringsregels in.</a>";
 $GLOBALS['strChannelHasBeenUpdated'] = "Verzameling uitleveringsregels <a href='%s'>%s</a> is bijgewerkt";
-$GLOBALS['strChannelAclHasBeenUpdated'] = "De uitleveringsregels voor de verzameling <a href='%s'>%s</a> zijn bijgewerkt";
+$GLOBALS['strChannelAclHasBeenUpdated'] = "Uitleveringsopties voor de verzameling uitleveringsregels <a href='%s'>%s</a> is bijgewerkt";
 $GLOBALS['strChannelHasBeenDeleted'] = "Verzameling uitleveringsregels <b>%s</b> is verwijderd";
 $GLOBALS['strChannelsHaveBeenDeleted'] = "Alle geselecteerde verzamelingen uitleveringsregels zijn verwijderd";
 $GLOBALS['strChannelHasBeenDuplicated'] = "Verzameling uitleveringsregels <a href='%s'>%s</a> is gekopieerd naar <a href='%s'>%s</a>";
@@ -1181,6 +1235,32 @@ $GLOBALS['strTZPreferencesWarning'] = "Echter, de begindatum en einddatum van de
 // Report error messages
 $GLOBALS['strReportErrorMissingSheets'] = "Voor dit rapport is geen werkblad geselecteerd";
 $GLOBALS['strReportErrorUnknownCode'] = "Onbekende foutcode #";
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+$GLOBALS['strHtml5InvalidFileType'] = "Ongeldig bestandstype: %s";
+$GLOBALS['strHtml5MultipleIndexHtml'] = "Meerdere 'index.html' bestanden gevonden";
+$GLOBALS['strHtml5NoHtml'] = "Geen '*.html' bestand gevonden";
+$GLOBALS['strHtml5MultipleHtml'] = "Meerdere '*.html' bestanden gevonden. Hernoem het hoofdbestand naar 'index.html'";
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+$GLOBALS['strPasswordMinLength'] = 'Min. lengte %d tekens';
+$GLOBALS['strPasswordTooShort'] = "Te kort";
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+$GLOBALS['strPasswordScore'][0] = "Heel slecht";
+$GLOBALS['strPasswordScore'][1] = "Slecht";
+$GLOBALS['strPasswordScore'][2] = "Redelijk";
+$GLOBALS['strPasswordScore'][3] = "Goed";
+$GLOBALS['strPasswordScore'][4] = "Uitstekend";
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */
@@ -1201,7 +1281,7 @@ $GLOBALS['keySearch'] = "z";
 $GLOBALS['keyCollapseAll'] = "u";
 $GLOBALS['keyExpandAll'] = "i";
 $GLOBALS['keyAddNew'] = "v";
-$GLOBALS['keyNext'] = "g";
+$GLOBALS['keyNext'] = "v";
 $GLOBALS['keyPrevious'] = "r";
 $GLOBALS['keyLinkUser'] = "o";
 $GLOBALS['keyWorkingAs'] = "w";

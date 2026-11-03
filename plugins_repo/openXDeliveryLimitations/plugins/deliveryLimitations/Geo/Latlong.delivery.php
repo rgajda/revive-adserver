@@ -26,23 +26,22 @@ require_once MAX_PATH . '/lib/max/other/lib-geo.inc.php';
  * @param array $aParams An array of additional parameters to be checked
  * @return boolean Whether this impression's latitude/longitude passes this limitation's test.
  */
-function MAX_checkGeo_Latlong($limitation, $op, $aParams = array())
+function MAX_checkGeo_Latlong($limitation, $op, $aParams = [])
 {
     if (empty($aParams)) {
         $aParams = $GLOBALS['_MAX']['CLIENT_GEO'];
     }
     if ($aParams && isset($aParams['latitude']) && isset($aParams['longitude'])) {
         $aRegion = MAX_geoReplaceEmptyWithZero(MAX_limitationsGetAFromS($limitation));
-        $result = MAX_geoIsPlaceInRegion(
-            $aParams['latitude'], $aParams['longitude'], $aRegion);
+        $result = MAX_geoIsPointInsideRect(
+            $aParams['latitude'],
+            $aParams['longitude'],
+            $aRegion,
+        );
         if ($op == '==') {
             return $result;
-        } else {
-            return !$result;
         }
-    } else {
-        return ($op != '==');
+        return !$result;
     }
+    return ($op != '==');
 }
-
-?>

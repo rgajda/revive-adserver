@@ -19,13 +19,13 @@ $GLOBALS['strAdministrator'] = "관리자";
 $GLOBALS['strDeleted'] = "삭제";
 $GLOBALS['strDelete'] = "삭제";
 $GLOBALS['strAdvertiser'] = "광고주";
-$GLOBALS['strPublisher'] = "광고게시자";
+$GLOBALS['strPublisher'] = "웹사이트";
 $GLOBALS['strCampaign'] = "캠페인";
 $GLOBALS['strZone'] = "광고영역";
 $GLOBALS['strAction'] = "작업";
 $GLOBALS['strValue'] = "값";
 
 if (!isset($GLOBALS['strUserlog'])) {
-    $GLOBALS['strUserlog'] = array();
+    $GLOBALS['strUserlog'] = [];
 }
 $GLOBALS['strUserlog'][phpAds_actionActivationMailed] = "데이터베이스 자동 정리";

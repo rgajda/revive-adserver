@@ -1,4 +1,5 @@
 <?php
+
 /*
  *    Copyright (c) 2009 Bouncing Minds - Option 3 Ventures Limited
  *
@@ -20,7 +21,7 @@
 
 
 require_once MAX_PATH . '/plugins/bannerTypeHtml/vastInlineBannerTypeHtml/commonDelivery.php';
-if(!is_callable('MAX_adSelect')) {
+if (!is_callable('MAX_adSelect')) {
     require_once MAX_PATH . '/lib/max/Delivery/adSelect.php';
 }
 
@@ -44,7 +45,7 @@ if(!is_callable('MAX_adSelect')) {
  *
  * @return string               The HTML to display this ad
  */
-function Plugin_bannerTypeHtml_vastOverlayBannerTypeHtml_vastOverlayHtml_Delivery_adRender(&$aBanner, $zoneId=0, $source='', $ct0='', $withText=false, $logClick=true, $logView=true, $useAlt=false, $richMedia=true, $loc, $referer)
+function Plugin_bannerTypeHtml_vastOverlayBannerTypeHtml_vastOverlayHtml_Delivery_adRender(&$aBanner, $zoneId = 0, $source = '', $ct0 = '', $withText = false, $logClick = true, $logView = true, $useAlt = false, $richMedia = true, $loc = '', $referer = '')
 {
-   return deliverVastAd('vastOverlay', $aBanner, $zoneId, $source, $ct0, $withText, $logClick, $logView, $useAlt, $richMedia, $loc, $referer);
+    return deliverVastAd('vastOverlay', $aBanner, $zoneId, $source, $ct0, $withText, $logClick, $logView, $useAlt, $richMedia, $loc, $referer);
 }

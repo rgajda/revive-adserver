@@ -16,8 +16,8 @@
  * @package OpenXDal
  */
 
-require_once MAX_PATH.'/lib/OA/Dal.php';
-require_once MAX_PATH.'/lib/max/Plugin.php';
+require_once MAX_PATH . '/lib/OA/Dal.php';
+require_once MAX_PATH . '/lib/max/Plugin.php';
 
 class OA_Dal_PasswordRecovery extends OA_Dal
 {
@@ -27,13 +27,13 @@ class OA_Dal_PasswordRecovery extends OA_Dal
      * @param string e-mail
      * @return array matching users
      */
-    function searchMatchingUsers($email)
+    public function searchMatchingUsers($email)
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doUsers->email_address = $email;
         $doUsers->find();
 
-        $users = array();
+        $users = [];
         while ($doUsers->fetch()) {
             $users[] = $doUsers->toArray();
         }
@@ -42,31 +42,58 @@ class OA_Dal_PasswordRecovery extends OA_Dal
     }
 
     /**
+     * @param int[] $userId
+     */
+    public function searchUsersByIds(array $aUserIds, bool $newUser = false): array
+    {
+        /** @var DataObjects_Users|false $doUser */
+        $doUsers = OA_Dal::factoryDO('users');
+        $doUsers->whereInAdd('user_id', $aUserIds);
+
+        if (!$doUsers->find()) {
+            return [];
+        }
+
+        $aUsers = [];
+
+        while ($doUsers->fetch()) {
+            if ($newUser && '' !== $doUsers->password) {
+                // Not a new user
+                continue;
+            }
+
+            $aUsers[] = $doUsers->toArray();
+        }
+
+        return $aUsers;
+    }
+
+    /**
      * Generate and save a recovery ID for a user
      *
      * @param int user ID
-     * @return array generated recovery ID
+     * @return string generated recovery ID
      */
-    function generateRecoveryId($userId)
+    public function generateRecoveryId($userId)
     {
         $doPwdRecovery = OA_Dal::factoryDO('password_recovery');
-        
+
         // Make sure that recoveryId is unique in password_recovery table
         do {
-            $recoveryId = strtoupper(md5(uniqid('', true)));
-            $recoveryId = substr(chunk_split($recoveryId, 8, '-'), -23, 22);
+            $recoveryId = strtoupper(bin2hex(random_bytes(12)));
+            $recoveryId = substr(chunk_split($recoveryId, 8, "-"), 0, -1);
             $doPwdRecovery->recovery_id = $recoveryId;
-        } while ($doPwdRecovery->find()>0);
+        } while ($doPwdRecovery->find() > 0);
 
         $doPwdRecovery = OA_Dal::factoryDO('password_recovery');
-        $doPwdRecovery->whereAdd('user_id = '.DBC::makeLiteral($userId));
+        $doPwdRecovery->whereAdd('user_id = ' . DBC::makeLiteral($userId));
         $doPwdRecovery->delete(true);
 
         $doPwdRecovery = OA_Dal::factoryDO('password_recovery');
-        $doPwdRecovery->user_type   = 'user';
-        $doPwdRecovery->user_id     = $userId;
+        $doPwdRecovery->user_type = 'user';
+        $doPwdRecovery->user_id = $userId;
         $doPwdRecovery->recovery_id = $recoveryId;
-        $doPwdRecovery->updated     = OA::getNowUTC();
+        $doPwdRecovery->updated = OA::getNowUTC();
 
         $doPwdRecovery->insert();
 
@@ -74,51 +101,54 @@ class OA_Dal_PasswordRecovery extends OA_Dal
     }
 
     /**
-     * Check if recovery ID is valid
-     *
-     * @param string recovery ID
-     * @return bool true if recovery ID is valid
+     * Get Users DO for recovery ID
      */
-    function checkRecoveryId($recoveryId)
+    public function getUserFromRecoveryId(string $recoveryId): ?DataObjects_Users
     {
+        if (empty($recoveryId)) {
+            return null;
+        }
+
+        /** @var DataObjects_Users $doUsers */
+        $doUsers = OA_Dal::factoryDO('users');
+
         $doPwdRecovery = OA_Dal::factoryDO('password_recovery');
         $doPwdRecovery->recovery_id = $recoveryId;
 
-        return (bool)$doPwdRecovery->count();
+        $doUsers->joinAdd($doPwdRecovery);
+
+        $now = OA::getNowUTC();
+        $fourHours = OA_Dal::quoteInterval(4, 'hour');
+        $oneWeek = OA_Dal::quoteInterval(1, 'week');
+
+        $doUsers->whereAdd("updated >= CASE WHEN LENGTH(password) <= 32 THEN DATE_SUB('{$now}', {$oneWeek}) ELSE DATE_SUB('{$now}', {$fourHours}) END");
+
+        if (!$doUsers->find(true)) {
+            return null;
+        }
+
+        return $doUsers;
     }
 
     /**
      * Save the new password in the user properties
      *
+     * @param string user ID
      * @param string recovery ID
      * @param string new password
-     * @return bool Ttrue the new password was correctly saved
      */
-    function saveNewPasswordAndLogin($recoveryId, $password)
+    public function saveNewPasswordAndLogin($userId, $recoveryId, $password)
     {
+        $doPlugin = OA_Auth::staticGetAuthPlugin();
+        $doPlugin->setNewPassword($userId, $password);
+
         $doPwdRecovery = OA_Dal::factoryDO('password_recovery');
         $doPwdRecovery->recovery_id = $recoveryId;
-        $doPwdRecoveryClone = clone($doPwdRecovery);
-        $doPwdRecovery->find();
+        $doPwdRecovery->delete();
 
-        if ($doPwdRecovery->fetch()) {
-            $userId = $doPwdRecovery->user_id;
-            
-            $doPlugin = &OA_Auth::staticGetAuthPlugin();
-            $doPlugin->setNewPassword($userId, $password);
-
-            $doPwdRecoveryClone->delete();
-
-            phpAds_SessionStart();
-            $doUser = OA_Dal::staticGetDO('users', $userId);
-            phpAds_SessionDataRegister(OA_Auth::getSessionData($doUser));
-            phpAds_SessionDataStore();
-
-            return true;
-        }
-
-        return false;
+        phpAds_SessionStart();
+        $doUser = OA_Dal::staticGetDO('users', $userId);
+        phpAds_SessionDataRegister(OA_Auth::getSessionData($doUser));
+        phpAds_SessionDataStore();
     }
 }
-
-?>

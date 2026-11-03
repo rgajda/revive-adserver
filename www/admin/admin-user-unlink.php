@@ -20,7 +20,7 @@ require_once MAX_PATH . '/lib/OA/Session.php';
 require_once MAX_PATH . '/lib/OA/Admin/UI/UserAccess.php';
 
 // Register input variables
-phpAds_registerGlobal ('userid', 'returnurl');
+phpAds_registerGlobal('userid', 'returnurl');
 
 // Security check
 OA_Permission::enforceAccount(OA_ACCOUNT_ADMIN);
@@ -34,10 +34,9 @@ OA_Permission::checkSessionToken();
 /* Main code                                             */
 /*-------------------------------------------------------*/
 
-if (!empty($accountId) && !empty($userid))
-{
+if (!empty($accountId) && !empty($userid)) {
     if (OA_Admin_UI_UserAccess::countNumberOfUserLinkedToAccount($accountId) > 1) {
-        OA_Admin_UI_UserAccess::unlinkUserFromAccount($accountId, $userid);
+        OA_Admin_UI_UserAccess::unlinkUserFromAccount($userid, $accountId);
     } else {
         OA_Session::setMessage($GLOBALS['strCantDeleteOneAdminUser']);
     }
@@ -47,6 +46,4 @@ if (empty($returnurl)) {
     $returnurl = 'admin-access.php';
 }
 
-Header("Location: ".$returnurl);
-
-?>
+Header("Location: " . $returnurl);

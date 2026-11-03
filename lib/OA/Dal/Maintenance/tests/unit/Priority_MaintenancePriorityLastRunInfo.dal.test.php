@@ -25,32 +25,24 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
 class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends UnitTestCase
 {
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Method to test the setMaintenancePriorityLastRunInfo method.
      *
      * Requirements:
      * Test 1: Test with no data in the database, ensure data is correctly stored.
      * Test 2: Test with previous test data in the database, ensure data is correctly stored.
      */
-    function testSetMaintenancePriorityLastRunInfo()
+    public function testSetMaintenancePriorityLastRunInfo()
     {
         // Test relies on transaction numbers, so ensure fresh database used
         TestEnv::restoreEnv('dropTmpTables');
 
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
         // Test 1
         $oStartDate = new Date('2005-06-21 15:00:01');
-        $oEndDate   = new Date('2005-06-21 15:01:01');
+        $oEndDate = new Date('2005-06-21 15:01:01');
         $oUpdatedTo = new Date('2005-06-21 15:59:59');
         $result = $oMaxDalMaintenance->setMaintenancePriorityLastRunInfo($oStartDate, $oEndDate, $oUpdatedTo, DAL_PRIORITY_UPDATE_ECPM);
         $this->assertEqual($result, 1);
@@ -63,7 +55,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
                 run_type,
                 updated_to
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['log_maintenance_priority'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['log_maintenance_priority'], true) . "
             WHERE
                 log_maintenance_priority_id = 1";
         $rc = $oDbh->query($query);
@@ -77,7 +69,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
 
         // Test 2
         $oStartDate = new Date('2005-06-21 16:00:01');
-        $oEndDate   = new Date('2005-06-21 16:01:06');
+        $oEndDate = new Date('2005-06-21 16:01:06');
         $oUpdatedTo = new Date('2005-06-21 16:59:59');
         $result = $oMaxDalMaintenance->setMaintenancePriorityLastRunInfo($oStartDate, $oEndDate, $oUpdatedTo, DAL_PRIORITY_UPDATE_PRIORITY_COMPENSATION);
         $this->assertEqual($result, 1);
@@ -90,7 +82,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
                 run_type,
                 updated_to
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['log_maintenance_priority'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['log_maintenance_priority'], true) . "
             WHERE
                 log_maintenance_priority_id = 1";
         $rc = $oDbh->query($query);
@@ -110,7 +102,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
                 run_type,
                 updated_to
             FROM
-                ".$oDbh->quoteIdentifier($conf['table']['prefix'].$conf['table']['log_maintenance_priority'],true)."
+                " . $oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['log_maintenance_priority'], true) . "
             WHERE
                 log_maintenance_priority_id = 2";
         $rc = $oDbh->query($query);
@@ -122,7 +114,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
         $this->assertEqual($aRow['run_type'], DAL_PRIORITY_UPDATE_PRIORITY_COMPENSATION);
         $this->assertEqual($aRow['updated_to'], '2005-06-21 16:59:59');
 
-        DataGenerator::cleanUp(array('log_maintenance_priority'));
+        DataGenerator::cleanUp(['log_maintenance_priority']);
     }
 
     /**
@@ -134,10 +126,10 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
      * Test 3: Test correct results are returned with multiple data entries.
      * Test 4: Test correct results are returned with multiple run types.
      */
-    function testGetMaintenancePriorityLastRunInfo()
+    public function testGetMaintenancePriorityLastRunInfo()
     {
         $conf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
         // Test 1
@@ -146,7 +138,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
 
         // Test 2
         $oStartDate = new Date('2005-06-21 15:00:01');
-        $oEndDate   = new Date('2005-06-21 15:01:01');
+        $oEndDate = new Date('2005-06-21 15:01:01');
         $oUpdatedTo = new Date('2005-06-21 15:59:59');
         $oMaxDalMaintenance->setMaintenancePriorityLastRunInfo($oStartDate, $oEndDate, $oUpdatedTo, DAL_PRIORITY_UPDATE_ECPM);
         $result = $oMaxDalMaintenance->getMaintenancePriorityLastRunInfo(DAL_PRIORITY_UPDATE_ECPM);
@@ -156,7 +148,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
 
         // Test 3
         $oStartDate = new Date('2005-06-21 14:00:01');
-        $oEndDate   = new Date('2005-06-21 14:01:01');
+        $oEndDate = new Date('2005-06-21 14:01:01');
         $oUpdatedTo = new Date('2005-06-21 14:59:59');
         $oMaxDalMaintenance->setMaintenancePriorityLastRunInfo($oStartDate, $oEndDate, $oUpdatedTo, DAL_PRIORITY_UPDATE_ECPM);
         $result = $oMaxDalMaintenance->getMaintenancePriorityLastRunInfo(DAL_PRIORITY_UPDATE_ECPM);
@@ -164,7 +156,7 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
         $this->assertEqual($result['updated_to'], '2005-06-21 15:59:59');
         $this->assertEqual($result['operation_interval'], $conf['maintenance']['operationInterval']);
         $oStartDate = new Date('2005-06-21 16:00:01');
-        $oEndDate   = new Date('2005-06-21 16:01:01');
+        $oEndDate = new Date('2005-06-21 16:01:01');
         $oUpdatedTo = new Date('2005-06-21 16:59:59');
         $oMaxDalMaintenance->setMaintenancePriorityLastRunInfo($oStartDate, $oEndDate, $oUpdatedTo, DAL_PRIORITY_UPDATE_ECPM);
         $result = $oMaxDalMaintenance->getMaintenancePriorityLastRunInfo(DAL_PRIORITY_UPDATE_ECPM);
@@ -175,9 +167,6 @@ class Test_OA_Dal_Maintenance_Priority_SetMaintenancePriorityLastRunInfo extends
         // Test 4
         $result = $oMaxDalMaintenance->getMaintenancePriorityLastRunInfo(DAL_PRIORITY_UPDATE_PRIORITY_COMPENSATION);
         $this->assertFalse($result);
-        DataGenerator::cleanUp(array('log_maintenance_priority'));
+        DataGenerator::cleanUp(['log_maintenance_priority']);
     }
-
 }
-
-?>

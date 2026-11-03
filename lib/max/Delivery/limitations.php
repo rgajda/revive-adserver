@@ -27,22 +27,20 @@
 function MAX_limitationsCheckAcl($row, $source = '')
 {
     if (!empty($row['compiledlimitation'])) {
-        if (!isset($GLOBALS['_MAX']['FILES']['aIncludedPlugins'])) {
-            $GLOBALS['_MAX']['FILES']['aIncludedPlugins'] = array();
-        }
+        $GLOBALS['_MAX']['FILES']['aIncludedPlugins'] ??= [];
         // Set to true in case of error in eval
         $result = true;
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         // Include required delivery files...
-        if(strlen($row['acl_plugins'])) {
+        if (strlen($row['acl_plugins'])) {
             $acl_plugins = explode(',', $row['acl_plugins']);
             foreach ($acl_plugins as $acl_plugin) {
-                list($extension, $package, $name) = explode(':', $acl_plugin);
+                [$extension, $package, $name] = explode(':', $acl_plugin);
                 $pluginName = MAX_PATH . $aConf['pluginPaths']['plugins'] . "{$extension}/{$package}/{$name}.delivery.php";
                 if (!isset($GLOBALS['_MAX']['FILES']['aIncludedPlugins'][$pluginName])) {
                     // If any of the delivery files doesn't exists don't check the delivery limitations
-                    if (include($pluginName)) {
+                    if (include ($pluginName)) {
                         $GLOBALS['_MAX']['FILES']['aIncludedPlugins'][$pluginName] = true;
                     } else {
                         return true;
@@ -52,9 +50,8 @@ function MAX_limitationsCheckAcl($row, $source = '')
         }
         @eval('$result = (' . $row['compiledlimitation'] . ');');
         return $result;
-    } else {
-        return true;
     }
+    return true;
 }
 
 /**
@@ -76,9 +73,9 @@ function MAX_limitationsIsAdForbidden($aAd)
 {
     $adId = $aAd['ad_id'];
     $campaignId = $aAd['placement_id'];
-    $showCappedNoCookie = (bool)$aAd['show_capped_no_cookie'];
-    return (_limitationsIsAdCapped($adId, $aAd['cap_ad'], $aAd['session_cap_ad'], $aAd['block_ad'], $showCappedNoCookie) ||
-	   _limitationsIsCampaignCapped($campaignId, $aAd['cap_campaign'], $aAd['session_cap_campaign'], $aAd['block_campaign'], $showCappedNoCookie));
+    $showCappedNoCookie = !empty($aAd['show_capped_no_cookie']);
+    return (_limitationsIsAdCapped($adId, $aAd['cap_ad'] ?? 0, $aAd['session_cap_ad'] ?? 0, $aAd['block_ad'] ?? 0, $showCappedNoCookie) ||
+       _limitationsIsCampaignCapped($campaignId, $aAd['cap_campaign'] ?? 0, $aAd['session_cap_campaign'] ?? 0, $aAd['block_campaign'] ?? 0, $showCappedNoCookie));
 }
 
 /**
@@ -98,9 +95,9 @@ function MAX_limitationsIsAdForbidden($aAd)
  */
 function MAX_limitationsIsZoneForbidden($zoneId, $aCapping)
 {
-    $capZone = isset($aCapping['cap_zone']) ? $aCapping['cap_zone'] : null;
-    $sessionCapZone = isset($aCapping['session_cap_zone']) ? $aCapping['session_cap_zone'] : null;
-    $blockZone = isset($aCapping['block_zone']) ? $aCapping['block_zone'] : null;
+    $capZone = $aCapping['cap_zone'] ?? null;
+    $sessionCapZone = $aCapping['session_cap_zone'] ?? null;
+    $blockZone = $aCapping['block_zone'] ?? null;
     $showCappedNoCookie = !empty($aCapping['show_capped_no_cookie_zone']);
     return (_limitationsIsZoneCapped($zoneId, $capZone, $sessionCapZone, $blockZone, $showCappedNoCookie));
 }
@@ -116,9 +113,9 @@ function MAX_limitationsIsZoneForbidden($zoneId, $aCapping)
  *                            to a viewer in a session.
  * @return boolean True if the ad is capped, false otherwise.
  */
-function _limitationsIsAdCapped($adId, $cap, $sessionCap = 0, $block, $showCappedNoCookie)
+function _limitationsIsAdCapped($adId, $cap, $sessionCap, $block, $showCappedNoCookie)
 {
-	return _limitationsIsCapped('Ad', $adId, $cap, $sessionCap, $block, $showCappedNoCookie);
+    return _limitationsIsCapped('Ad', $adId, $cap, $sessionCap, $block, $showCappedNoCookie);
 }
 
 /**
@@ -132,9 +129,9 @@ function _limitationsIsAdCapped($adId, $cap, $sessionCap = 0, $block, $showCappe
  *                            to a viewer in a session.
  * @return boolean True if the ad is capped, false otherwise.
  */
-function _limitationsIsCampaignCapped($campaignId, $cap, $sessionCap = 0, $block, $showCappedNoCookie)
+function _limitationsIsCampaignCapped($campaignId, $cap, $sessionCap, $block, $showCappedNoCookie)
 {
-	return _limitationsIsCapped('Campaign', $campaignId, $cap, $sessionCap, $block, $showCappedNoCookie);
+    return _limitationsIsCapped('Campaign', $campaignId, $cap, $sessionCap, $block, $showCappedNoCookie);
 }
 
 /**
@@ -148,7 +145,7 @@ function _limitationsIsCampaignCapped($campaignId, $cap, $sessionCap = 0, $block
  *                            to a viewer in a session.
  * @return boolean True if the zone is capped, false otherwise.
  */
-function _limitationsIsZoneCapped($zoneId, $cap, $sessionCap = 0, $block, $showCappedNoCookie)
+function _limitationsIsZoneCapped($zoneId, $cap, $sessionCap, $block, $showCappedNoCookie)
 {
     // We set $showCappedNoCookie to false to keep zone capping behaviour the same as
     // in previous versions of OpenX, ie, if a zone is capped, don't show the ad to a
@@ -196,22 +193,14 @@ function _limitationsIsCapped($type, $id, $cap, $sessionCap, $block, $showCapped
     if (isset($_COOKIE[$cookieName][$id])) {
         $lastSeen = $_COOKIE[$cookieName][$id];
     }
-
     // If the ad has been seen the requisite number of times...
     if ((($cap > 0) && isset($totalImpressions) && ($totalImpressions >= $cap)) ||
         (($sessionCap > 0) && isset($sessionImpressions) && ($sessionImpressions >= $sessionCap))) {
-        if ($block > 0 && MAX_commonGetTimeNow() > $lastSeen + $block) {
-            // This ad was last seen outside the block window, so it can now be seen again
-            // The log mechanism will deal with resetting the frequency counter
-            return false;
-        } else {
-            return true;
-        }
-    } else if ($block > 0  && ($cap == 0 && $sessionCap == 0) && MAX_commonGetTimeNow() <= $lastSeen + $block) {
-        return true;
-    } else {
-        return false;
+        // This ad was last seen outside the block window, so it can now be seen again
+        // The log mechanism will deal with resetting the frequency counter
+        return $block <= 0 || MAX_commonGetTimeNow() <= $lastSeen + $block;
     }
+    return $block > 0 && ($cap == 0 && $sessionCap == 0) && MAX_commonGetTimeNow() <= $lastSeen + $block;
 }
 
 /**
@@ -219,6 +208,9 @@ function _limitationsIsCapped($type, $id, $cap, $sessionCap, $block, $showCapped
  *
  * Works by testing to see if the MAX_cookieGetUniqueViewerID() function
  * has been able to set a cookie, or not.
+ *
+ * If cookies have been disabled via the specific setting, pretend the client
+ * supports them.
  *
  * It is a pre-condition of this function that the MAX_cookieGetUniqueViewerID()
  * function have already been called, as this function does not attempt to
@@ -231,8 +223,11 @@ function _limitationsIsCapped($type, $id, $cap, $sessionCap, $block, $showCapped
  */
 function _areCookiesDisabled($filterActive = true)
 {
+    if (!empty($GLOBALS['_MAX']['CONF']['cookie']['disabled'])) {
+        //
+        return false;
+    }
+
     // Since MAX_cookieGetUniqueViewerID() has to have been called by this point
     return !empty($GLOBALS['_MAX']['COOKIE']['newViewerId']) && $filterActive;
 }
-
-?>

@@ -78,7 +78,9 @@ $GLOBALS['strDaysLeft'] = "Ngày còn lại";
 $GLOBALS['strCheckAllNone'] = "Chọn tất cả/Bỏ chọn";
 $GLOBALS['strKiloByte'] = "KB";
 $GLOBALS['strExpandAll'] = "Xây dựng";
+$GLOBALS['strCollapseAll'] = "<u>T</u>hu gọn tất cả";
 $GLOBALS['strShowAll'] = "Hiện Tất cả";
+$GLOBALS['strNoAdminInterface'] = "Màn hình quản trị đã được tắt để bảo trì.  Điều này không ảnh hưởng đến việc phân phối các chiến dịch của bạn.";
 $GLOBALS['strFieldStartDateBeforeEnd'] = "Ngày Bắt đầu phải lớn hơn ngày Kết thúc";
 $GLOBALS['strFieldContainsErrors'] = "Các trường sau đây lỗi:";
 $GLOBALS['strFieldFixBeforeContinue1'] = "Trước khi bạn có thể tiếp tục bạn cần";
@@ -111,6 +113,11 @@ $GLOBALS['strPriority'] = "Độ ưu tiên";
 $GLOBALS['strPriorityLevel'] = "Mức độ ưu tiên";
 $GLOBALS['strOverrideAds'] = "Ghi đè lên các chiến dịch quảng cáo";
 $GLOBALS['strHighAds'] = "Hợp đồng chiến dịch quảng cáo độc quyền";
+$GLOBALS['strECPMAds'] = "eCPM Chiến dịch quảng cáo";
+$GLOBALS['strLowAds'] = "Chiến dịch quảng cáo còn lại";
+$GLOBALS['strLimitations'] = "Quy tắc giao hàng";
+$GLOBALS['strNoLimitations'] = "Không có quy tắc giao hàng";
+$GLOBALS['strCapping'] = "Đóng nắp";
 
 // Properties
 $GLOBALS['strName'] = "Tên";
@@ -139,9 +146,7 @@ $GLOBALS['strUsernameToLink'] = "Tên người dùng của người dùng để 
 $GLOBALS['strNewUserWillBeCreated'] = "Người dùng mới sẽ được tạo ra";
 $GLOBALS['strToLinkProvideEmail'] = "Để thêm người sử dụng, cung cấp thư điện tử của người dùng";
 $GLOBALS['strToLinkProvideUsername'] = "Để thêm người sử dụng, cung cấp tên người dùng";
-$GLOBALS['strUserLinkedToAccount'] = "Người dùng đã được thêm vào tài khoản";
 $GLOBALS['strUserAccountUpdated'] = "Trương mục người dùng Cập Nhật";
-$GLOBALS['strUserUnlinkedFromAccount'] = "Người dùng đã được removed thành công";
 $GLOBALS['strUserWasDeleted'] = "Người dùng đã bị xóa";
 $GLOBALS['strLinkUserHelpEmail'] = "địa chỉ Email";
 $GLOBALS['strLastLoggedIn'] = "Lần đăng nhập cuối";
@@ -166,7 +171,6 @@ $GLOBALS['strPasswordRepeat'] = "Nhập lại mật khẩu";
 $GLOBALS['strAccessDenied'] = "Truy cập bị từ chối";
 $GLOBALS['strUsernameOrPasswordWrong'] = "Tên đăng nhập hoặc mật khẩu không được chính xác. Xin vui lòng thử lại.";
 $GLOBALS['strPasswordWrong'] = "Mật khẩu không chính xác";
-$GLOBALS['strNotAdmin'] = "Tài khoản của bạn không có quyền để sử dụng tính năng này, bạn có thể đăng nhập vào các tài khoản khác để sử dụng nó.";
 $GLOBALS['strDuplicateClientName'] = "Tên đăng nhập đã tồn tại. Vui lòng chọn tên đăng nhập khác.";
 
 // General advertising
@@ -183,7 +187,7 @@ $GLOBALS['strDayOfWeek'] = "Ngày trong tuần";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
 $GLOBALS['strDayFullNames'][0] = 'Chủ Nhật';
 $GLOBALS['strDayFullNames'][1] = 'Thứ hai';
@@ -194,7 +198,7 @@ $GLOBALS['strDayFullNames'][5] = 'Thứ Sáu';
 $GLOBALS['strDayFullNames'][6] = 'Thứ Bảy';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
 $GLOBALS['strDayShortCuts'][0] = 'Chủ nhật';
 $GLOBALS['strDayShortCuts'][1] = 'Thứ hai';
@@ -235,21 +239,19 @@ $GLOBALS['strHiddenAdvertiser'] = "Nhà quảng cáo";
 
 // Banner (advanced)
 
-// Banner (swf)
-
 // Display Delviery Rules
 
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 
 // Website
@@ -286,7 +288,6 @@ $GLOBALS['strBreakdownByHour'] = "Giờ";
 
 // Code generation
 
-
 // Errors
 
 //Validation
@@ -316,6 +317,15 @@ $GLOBALS['strVariableDescription'] = "Mô tả";
 
 // Password recovery
 
+// Password recovery - Default
+
+
+// Password recovery - Welcome email
+
+// Password recovery - Hash update
+
+// Password reset warning
+
 // Audit
 
 // Widget - Audit
@@ -336,6 +346,21 @@ $GLOBALS['strVariableDescription'] = "Mô tả";
 
 
 // Report error messages
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

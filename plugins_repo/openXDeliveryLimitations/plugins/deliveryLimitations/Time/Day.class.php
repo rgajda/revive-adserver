@@ -10,7 +10,7 @@
 +---------------------------------------------------------------------------+
 */
 
-require_once dirname(__FILE__) . '/AbstractTimePlugin.php';
+require_once __DIR__ . '/AbstractTimePlugin.php';
 require_once MAX_PATH . '/lib/max/Plugin/Translation.php';
 require_once MAX_PATH . '/lib/max/Delivery/limitations.delivery.php';
 require_once MAX_PATH . '/lib/OA/Maintenance/Priority/DeliveryLimitation/Common.php';
@@ -33,12 +33,10 @@ class Plugins_DeliveryLimitations_Time_Day extends Plugins_DeliveryLimitations_A
 {
     /**
      * Calls the parent constructor with the values of 0 and 6.
-     *
-     * @return Plugins_DeliveryLimitations_Time_Day
      */
-    function __construct()
+    public function __construct()
     {
-        $this->Plugins_DeliveryLimitations_Time_Base(0, 6);
+        parent::__construct(0, 6);
 
         $this->nameEnglish = 'Time - Day of week';
     }
@@ -48,7 +46,7 @@ class Plugins_DeliveryLimitations_Time_Day extends Plugins_DeliveryLimitations_A
      *
      * @return boolean
      */
-    function isAllowed($page = false)
+    public function isAllowed($page = false)
     {
         return ($page != 'channel-acl.php');
     }
@@ -58,17 +56,23 @@ class Plugins_DeliveryLimitations_Time_Day extends Plugins_DeliveryLimitations_A
      *
      * @return void
      */
-    function displayArrayData()
+    public function displayArrayData()
     {
-        $tabindex =& $GLOBALS['tabindex'];
+        $tabindex = &$GLOBALS['tabindex'];
         echo "<table width='275' cellpadding='0' cellspacing='0' border='0'>";
-		for ($i = 0; $i < 7; $i++) {
-			if ($i % 4 == 0) echo "<tr>";
-			echo "<td><input type='checkbox' name='acl[{$this->executionorder}][data][]' value='$i'".(in_array($i, $this->data) ? ' CHECKED' : '')." tabindex='".($tabindex++)."'>&nbsp;{$this->res[$i]}&nbsp;&nbsp;</td>";
-			if (($i + 1) % 4 == 0) echo "</tr>";
-		}
-		if (($i + 1) % 4 != 0) echo "</tr>";
-		echo "</table>";
+        for ($i = 0; $i < 7; $i++) {
+            if ($i % 4 == 0) {
+                echo "<tr>";
+            }
+            echo "<td><input type='checkbox' name='acl[{$this->executionorder}][data][]' value='$i'" . (in_array($i, $this->data) ? ' CHECKED' : '') . " tabindex='" . ($tabindex++) . "'>&nbsp;{$this->res[$i]}&nbsp;&nbsp;</td>";
+            if (($i + 1) % 4 == 0) {
+                echo "</tr>";
+            }
+        }
+        if (($i + 1) % 4 != 0) {
+            echo "</tr>";
+        }
+        echo "</table>";
     }
 
     /**
@@ -76,10 +80,8 @@ class Plugins_DeliveryLimitations_Time_Day extends Plugins_DeliveryLimitations_A
      *
      * @param unknown_type $aDeliveryLimitation
      */
-    function getMpeClassInstance($aDeliveryLimitation)
+    public function getMpeClassInstance($aDeliveryLimitation)
     {
         return new OA_Maintenance_Priority_DeliveryLimitation_Common($aDeliveryLimitation);
     }
 }
-
-?>

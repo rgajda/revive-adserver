@@ -11,42 +11,59 @@
  */
 
 // Installer translation strings
+$GLOBALS['strInstall'] = "Installer";
+$GLOBALS['strDatabaseSettings'] = "Databaseinnstillinger";
+$GLOBALS['strAdminAccount'] = "Administratorkonto";
+$GLOBALS['strAdvancedSettings'] = "Avanserte innstillinger";
+$GLOBALS['strWarning'] = "Advarsel";
+$GLOBALS['strBtnContinue'] = "Fortsett »";
+$GLOBALS['strBtnRecover'] = "Gjenskap »";
+$GLOBALS['strBtnAgree'] = "Jeg godtar »";
+$GLOBALS['strBtnRetry'] = "Prøv på nytt";
 
 
 
 
 
 
+$GLOBALS['strUpgrade'] = "Oppgrader";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
 /* ------------------------------------------------------- */
 
 // Global
-$GLOBALS['strEditConfigNotPossible'] = "It is not possible to edit all settings because the configuration file is locked for security reasons. " .
-    "If you want to make changes, you may need to unlock the configuration file for this installation first.";
-$GLOBALS['strEditConfigPossible'] = "It is possible to edit all settings because the configuration file is not locked, but this could lead to security issues. " .
-    "If you want to secure your system, you need to lock the configuration file for this installation.";
 
 // Configuration Settings
+$GLOBALS['strConfigurationSettings'] = "Konfigurasjonsinnstillinger";
 
 // Administrator Settings
+$GLOBALS['strInvalidUsername'] = "Ugyldig brukernavn";
+$GLOBALS['strBasicInformation'] = "Grunnleggende informasjon";
+$GLOBALS['strTimezone'] = "Tidssone";
 
 // Database Settings
+$GLOBALS['strDatabaseSettings'] = "Databaseinnstillinger";
 
 // Email Settings
+
+// Security settings
 
 // Audit Trail Settings
 
 // Debug Logging Settings
 
 // Delivery Settings
+$GLOBALS['strTypeFTPUsername'] = "Logg inn";
+$GLOBALS['strTypeFTPPassword'] = "Passord";
 
 // General Settings
 
 // Geotargeting Settings
 
 // Interface Settings
+$GLOBALS['strInventory'] = "Beholdning";
+$GLOBALS['strStatisticsDefaults'] = "Statistikk";
 
 // Invocation Settings
 

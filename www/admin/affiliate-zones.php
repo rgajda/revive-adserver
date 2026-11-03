@@ -25,7 +25,7 @@ require_once MAX_PATH . '/lib/max/other/html.php';
 require_once RV_PATH . '/lib/RV/Admin/DateTimeFormat.php';
 
 // Register input variables
-phpAds_registerGlobal ('listorder', 'orderdirection');
+phpAds_registerGlobal('listorder', 'orderdirection');
 
 /*-------------------------------------------------------*/
 /* Affiliate interface security                          */
@@ -42,7 +42,8 @@ if (!empty($affiliateid) && !OA_Permission::hasAccessToObject('affiliates', $aff
 
 //get websites and set the current one
 $aWebsites = getWebsiteMap();
-if (empty($affiliateid)) { //if it's empty
+if (empty($affiliateid)) {
+    //if it's empty
     if ($session['prefs']['inventory_entities'][OA_Permission::getEntityId()]['affiliateid']) {
         //try previous one from session
         $sessionWebsiteId = $session['prefs']['inventory_entities'][OA_Permission::getEntityId()]['affiliateid'];
@@ -52,14 +53,12 @@ if (empty($affiliateid)) { //if it's empty
     }
     if (empty($affiliateid)) { //was empty, is still empty - just pick one, no need for redirect
         $ids = array_keys($aWebsites);
-        $affiliateid = !empty($ids) ? $ids[0] : -1; //if no websites set to non-existent id
+        $affiliateid = empty($ids) ? -1 : $ids[0]; //if no websites set to non-existent id
     }
-}
-else {
-    if (!isset($aWebsites[$affiliateid])) { //bad id, redirect
-        $page = basename($_SERVER['SCRIPT_NAME']);
-        OX_Admin_Redirect::redirect($page);
-    }
+} elseif (!isset($aWebsites[$affiliateid])) {
+    //bad id, redirect
+    $page = basename($_SERVER['SCRIPT_NAME']);
+    OX_Admin_Redirect::redirect($page);
 }
 
 
@@ -87,12 +86,11 @@ if (!isset($orderdirection)) {
 /* HTML framework                                        */
 /*-------------------------------------------------------*/
 
-$oHeaderModel = buildHeaderModel($affiliateid);
+$oHeaderModel = buildAffiliateZonesHeaderModel($affiliateid);
 if (OA_Permission::isAccount(OA_ACCOUNT_MANAGER)) {
     phpAds_PageHeader(null, $oHeaderModel);
-}
-else {
-    $sections = array("2.1");
+} else {
+    $sections = ["2.1"];
     phpAds_PageHeader(null, $oHeaderModel);
 }
 
@@ -112,23 +110,19 @@ $doZones->affiliateid = $affiliateid;
 $doZones->addListorderBy($listorder, $orderdirection);
 $doZones->find();
 
-$aZones = array();
+$aZones = [];
 while ($doZones->fetch() && $row_zones = $doZones->toArray()) {
-	$aZones[$row_zones['zoneid']] = $row_zones;
-	$aZones[$row_zones['zoneid']]['lowPriorityWarning'] = false;
+    $aZones[$row_zones['zoneid']] = $row_zones;
+    $aZones[$row_zones['zoneid']]['lowPriorityWarning'] = false;
 
     MAX_Dal_Delivery_Include();
     $aZoneAds = OA_Dal_Delivery_getZoneLinkedAds($row_zones['zoneid']);
 
     if ($aZoneAds['count_active'] > 0 && $row_zones['delivery'] == phpAds_ZoneBanner && count($aZoneAds['lAds']) == 0) {
-		$aZones[$row_zones['zoneid']]['lowPriorityWarning'] = true;
-	}
-
-	$aZones[$row_zones['zoneid']]['active'] = $aZoneAds['count_active'] > 0;
-
-    if (!empty($row_zones['updated'])) {
-        $aZones[$row_zones['zoneid']]['updated'] = RV_Admin_DateTimeFormat::formatUTCDateTime($row_zones['updated']);
+        $aZones[$row_zones['zoneid']]['lowPriorityWarning'] = true;
     }
+
+    $aZones[$row_zones['zoneid']]['active'] = $aZoneAds['count_active'] > 0;
 }
 
 $oTpl->assign('affiliateId', $affiliateid);
@@ -137,11 +131,17 @@ $oTpl->assign('aZones', $aZones);
 $oTpl->assign('listorder', $listorder);
 $oTpl->assign('orderdirection', $orderdirection);
 
-$oTpl->assign('canAdd', OA_Permission::isAccount(OA_ACCOUNT_ADMIN) || OA_Permission::isAccount(OA_ACCOUNT_MANAGER) || OA_Permission::hasPermission(OA_PERM_ZONE_ADD));
-$oTpl->assign('canEdit', OA_Permission::isAccount(OA_ACCOUNT_ADMIN) || OA_Permission::isAccount(OA_ACCOUNT_MANAGER) || OA_Permission::hasPermission(OA_PERM_ZONE_EDIT));
-$oTpl->assign('canLink', OA_Permission::isAccount(OA_ACCOUNT_ADMIN) || OA_Permission::isAccount(OA_ACCOUNT_MANAGER) || OA_Permission::hasPermission(OA_PERM_ZONE_LINK));
-$oTpl->assign('canInvocation', OA_Permission::isAccount(OA_ACCOUNT_ADMIN) || OA_Permission::isAccount(OA_ACCOUNT_MANAGER) || OA_Permission::hasPermission(OA_PERM_ZONE_INVOCATION));
-$oTpl->assign('canDelete', OA_Permission::isAccount(OA_ACCOUNT_ADMIN) || OA_Permission::isAccount(OA_ACCOUNT_MANAGER) || OA_Permission::hasPermission(OA_PERM_ZONE_DELETE));
+$isTrafficker = OA_Permission::isAccount(OA_ACCOUNT_TRAFFICKER);
+
+$oTpl->assign('canAdd', !$isTrafficker || OA_Permission::hasPermission(OA_PERM_ZONE_ADD));
+$oTpl->assign('canEdit', !$isTrafficker || OA_Permission::hasPermission(OA_PERM_ZONE_EDIT));
+$oTpl->assign('canLink', !$isTrafficker || OA_Permission::hasPermission(OA_PERM_ZONE_LINK));
+$oTpl->assign('canInvocation', !$isTrafficker || OA_Permission::hasPermission(OA_PERM_ZONE_INVOCATION));
+$oTpl->assign(
+    'canDelete',
+    ($isTrafficker && OA_Permission::hasPermission(OA_PERM_ZONE_DELETE)) ||
+    (!$isTrafficker && OA_Permission::hasPermission(OA_PERM_MANAGER_DELETE)),
+);
 
 
 /*-------------------------------------------------------*/
@@ -163,7 +163,7 @@ $oTpl->display();
 phpAds_PageFooter();
 
 
-function buildHeaderModel($websiteId)
+function buildAffiliateZonesHeaderModel($websiteId)
 {
     if ($websiteId) {
         $doAffiliates = OA_Dal::factoryDO('affiliates');
@@ -177,13 +177,13 @@ function buildHeaderModel($websiteId)
         }
     }
     $builder = new OA_Admin_UI_Model_InventoryPageHeaderModelBuilder();
-    $oHeaderModel = $builder->buildEntityHeader(array(
-        array ('name' => $websiteName, 'url' => $websiteEditUrl,
-               'id' => $websiteId, 'entities' => getWebsiteMap(),
-               'htmlName' => 'affiliateid'
-              ),
-        array('name' => '')
-    ), 'zones', 'list');
+    $oHeaderModel = $builder->buildEntityHeader([
+        ['name' => $websiteName, 'url' => $websiteEditUrl,
+            'id' => $websiteId, 'entities' => getWebsiteMap(),
+            'htmlName' => 'affiliateid',
+        ],
+        ['name' => ''],
+    ], 'zones', 'list');
 
     return $oHeaderModel;
 }
@@ -200,13 +200,11 @@ function getWebsiteMap()
     }
     $doAffiliates->find();
 
-    $aWebsiteMap = array();
+    $aWebsiteMap = [];
     while ($doAffiliates->fetch() && $row = $doAffiliates->toArray()) {
-        $aWebsiteMap[$row['affiliateid']] = array('name' => $row['name'],
-            'url' => "affiliate-edit.php?affiliateid=".$row['affiliateid']);
+        $aWebsiteMap[$row['affiliateid']] = ['name' => $row['name'],
+            'url' => "affiliate-edit.php?affiliateid=" . $row['affiliateid']];
     }
 
     return $aWebsiteMap;
 }
-
-?>

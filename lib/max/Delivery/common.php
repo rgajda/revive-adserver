@@ -12,7 +12,7 @@
 
 $file = '/lib/max/Delivery/common.php';
 ###START_STRIP_DELIVERY
-if(isset($GLOBALS['_MAX']['FILES'][$file])) {
+if (isset($GLOBALS['_MAX']['FILES'][$file])) {
     return;
 }
 ###END_STRIP_DELIVERY
@@ -39,27 +39,29 @@ require_once MAX_PATH . '/lib/max/Delivery/log.php';
  * @param string $file Optional delivery file name.
  * @return string The delivery URL.
  */
-function MAX_commonGetDeliveryUrl($file = null)
+function MAX_commonGetDeliveryUrl($file = '')
 {
     $conf = $GLOBALS['_MAX']['CONF'];
     if ($GLOBALS['_MAX']['SSL_REQUEST']) {
-        $url = MAX_commonConstructSecureDeliveryUrl($file);
-    } else {
-        $url = MAX_commonConstructDeliveryUrl($file);
+        return MAX_commonConstructSecureDeliveryUrl($file);
     }
-    return $url;
+    return MAX_commonConstructDeliveryUrl($file);
 }
 
 /**
  * A function to generate the URL for delivery scripts.
  *
  * @param string $file The file name of the delivery script.
+ * @param bool $secure Use HTTPS
  * @return string The URL to the delivery script.
  */
-function MAX_commonConstructDeliveryUrl($file)
+function MAX_commonConstructDeliveryUrl($file, bool $secure = false)
 {
-        $conf = $GLOBALS['_MAX']['CONF'];
-        return 'http://' . $conf['webpath']['delivery'] . '/' . $file;
+    if ($secure) {
+        return MAX_commonConstructSecureDeliveryUrl($file);
+    }
+
+    return 'http://' . $GLOBALS['_MAX']['CONF']['webpath']['delivery'] . '/' . $file;
 }
 
 /**
@@ -70,14 +72,14 @@ function MAX_commonConstructDeliveryUrl($file)
  */
 function MAX_commonConstructSecureDeliveryUrl($file)
 {
-        $conf = $GLOBALS['_MAX']['CONF'];
-        if ($conf['openads']['sslPort'] != 443) {
-            // Fix the delivery host
-            $path = preg_replace('#/#', ':' . $conf['openads']['sslPort'] . '/', $conf['webpath']['deliverySSL'], 1);
-        } else {
-            $path = $conf['webpath']['deliverySSL'];
-        }
-        return 'https://' . $path . '/' . $file;
+    $conf = $GLOBALS['_MAX']['CONF'];
+    if ($conf['openads']['sslPort'] != 443) {
+        // Fix the delivery host
+        $path = preg_replace('#/#', ':' . $conf['openads']['sslPort'] . '/', $conf['webpath']['deliverySSL'], 1);
+    } else {
+        $path = $conf['webpath']['deliverySSL'];
+    }
+    return 'https://' . $path . '/' . $file;
 }
 
 /**
@@ -90,12 +92,11 @@ function MAX_commonConstructSecureDeliveryUrl($file)
  */
 function MAX_commonConstructPartialDeliveryUrl($file, $ssl = false)
 {
-        $conf = $GLOBALS['_MAX']['CONF'];
-        if ($ssl) {
-            return '//' . $conf['webpath']['deliverySSL'] . '/' . $file;
-        } else {
-            return '//' . $conf['webpath']['delivery'] . '/' . $file;
-        }
+    $conf = $GLOBALS['_MAX']['CONF'];
+    if ($ssl) {
+        return '//' . $conf['webpath']['deliverySSL'] . '/' . $file;
+    }
+    return '//' . $conf['webpath']['delivery'] . '/' . $file;
 }
 
 /**
@@ -106,95 +107,58 @@ function MAX_commonConstructPartialDeliveryUrl($file, $ssl = false)
  * 4.  Remove any white space
  *
  * @access  public
- * @param   string $var  The variable to process.
+ * @param   string|array $var  The variable to process.
+ *
  * @return  string       $var, minus any special quotes.
  */
 function MAX_commonRemoveSpecialChars(&$var)
 {
-    static $magicQuotes;
-    if (!isset($magicQuotes)) {
-        $magicQuotes = get_magic_quotes_gpc();
-    }
     if (isset($var)) {
         if (!is_array($var)) {
-            if ($magicQuotes) {
-                $var = stripslashes($var);
-            }
             $var = strip_tags($var);
-            $var = str_replace(array("\n", "\r"), array('', ''), $var);
+            $var = str_replace(["\n", "\r"], ['', ''], $var);
             $var = trim($var);
         } else {
-            array_walk($var, 'MAX_commonRemoveSpecialChars');
+            array_walk($var, MAX_commonRemoveSpecialChars(...));
         }
     }
 }
 
 /**
- * A function to convert a string from one encoding to another using any available extensions
- * returns the string unchanged if no suitable libraries are available
+ * Convert a string's encoding using intl, returning the original on failure.
  *
  * The function will recursively walk arrays.
  *
- * @param mixed  $content The string to be converted, or an array
+ * @param string|array $content The string or array to be converted
  * @param string $toEncoding The destination encoding
- * @param string $fromEncoding The source encoding (if known)
- * @param string $aExtensions An array of engines to be used, currently supported are iconv, mbstrng, xml.
- * @return string The converted string
+ * @param string $fromEncoding The source encoding
+ * @return string|array The converted content
  */
-function MAX_commonConvertEncoding($content, $toEncoding, $fromEncoding = 'UTF-8', $aExtensions = null) {
-    // Sanity check :)
+function MAX_commonConvertEncoding($content, $toEncoding, $fromEncoding = 'UTF-8')
+{
     if (($toEncoding == $fromEncoding) || empty($toEncoding)) {
         return $content;
     }
-    // Default extensions
-    if (!isset($aExtensions) || !is_array($aExtensions)) {
-        $aExtensions = array('iconv', 'mbstring', 'xml');
-    }
-    // Walk arrays
+
     if (is_array($content)) {
         foreach ($content as $key => $value) {
-            $content[$key] = MAX_commonConvertEncoding($value, $toEncoding, $fromEncoding, $aExtensions);
+            $content[$key] = MAX_commonConvertEncoding($value, $toEncoding, $fromEncoding);
         }
-        return $content;
-    } else {
-        // Uppercase charsets
-        $toEncoding   = strtoupper($toEncoding);
-        $fromEncoding = strtoupper($fromEncoding);
 
-        // Charset mapping
-        $aMap = array();
-        $aMap['mbstring']['WINDOWS-1255'] = 'ISO-8859-8'; // Best match to convert hebrew w/ mbstring
-        $aMap['xml']['ISO-8859-15'] = 'ISO-8859-1'; // Best match
-        // Start conversion
-        $converted = false;
-        foreach ($aExtensions as $extension) {
-            $mappedFromEncoding = isset($aMap[$extension][$fromEncoding]) ? $aMap[$extension][$fromEncoding] : $fromEncoding;
-            $mappedToEncoding   = isset($aMap[$extension][$toEncoding])   ? $aMap[$extension][$toEncoding]   : $toEncoding;
-            switch ($extension) {
-                case 'iconv':
-                    if (function_exists('iconv')) {
-                        $converted = @iconv($mappedFromEncoding, $mappedToEncoding, $content);
-                    }
-                    break;
-                case 'mbstring':
-                    if (function_exists('mb_convert_encoding')) {
-                        $converted = @mb_convert_encoding($content, $mappedToEncoding, $mappedFromEncoding);
-                    }
-                    break;
-                case 'xml':
-                    if (function_exists('utf8_encode')) {
-                        // Does this actually help us at all? it can only convert between UTF8 and ISO-8859-1
-                        if ($mappedToEncoding == 'UTF-8' && $mappedFromEncoding == 'ISO-8859-1') {
-                            $converted = utf8_encode($content);
-                        } elseif ($mappedToEncoding == 'ISO-8859-1' && $mappedFromEncoding == 'UTF-8') {
-                            $converted = utf8_decode($content);
-                        }
-                    }
-                    break;
-            }
-        }
-        return $converted ? $converted : $content;
+        return $content;
     }
+
+    // Use unambiguous ICU aliases for Windows encodings.
+    $aliases = ['WINDOWS-1251' => 'CP1251', 'WINDOWS-1255' => 'CP1255'];
+    $toEncoding = strtoupper($toEncoding);
+    $fromEncoding = strtoupper($fromEncoding);
+    $converted = UConverter::transcode(
+        $content,
+        $aliases[$toEncoding] ?? $toEncoding,
+        $aliases[$fromEncoding] ?? $fromEncoding,
+    );
+
+    return $converted === false ? $content : $converted;
 }
 
 /**
@@ -238,14 +202,13 @@ function MAX_commonAddslashesRecursive($a)
 {
     if (is_array($a)) {
         reset($a);
-        while (list($k,$v) = each($a)) {
+        foreach ($a as $k => $v) {
             $a[$k] = MAX_commonAddslashesRecursive($v);
         }
-        reset ($a);
+        reset($a);
         return ($a);
-    } else {
-        return is_null($a) ? null : addslashes($a);
     }
+    return is_null($a) ? null : addslashes($a);
 }
 
 /**
@@ -255,15 +218,10 @@ function MAX_commonAddslashesRecursive($a)
  * $_POST values take precedence over $_GET values
  *
  */
-function MAX_commonRegisterGlobalsArray($args = array())
+function MAX_commonRegisterGlobalsArray($args = [])
 {
-    static $magic_quotes_gpc;
-    if (!isset($magic_quotes_gpc)) {
-        $magic_quotes_gpc = ini_get('magic_quotes_gpc');
-    }
-
     $found = false;
-    foreach($args as $key) {
+    foreach ($args as $key) {
         if (isset($_GET[$key])) {
             $value = $_GET[$key];
             $found = true;
@@ -273,12 +231,10 @@ function MAX_commonRegisterGlobalsArray($args = array())
             $found = true;
         }
         if ($found) {
-            if (!$magic_quotes_gpc) {
-                if (!is_array($value)) {
-                    $value = addslashes($value);
-                } else {
-                    $value = MAX_commonAddslashesRecursive($value);
-                }
+            if (!is_array($value)) {
+                $value = addslashes($value);
+            } else {
+                $value = MAX_commonAddslashesRecursive($value);
             }
             $GLOBALS[$key] = $value;
             $found = false;
@@ -308,10 +264,10 @@ function MAX_commonDeriveSource($source)
 function MAX_commonEncrypt($string)
 {
     $convert = '';
-    if (isset($string) && substr($string,1,4) != 'obfs' && $GLOBALS['_MAX']['CONF']['delivery']['obfuscate']) {
+    if (isset($string) && substr($string, 1, 4) != 'obfs' && $GLOBALS['_MAX']['CONF']['delivery']['obfuscate']) {
         $strLen = strlen($string);
-        for ($i=0; $i < $strLen; $i++) {
-            $dec = ord(substr($string,$i,1));
+        for ($i = 0; $i < $strLen; $i++) {
+            $dec = ord(substr($string, $i, 1));
             if (strlen($dec) == 2) {
                 $dec = 0 . $dec;
             }
@@ -320,9 +276,8 @@ function MAX_commonEncrypt($string)
         }
         $convert = '{obfs:' . $convert . '}';
         return ($convert);
-    } else {
-        return $string;
     }
+    return $string;
 }
 
 /**
@@ -336,18 +291,17 @@ function MAX_commonDecrypt($string)
 {
     $conf = $GLOBALS['_MAX']['CONF'];
     $convert = '';
-    if (isset($string) && substr($string,1,4) == 'obfs' && $conf['delivery']['obfuscate']) {
+    if (isset($string) && substr($string, 1, 4) == 'obfs' && $conf['delivery']['obfuscate']) {
         $strLen = strlen($string);
-        for ($i=6; $i < $strLen-1; $i = $i+3) {
-            $dec = substr($string,$i,3);
+        for ($i = 6; $i < $strLen - 1; $i += 3) {
+            $dec = substr($string, $i, 3);
             $dec = 324 - $dec;
             $dec = chr($dec);
             $convert .= $dec;
         }
         return ($convert);
-    } else {
-        return($string);
     }
+    return ($string);
 }
 
 /**
@@ -357,57 +311,57 @@ function MAX_commonDecrypt($string)
  */
 function MAX_commonInitVariables()
 {
-    MAX_commonRegisterGlobalsArray(array('context', 'source', 'target', 'withText', 'withtext', 'ct0', 'what', 'loc', 'referer', 'zoneid', 'campaignid', 'bannerid', 'clientid', 'charset'));
+    MAX_commonRegisterGlobalsArray(['context', 'source', 'target', 'withText', 'withtext', 'ct0', 'what', 'loc', 'referer', 'zoneid', 'campaignid', 'bannerid', 'clientid', 'charset']);
     global $context, $source, $target, $withText, $withtext, $ct0, $what, $loc, $referer, $zoneid, $campaignid, $bannerid, $clientid, $charset;
 
-    if (isset($withText) && !isset($withtext))  $withtext = $withText;
-    $withtext   = (isset($withtext) && is_numeric($withtext) ? $withtext : 0  );
-    $ct0        = (isset($ct0)          ? $ct0          : ''        );
-    $context    = (isset($context)      ? $context      : array()   );
+    if (isset($withText) && !isset($withtext)) {
+        $withtext = $withText;
+    }
+    $withtext = (isset($withtext) && is_numeric($withtext) ? $withtext : 0);
+    $ct0 ??= '';
+    $context ??= [];
 
-    $target     = (isset($target)  && (!empty($target))  && (!strpos($target , chr(32))) ? $target       : ''  );
-    $charset    = (isset($charset) && (!empty($charset)) && (!strpos($charset, chr(32))) ? $charset      : 'UTF-8'  );
+    $target = (isset($target) && (!empty($target)) && (!strpos($target, chr(32))) ? $target : '');
+    $charset = (isset($charset) && (!empty($charset)) && (!strpos($charset, chr(32))) ? $charset : 'UTF-8');
 
-    $bannerid   = (isset($bannerid)     && is_numeric($bannerid)    ? $bannerid     : ''        );
-    $campaignid = (isset($campaignid)   && is_numeric($campaignid)  ? $campaignid   : ''        );
-    $clientid   = (isset($clientid)     && is_numeric($clientid)    ? $clientid     : ''        );
-    $zoneid     = (isset($zoneid)       && is_numeric($zoneid)      ? $zoneid       : ''        );
+    $bannerid = (isset($bannerid) && is_numeric($bannerid) ? $bannerid : '');
+    $campaignid = (isset($campaignid) && is_numeric($campaignid) ? $campaignid : '');
+    $clientid = (isset($clientid) && is_numeric($clientid) ? $clientid : '');
+    $zoneid = (isset($zoneid) && is_numeric($zoneid) ? $zoneid : '');
 
-    if (!isset($what))
-    {
+    if (!isset($what)) {
         if (!empty($bannerid)) {
-            $what = 'bannerid:'.$bannerid;
+            $what = 'bannerid:' . $bannerid;
         } elseif (!empty($campaignid)) {
-            $what = 'campaignid:'.$campaignid;
+            $what = 'campaignid:' . $campaignid;
         } elseif (!empty($zoneid)) {
-            $what = 'zone:'.$zoneid;
+            $what = 'zone:' . $zoneid;
         } else {
             $what = '';
         }
-    }
-    elseif (preg_match('/^([a-z]+):(\d+)$/', $what, $matches))
-    {
-        switch ($matches[1])
-        {
+    } elseif (preg_match('/^([a-z]+):(\d+)$/', $what, $matches)) {
+        switch ($matches[1]) {
             case 'zoneid':
             case 'zone':
-                $zoneid     = $matches[2];
+                $zoneid = $matches[2];
                 break;
             case 'bannerid':
-                $bannerid   = $matches[2];
+                $bannerid = $matches[2];
                 break;
             case 'campaignid':
                 $campaignid = $matches[2];
                 break;
             case 'clientid':
-                $clientid   = $matches[2];
+                $clientid = $matches[2];
                 break;
         }
     }
 
     // 2.0 backwards compatibility - clientid parameter was used to fetch a campaign
-    if (!isset($clientid)) $clientid = '';
-    if (empty($campaignid))  $campaignid = $clientid;
+    $clientid ??= '';
+    if (empty($campaignid)) {
+        $campaignid = $clientid;
+    }
 
     $source = MAX_commonDeriveSource($source);
 
@@ -422,11 +376,11 @@ function MAX_commonInitVariables()
     // Set real referer - Only valid if passed in
     if (!empty($referer)) {
         $_SERVER['HTTP_REFERER'] = stripslashes($referer);
-    } else {
-        if (isset($_SERVER['HTTP_REFERER'])) unset($_SERVER['HTTP_REFERER']);
+    } elseif (isset($_SERVER['HTTP_REFERER'])) {
+        unset($_SERVER['HTTP_REFERER']);
     }
 
-    $GLOBALS['_MAX']['COOKIE']['LIMITATIONS']['arrCappingCookieNames'] = array(
+    $GLOBALS['_MAX']['COOKIE']['LIMITATIONS']['arrCappingCookieNames'] = [
         $GLOBALS['_MAX']['CONF']['var']['blockAd'],
         $GLOBALS['_MAX']['CONF']['var']['capAd'],
         $GLOBALS['_MAX']['CONF']['var']['sessionCapAd'],
@@ -439,9 +393,11 @@ function MAX_commonInitVariables()
         $GLOBALS['_MAX']['CONF']['var']['lastClick'],
         $GLOBALS['_MAX']['CONF']['var']['lastView'],
         $GLOBALS['_MAX']['CONF']['var']['blockLoggingClick'],
-    );
+    ];
 
-    if (strtolower($charset) == 'unicode') { $charset = 'utf-8'; }
+    if (strtolower($charset) == 'unicode') {
+        $charset = 'utf-8';
+    }
 }
 
 /**
@@ -461,8 +417,12 @@ function MAX_commonIsAdActionBlockedBecauseInactive($adId)
         // Check if the ad and/or campaign is inactive - therefore the ad action is blocked
         $aAdInfo = MAX_cacheGetAd($adId);
 
+        if (!$aAdInfo) {
+            return false;
+        }
+
         // OA_ENTITY_STATUS_RUNNING == 0, but the constant is not set during delivery, so we use a shortcut:
-        return $aAdInfo['status'] || $aAdInfo['campaign_status'];
+        return $aAdInfo['status'] > 0 || $aAdInfo['campaign_status'] > 0;
     }
 
     return false;
@@ -480,9 +440,7 @@ function MAX_commonDisplay1x1()
 
 function MAX_commonGetTimeNow()
 {
-    if (!isset($GLOBALS['_MAX']['NOW'])) {
-        $GLOBALS['_MAX']['NOW'] = time();
-    }
+    $GLOBALS['_MAX']['NOW'] ??= time();
     return $GLOBALS['_MAX']['NOW'];
 }
 
@@ -502,13 +460,13 @@ function MAX_getRandomNumber($length = 10)
 function MAX_header($value)
 {
     ###START_STRIP_DELIVERY
-    if(empty($GLOBALS['is_simulation']) && !defined('TEST_ENVIRONMENT_RUNNING')) {
-    ###END_STRIP_DELIVERY
+    if (empty($GLOBALS['is_simulation']) && !defined('TEST_ENVIRONMENT_RUNNING')) {
+        ###END_STRIP_DELIVERY
         header($value);
-    ###START_STRIP_DELIVERY
+        ###START_STRIP_DELIVERY
     } else {
         if (empty($GLOBALS['_HEADERS']) || !is_array($GLOBALS['_HEADERS'])) {
-            $GLOBALS['_HEADERS'] = array();
+            $GLOBALS['_HEADERS'] = [];
         }
         $GLOBALS['_HEADERS'][] = $value;
     }
@@ -529,10 +487,10 @@ function MAX_redirect($url)
         if (function_exists('idn_to_ascii')) {
             $idn = idn_to_ascii($host);
             if ($host != $idn) {
-                $url = preg_replace('#^(.*?://)'.preg_quote($host, '#').'#', '$1'.$idn, $url);
+                $url = preg_replace('#^(.*?://)' . preg_quote($host, '#') . '#', '$1' . $idn, $url);
             }
         }
-        header('Location: '.$url);
+        header('Location: ' . $url);
         MAX_sendStatusCode(302);
     }
 }
@@ -543,86 +501,93 @@ function MAX_redirect($url)
  *
  * @param int $iStatusCode  Status code to send
  */
-function MAX_sendStatusCode($iStatusCode) {
+function MAX_sendStatusCode($iStatusCode)
+{
     $aConf = $GLOBALS['_MAX']['CONF'];
 
-	$arr = array(
-		100 => 'Continue',
-		101 => 'Switching Protocols',
-		200 => 'OK',
-		201 => 'Created',
-		202 => 'Accepted',
-		203 => 'Non-Authoritative Information',
-		204 => 'No Content',
-		205 => 'Reset Content',
-		206 => 'Partial Content',
-		300 => 'Multiple Choices',
-		301 => 'Moved Permanently',
-		302 => 'Found',
-		303 => 'See Other',
-		304 => 'Not Modified',
-		305 => 'Use Proxy',
-		306 => '[Unused]',
-		307 => 'Temporary Redirect',
-		400 => 'Bad Request',
-		401 => 'Unauthorized',
-		402 => 'Payment Required',
-		403 => 'Forbidden',
-		404 => 'Not Found',
-		405 => 'Method Not Allowed',
-		406 => 'Not Acceptable',
-		407 => 'Proxy Authentication Required',
-		408 => 'Request Timeout',
-		409 => 'Conflict',
-		410 => 'Gone',
-		411 => 'Length Required',
-		412 => 'Precondition Failed',
-		413 => 'Request Entity Too Large',
-		414 => 'Request-URI Too Long',
-		415 => 'Unsupported Media Type',
-		416 => 'Requested Range Not Satisfiable',
-		417 => 'Expectation Failed',
-		500 => 'Internal Server Error',
-		501 => 'Not Implemented',
-		502 => 'Bad Gateway',
-		503 => 'Service Unavailable',
-		504 => 'Gateway Timeout',
-		505 => 'HTTP Version Not Supported'
-	);
-	if (isset($arr[$iStatusCode])) {
-	    $text = $iStatusCode . ' ' . $arr[$iStatusCode];
+    $arr = [
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        306 => '[Unused]',
+        307 => 'Temporary Redirect',
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Timeout',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Request Entity Too Large',
+        414 => 'Request-URI Too Long',
+        415 => 'Unsupported Media Type',
+        416 => 'Requested Range Not Satisfiable',
+        417 => 'Expectation Failed',
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Timeout',
+        505 => 'HTTP Version Not Supported',
+    ];
+    if (isset($arr[$iStatusCode])) {
+        $text = $iStatusCode . ' ' . $arr[$iStatusCode];
 
         // Using header('Status: foo') with CGI sapis appears to be deprecated but PHP-CGI seems to discard
         // the Reason-Phrase and some webservers do not add a default one. Some bad spiders do not cope
         // with that, that's why we added the cgiForceStatusHeader confgiuration directive. If enabled
         // with CGI sapis, OpenX will use a "Status: NNN Reason" header, which seems to fix the behaviour
         // on the tested webserver (Apache 1.3, running php-cgi)
-	    if (!empty($aConf['delivery']['cgiForceStatusHeader']) && strpos(php_sapi_name(), 'cgi') !== 0) {
-	       MAX_header('Status: ' . $text);
-	    } else {
-	       MAX_header($_SERVER["SERVER_PROTOCOL"] .' ' . $text);
-	    }
-	}
+        if (!empty($aConf['delivery']['cgiForceStatusHeader']) && !str_starts_with(php_sapi_name(), 'cgi')) {
+            MAX_header('Status: ' . $text);
+        } else {
+            MAX_header($_SERVER["SERVER_PROTOCOL"] . ' ' . $text);
+        }
+    }
 }
 
-function MAX_commonPackContext($context = array())
+function MAX_commonPackContext($context = [])
 {
-    $include = array();
-    $exclude = array();
+    $include = [];
+    $exclude = [];
     foreach ($context as $idx => $value) {
         reset($value);
-        list($key, $value) = each($value);
-        list($item,$id) = explode(':', $value);
+        [$key, $value] = each($value);
+        [$item, $id] = explode(':', $value);
         switch ($item) {
-            case 'campaignid':  $value = 'c:' . $id; break;
-            case 'clientid':    $value = 'a:' . $id; break;
-            case 'bannerid':    $value = 'b:' . $id; break;
-            case 'companionid': $value = 'p:' . $id; break;
+            case 'campaignid':  $value = 'c:' . $id;
+                break;
+            case 'clientid':    $value = 'a:' . $id;
+                break;
+            case 'bannerid':    $value = 'b:' . $id;
+                break;
+            case 'companionid': $value = 'p:' . $id;
+                break;
         }
         // Set value as key to avoid duplicates
         switch ($key) {
-            case '!=': $exclude[$value] = true; break;
-            case '==': $include[$value] = true; break;
+            case '!=': $exclude[$value] = true;
+                break;
+            case '==': $include[$value] = true;
+                break;
         }
     }
     $exclude = array_keys($exclude);
@@ -633,7 +598,7 @@ function MAX_commonPackContext($context = array())
 function MAX_commonUnpackContext($context = '')
 {
     //return unserialize(base64_decode($context));
-    list($exclude,$include) = explode('|', base64_decode($context));
+    [$exclude, $include] = explode('|', base64_decode($context));
     return array_merge(_convertContextArray('!=', explode('#', $exclude)), _convertContextArray('==', explode('#', $include)));
 }
 
@@ -650,15 +615,21 @@ function MAX_commonUnCompressInt($string)
 
 function _convertContextArray($key, $array)
 {
-    $unpacked = array();
+    $unpacked = [];
     foreach ($array as $value) {
-        if (empty($value)) { continue; }
-        list($item, $id) = explode(':', $value);
+        if (empty($value)) {
+            continue;
+        }
+        [$item, $id] = explode(':', $value);
         switch ($item) {
-            case 'c': $unpacked[] = array($key => 'campaignid:' . $id); break;
-            case 'a': $unpacked[] = array($key => 'clientid:'   . $id); break;
-            case 'b': $unpacked[] = array($key => 'bannerid:'   . $id); break;
-            case 'p': $unpacked[] = array($key => 'companionid:'.$id); break;
+            case 'c': $unpacked[] = [$key => 'campaignid:' . $id];
+                break;
+            case 'a': $unpacked[] = [$key => 'clientid:' . $id];
+                break;
+            case 'b': $unpacked[] = [$key => 'bannerid:' . $id];
+                break;
+            case 'p': $unpacked[] = [$key => 'companionid:' . $id];
+                break;
         }
     }
     return $unpacked;
@@ -676,7 +647,7 @@ function _convertContextArray($key, $array)
  * @return mixed                If a functionName was passed in, then the return value from executing the
  *                              function gets returned, otherwise (stackable hooks) true
  */
-function OX_Delivery_Common_hook($hookName, $aParams = array(), $functionName = '')
+function OX_Delivery_Common_hook($hookName, $aParams = [], $functionName = '')
 {
     $return = null;
     // When a $functionname is passed in we use that function/component-identifier and execute the hook
@@ -690,17 +661,15 @@ function OX_Delivery_Common_hook($hookName, $aParams = array(), $functionName = 
         if (function_exists($functionName)) {
             $return = call_user_func_array($functionName, $aParams);
         }
-    } else {
+    } elseif (!empty($GLOBALS['_MAX']['CONF']['deliveryHooks'][$hookName])) {
         // When no $functionName is passed in, we execute all components which are registered for this hook
-        if (!empty($GLOBALS['_MAX']['CONF']['deliveryHooks'][$hookName])) {
-            $return = array();
-            $hooks = explode('|', $GLOBALS['_MAX']['CONF']['deliveryHooks'][$hookName]);
-            foreach ($hooks as $identifier) {
-                $functionName = OX_Delivery_Common_getFunctionFromComponentIdentifier($identifier, $hookName);
-                if (function_exists($functionName)) {
-                    OX_Delivery_logMessage('calling on '.$functionName, 7);
-                    $return[$identifier] = call_user_func_array($functionName, $aParams);
-                }
+        $return = [];
+        $hooks = explode('|', $GLOBALS['_MAX']['CONF']['deliveryHooks'][$hookName]);
+        foreach ($hooks as $identifier) {
+            $functionName = OX_Delivery_Common_getFunctionFromComponentIdentifier($identifier, $hookName);
+            if (function_exists($functionName)) {
+                OX_Delivery_logMessage('calling on ' . $functionName, 7);
+                $return[$identifier] = call_user_func_array($functionName, $aParams);
             }
         }
     }
@@ -721,24 +690,25 @@ function OX_Delivery_Common_getFunctionFromComponentIdentifier($identifier, $hoo
     if (preg_match('/[^a-zA-Z0-9:]/', $identifier)) {
         if (PHP_SAPI === 'cli') {
             exit(1);
-        } else {
-            MAX_sendStatusCode(400);
-            exit;
         }
+        MAX_sendStatusCode(400);
+        exit;
     }
 
     $aInfo = explode(':', $identifier);
-    $functionName = 'Plugin_' . implode('_', $aInfo) . '_Delivery' . (!empty($hook) ? '_' . $hook : '');
+    $functionName = 'Plugin_' . implode('_', $aInfo) . '_Delivery' . (empty($hook) ? '' : '_' . $hook);
 
     if (!function_exists($functionName)) {
         // Function doesn't exist, include the generic merged delivery file
-        if (!empty($GLOBALS['_MAX']['CONF']['pluginSettings']['useMergedFunctions'])) _includeDeliveryPluginFile('/var/cache/' . OX_getHostName() . '_mergedDeliveryFunctions.php');
+        if (!empty($GLOBALS['_MAX']['CONF']['pluginSettings']['useMergedFunctions'])) {
+            _includeDeliveryPluginFile('/var/cache/' . OX_getHostName() . '_mergedDeliveryFunctions.php');
+        }
         if (!function_exists($functionName)) {
             // Function doesn't exist, include the relevant plugin file
             _includeDeliveryPluginFile($GLOBALS['_MAX']['CONF']['pluginPaths']['plugins'] . '/' . implode('/', $aInfo) . '.delivery.php');
             if (!function_exists($functionName)) {
                 // Function or function file doesn't exist, use the "parent" function
-                _includeDeliveryPluginFile('/lib/OX/Extension/' . $aInfo[0] .  '/' . $aInfo[0] . 'Delivery.php');
+                _includeDeliveryPluginFile('/lib/OX/Extension/' . $aInfo[0] . '/' . $aInfo[0] . 'Delivery.php');
                 $functionName = 'Plugin_' . $aInfo[0] . '_delivery';
                 if (!empty($hook) && function_exists($functionName . '_' . $hook)) {
                     $functionName .= '_' . $hook;
@@ -747,6 +717,101 @@ function OX_Delivery_Common_getFunctionFromComponentIdentifier($identifier, $hoo
         }
     }
     return $functionName;
+}
+
+/**
+ * @param list<int|string> $aSecrets
+ */
+function OX_Delivery_Common_getSignature(array $aSecrets, string $data): string
+{
+    if (empty($GLOBALS['_MAX']['CONF']['delivery']['secret'])) {
+        throw new InvalidArgumentException('Empty delivery secret');
+    }
+
+    array_unshift($aSecrets, base64_decode($GLOBALS['_MAX']['CONF']['delivery']['secret']));
+
+    return hash_hmac(
+        'sha256',
+        $data,
+        implode("\t", $aSecrets),
+    );
+}
+
+function OX_Delivery_Common_checkClickSignature(int $adId, int $zoneId, string $dest): bool
+{
+    $aConf = $GLOBALS['_MAX']['CONF'];
+    $sig = $_GET[$aConf['var']['signature']] ?? '';
+
+    $ts = (int) ($_GET[$aConf['var']['timestamp']] ?? 0);
+    $validity = (int) ($aConf['delivery']['clickUrlValidity'] ?? 0);
+
+    if (!is_string($sig) || !preg_match('#^https?://#', $dest)) {
+        return false;
+    }
+
+    // Does the signature match the destination?
+    if (hash_equals(OX_Delivery_Common_getSignature([$adId, $zoneId], $dest), $sig)) {
+        return true;
+    }
+
+    if (empty($ts) || !hash_equals(OX_Delivery_Common_getSignature([$adId, $zoneId], (string) $ts), $sig)) {
+        // Missing or invalid timestamp
+        return false;
+    }
+    // Valid click url
+    return $ts <= MAX_commonGetTimeNow() && $ts + $validity >= MAX_commonGetTimeNow();
+}
+
+/**
+ * @param string|array|null $adId
+ * @param string|array|null $zoneId
+ */
+function OX_Delivery_Common_checkLogSignature($adId, $zoneId): bool
+{
+    if (!is_string($adId) || !is_string($zoneId)) {
+        return false;
+    }
+
+    $aConf = $GLOBALS['_MAX']['CONF'];
+    $sig = $_GET[$aConf['var']['signature']] ?? null;
+
+    if (!is_string($sig)) {
+        return false;
+    }
+
+    $ts = (int) ($_GET[$aConf['var']['timestamp']] ?? 0);
+    $validity = (int) ($aConf['delivery']['logUrlValidity'] ?? 0);
+
+    $aSecrets = ['lg', $adId, $zoneId];
+
+    if (empty($ts)) {
+        return hash_equals(OX_Delivery_Common_getSignature($aSecrets, ''), $sig);
+    }
+
+    if (!hash_equals(OX_Delivery_Common_getSignature($aSecrets, (string) $ts), $sig)) {
+        return false;
+    }
+
+    // Valid click url
+    return $ts <= MAX_commonGetTimeNow() && $ts + $validity >= MAX_commonGetTimeNow();
+}
+
+function OX_Delivery_Common_sendPreconnectHeaders()
+{
+    if (empty($GLOBALS['_MAX']['SSL_REQUEST'])) {
+        return;
+    }
+
+    $delivery = explode('/', $GLOBALS['_MAX']['CONF']['webpath']['deliverySSL'])[0];
+    $images = explode('/', $GLOBALS['_MAX']['CONF']['webpath']['imagesSSL'])[0];
+
+    if ($delivery === $images) {
+        return;
+    }
+
+    $rel = empty($GLOBALS['_MAX']['CONF']['delivery']['relPreconnect']) ? 'dns-prefetch' : 'preconnect';
+
+    MAX_header("Link: {$images}; rel={$rel}");
 }
 
 /**
@@ -768,19 +833,21 @@ function OX_Delivery_logMessage($message, $priority = 6)
 {
     $conf = $GLOBALS['_MAX']['CONF'];
     // Don't even try if the deliveryLog is not enabled...
-    if (empty($conf['deliveryLog']['enabled'])) return true;
+    if (empty($conf['deliveryLog']['enabled'])) {
+        return true;
+    }
 
     // Only log messages above the configured priority level (See lib/pear/Log.php for a description of the levels)
     $priorityLevel = is_numeric($conf['deliveryLog']['priority']) ? $conf['deliveryLog']['priority'] : 6;
-    if ($priority > $priorityLevel && empty($_REQUEST[$conf['var']['trace']])) { return true; }
+    if ($priority > $priorityLevel && empty($_REQUEST[$conf['var']['trace']])) {
+        return true;
+    }
 
     // Log the error message
     error_log('[' . date('r') . "] {$conf['log']['ident']}-delivery-{$GLOBALS['_MAX']['thread_id']}: {$message}\n", 3, MAX_PATH . '/var/' . $conf['deliveryLog']['name']);
 
     // Call any plugins registered on the "logMessage" hook
-    OX_Delivery_Common_hook('logMessage', array($message, $priority));
+    OX_Delivery_Common_hook('logMessage', [$message, $priority]);
 
     return true;
 }
-
-?>

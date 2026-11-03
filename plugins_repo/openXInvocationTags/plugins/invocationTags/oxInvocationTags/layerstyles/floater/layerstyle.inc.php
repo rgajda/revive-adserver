@@ -16,23 +16,23 @@
 
 function MAX_layerGetLimitations()
 {
-	$agent = $GLOBALS['_MAX']['CLIENT'];
+    $agent = $GLOBALS['_MAX']['CLIENT'];
 
-	$compatible = $agent['browser'] == 'ie' && $agent['maj_ver'] < 5 ||
-				  $agent['browser'] == 'mz' && $agent['maj_ver'] < 1 ||
-				  $agent['browser'] == 'fx' && $agent['maj_ver'] < 1 ||
-				  $agent['browser'] == 'op' && $agent['maj_ver'] < 5
-				  ? false : true;
+    $compatible = $agent['browser'] == 'ie' && $agent['maj_ver'] < 5 ||
+                  $agent['browser'] == 'mz' && $agent['maj_ver'] < 1 ||
+                  $agent['browser'] == 'fx' && $agent['maj_ver'] < 1 ||
+                  $agent['browser'] == 'op' && $agent['maj_ver'] < 5
+                  ? false : true;
 
-	//$richmedia  = $agent['agent'] == 'IE' && $agent['version'] > 5.0 &&
-	//			  $agent['platform'] == 'Win'
-	//			  ? true : false;
-	$richmedia = true;
+    //$richmedia  = $agent['agent'] == 'IE' && $agent['version'] > 5.0 &&
+    //			  $agent['platform'] == 'Win'
+    //			  ? true : false;
+    $richmedia = true;
 
-	return array (
-		'richmedia'  => $richmedia,
-		'compatible' => $compatible
-	);
+    return [
+        'richmedia' => $richmedia,
+        'compatible' => $compatible,
+    ];
 }
 
 
@@ -43,30 +43,31 @@ function MAX_layerGetLimitations()
 
 function MAX_layerPutJs($output, $uniqid)
 {
-	global $ltr, $loop, $speed, $pause, $shiftv;
-	global $limited, $lmargin, $rmargin;
+    global $ltr, $loop, $speed, $pause, $shiftv;
+    global $limited, $lmargin, $rmargin;
 
-	// Register input variables
-	MAX_commonRegisterGlobalsArray(array('ltr', 'loop', 'speed', 'pause',
-					       'shiftv', 'limited', 'lmargin', 'rmargin'));
+    // Register input variables
+    MAX_commonRegisterGlobalsArray([
+        'loop', 'speed', 'pause',
+        'shiftv', 'lmargin', 'rmargin',
+        'ltr', 'limited',
+    ]);
 
+    $loop = 'n' === ($loop ?? 'n') ? 'n' : (int) $loop;
 
-	if (!isset($ltr)) $ltr = 't';
-	if (!isset($loop)) $loop = 'n';
-	if (!isset($speed)) $speed = 3;
-	if (!isset($pause)) $pause = 10;
-	if (!isset($shiftv)) $shiftv = 0;
+    $speed = (int) ($speed ?? 3);
+    $pause = (int) ($pause ?? 10);
+    $shiftv = (int) ($shiftv ?? 0);
+    $lmargin = (int) ($lmargin ?? 0);
+    $rmargin = (int) ($rmargin ?? 0);
 
-	if ($limited == 't')
-	{
-		if (!isset($lmargin) || !isset($rmargin))
-		{
-			$limited = 'f';
-			$lmargin = $rmargin = '';
-		}
-	}
+    $ltr = 't' === ($ltr ?? 'f');
+    $limited = 't' === ($limited ?? 'f');
 
-?>
+    if ($limited && (0 === $lmargin || 0 === $rmargin)) {
+        $limited = false;
+        $lmargin = $rmargin = null;
+    } ?>
 
 function MAX_findObj(n, d) {
   var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
@@ -132,71 +133,42 @@ function MAX_floater_grow_<?php echo $uniqid; ?>()
 	var h = <?php echo $output['height']; ?>;
 
 <?php
-	if ($limited == 't')
-	{
-		if ($lmargin == '')
-		{
-?>
+    if ($limited) {
+        if (null === $lmargin) {
+            ?>
 	var ml = 0;
 <?php
-		}
-		elseif ($lmargin > 0)
-		{
-?>
+        } elseif ($lmargin > 0) {
+            ?>
 	var ml = <?php echo $lmargin; ?>;
 <?php
-		}
-		else
-		{
-?>
+        } else {
+            ?>
 	var ml = ww + <?php echo $lmargin; ?>;
 <?php
-		}
+        }
 
-		if ($rmargin == '')
-		{
-?>
+        if (null === $rmargin) {
+            ?>
 	var mr = ww;
 <?php
-		}
-		elseif ($rmargin > 0)
-		{
-?>
+        } elseif ($rmargin > 0) {
+            ?>
 	var mr = <?php echo $rmargin; ?>;
 <?php
-		}
-		else
-		{
-?>
+        } else {
+            ?>
 	var mr = ww + <?php echo $rmargin; ?>;
 <?php
-		}
-	}
-	else
-	{
-?>
+        }
+    } else {
+        ?>
 	var mr = ww;
 	var ml = 0;
 <?php
-	}
-
-	if (strstr($_SERVER['HTTP_USER_AGENT'], 'Opera 6'))
-	{
-?>
-	mr = mr - w; ml = ml + w;
-
-	if (mr + w > ml)
-<?php
-	}
-	else
-	{
-?>
-	if (mr > ml)
-<?php
-	}
-?>
-	{
-		var shift = <?php echo 3*($speed-1)+1; ?>;
+    } ?>
+    if (mr > ml) {
+		var shift = <?php echo 3 * ($speed - 1) + 1; ?>;
 		var iw = mr - ml + w; var is = ml - w;
 		var cr = w; var cl = 0;
 
@@ -206,9 +178,8 @@ function MAX_floater_grow_<?php echo $uniqid; ?>()
 			ll = parseInt(c.left);
 
 <?php
-	if ($ltr == 't')
-	{
-?>
+    if ($ltr) {
+        ?>
 		if (c.visibility == 'hidden' || c.visibility == 'hide')
 		{
 			MAX_floater_setclip_<?php echo $uniqid; ?>(o, 0, w, h, w);
@@ -231,15 +202,13 @@ function MAX_floater_grow_<?php echo $uniqid; ?>()
 				c.visibility = 'hidden';
 				window.clearInterval(MAX_adlayers_timerid_<?php echo $uniqid; ?>);
 
-				if (<?php echo $loop == 'n' ? 'true' : 'MAX_adlayers_counter_'.$uniqid.' < '.$loop; ?>)
-					window.setTimeout('MAX_floater_<?php echo $uniqid; ?>()', <?php echo $pause*1000; ?>);
+				if (<?php echo $loop == 'n' ? 'true' : 'MAX_adlayers_counter_' . $uniqid . ' < ' . $loop; ?>)
+					window.setTimeout('MAX_floater_<?php echo $uniqid; ?>()', <?php echo $pause * 1000; ?>);
 			}
 		}
 <?php
-	}
-	else
-	{
-?>
+    } else {
+        ?>
 		if (c.visibility == 'hidden' || c.visibility == 'hide')
 		{
 			MAX_floater_setclip_<?php echo $uniqid; ?>(o, 0, 1, h, 0);
@@ -263,13 +232,12 @@ function MAX_floater_grow_<?php echo $uniqid; ?>()
 				MAX_floater_setclip_<?php echo $uniqid; ?>(o, 0, w, h, 0);
 				window.clearInterval(MAX_adlayers_timerid_<?php echo $uniqid; ?>);
 
-				if (<?php echo $loop == 'n' ? 'true' : 'MAX_adlayers_counter_'.$uniqid.' < '.$loop; ?>)
-					window.setTimeout('MAX_floater_<?php echo $uniqid; ?>()', <?php echo $pause*1000; ?>);
+				if (<?php echo $loop == 'n' ? 'true' : 'MAX_adlayers_counter_' . $uniqid . ' < ' . $loop; ?>)
+					window.setTimeout('MAX_floater_<?php echo $uniqid; ?>()', <?php echo $pause * 1000; ?>);
 			}
 		}
 <?php
-	}
-?>
+    } ?>
 	}
 }
 
@@ -296,21 +264,20 @@ MAX_floater_<?php echo $uniqid; ?>();
 
 function MAX_layerGetHtml($output, $uniqid)
 {
-	global $transparent, $backcolor, $shiftv;
+    global $transparent, $backcolor, $shiftv;
 
-	// Register input variables
-	MAX_commonRegisterGlobalsArray(array('transparent', 'backcolor', 'shiftv'));
+    // Register input variables
+    MAX_commonRegisterGlobalsArray(['transparent', 'backcolor', 'shiftv']);
 
+    $transparent = 't' === ($transparent ?? 't');
+    $backcolor = htmlspecialchars($backcolor ?? 'FFFFFF', ENT_QUOTES);
+    $shiftv = (int) ($shiftv ?? 0);
 
-	if (!isset($transparent)) $transparent = 't';
-	if (!isset($backcolor)) $backcolor = '#FFFFFF';
-	if (!isset($shiftv)) $shiftv = '0';
-
-	// return HTML code
-	return '<div id="MAX_'.$uniqid.'" style="position:absolute; width:'.$output['width'].'px; height:'.$output['height'].
-		'px; z-index:99; left: 0px; top: '.$shiftv.'px; visibility: hidden; overflow: hidden'.
-		($transparent == 't' ? '' : '; background-color: "'.$backcolor.'; layer-background-color: "'.$backcolor).'">'.
-		$output['html'].'</td></tr></table></div>';
+    // return HTML code
+    return '<div id="MAX_' . $uniqid . '" style="position:absolute; width:' . $output['width'] . 'px; height:' . $output['height'] .
+        'px; z-index:99; left: 0px; top: ' . $shiftv . 'px; visibility: hidden; overflow: hidden' .
+        ($transparent ? '' : '; background-color: "' . $backcolor . '; layer-background-color: "' . $backcolor) . '">' .
+        $output['html'] . '</td></tr></table></div>';
 }
 
 ?>

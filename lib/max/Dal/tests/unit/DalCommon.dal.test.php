@@ -18,17 +18,4 @@
  *
  * @TODO No tests written yet...
  */
-class Dal_TestOfMAX_Dal_Commonn extends UnitTestCase
-{
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-}
-
-?>
+class Dal_TestOfMAX_Dal_Commonn extends UnitTestCase {}

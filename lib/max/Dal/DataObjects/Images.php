@@ -26,12 +26,15 @@ class DataObjects_Images extends DB_DataObjectCommon
     public $t_stamp;                         // DATETIME() => openads_datetime => 14
 
     /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGetFromClassName('DataObjects_Images',$k,$v); }
+    public static function staticGet($k, $v = null)
+    {
+        return DB_DataObject::staticGetFromClassName('DataObjects_Images', $k, $v);
+    }
 
-    var $defaultValues = array(
-                'filename' => '',
-                'contents' => '',
-                );
+    public $defaultValues = [
+        'filename' => '',
+        'contents' => '',
+    ];
 
     /* the code above is auto generated do not remove the tag below */
     ###END_AUTOCODE
@@ -47,7 +50,7 @@ class DataObjects_Images extends DB_DataObjectCommon
      * @access  public
      * @return  boolean on success
      */
-    function fetch()
+    public function fetch()
     {
         $oDbh = &$this->getDatabaseConnection();
         if (empty($oDbh)) {
@@ -83,14 +86,14 @@ class DataObjects_Images extends DB_DataObjectCommon
      *                                With this parameter it's possible to turn off default behavior
      *                                @see DB_DataObjectCommon:onDeleteCascade
      * @param boolean $parentid The audit ID of the parent object causing the cascade.
-     * @return boolean
+     * @return int|false
      * @access protected
      */
-    function delete($useWhere = false, $cascadeDelete = true, $parentid = null)
+    public function delete($useWhere = false, $cascadeDelete = true, $parentid = null)
     {
         // Contents cause problems in pgsql when retrieving current values for auditing
         $this->contents = null;
-        parent::delete($useWhere,$cascadeDelete,$parentid);
+        return parent::delete($useWhere, $cascadeDelete, $parentid);
     }
 
     /**
@@ -98,25 +101,26 @@ class DataObjects_Images extends DB_DataObjectCommon
      *
      * @return array
      */
-    function sequenceKey() {
-        return array(false, false, false);
+    public function sequenceKey()
+    {
+        return [false, false, false];
     }
 
-    function getUniqueFileNameForDuplication()
+    public function getUniqueFileNameForDuplication()
     {
         $extension = substr($this->filename, strrpos($this->filename, ".") + 1);
-	    $base	   = substr($this->filename, 0, strrpos($this->filename, "."));
+        $base = substr($this->filename, 0, strrpos($this->filename, "."));
 
         if (preg_match("/^(.*)_([0-9]+)$/Di", $base, $matches)) {
-			$base = $matches[1];
-			$i = $matches[2];
+            $base = $matches[1];
+            $i = $matches[2];
         }
 
         $doCheck = $this->factory($this->_tableName);
         $names = $doCheck->getUniqueValuesFromColumn('filename');
         // Get unique name
         $i = 2;
-        while (in_array($base.'_'.$i . '.' .$extension, $names)) {
+        while (in_array($base . '_' . $i . '.' . $extension, $names)) {
             $i++;
         }
         return $base . '_' . $i . '.' . $extension;
@@ -127,22 +131,22 @@ class DataObjects_Images extends DB_DataObjectCommon
      * This method is called on insert() and update().
      *
      */
-    function _refreshUpdated()
+    public function _refreshUpdated()
     {
         $this->t_stamp = OA::getNowUTC();
     }
 
-    function _auditEnabled()
+    public function _auditEnabled()
     {
         return true;
     }
 
-    function _getContextId()
+    public function _getContextId()
     {
         return 0;
     }
 
-    function _getContext()
+    public function _getContext()
     {
         return 'Image';
     }
@@ -174,21 +178,18 @@ class DataObjects_Images extends DB_DataObjectCommon
     public function getOwningAccountIds($resetCache = false)
     {
         // Find the banner that contains this image, if possible
-        $doBanners = OA_Dal::factoryDO('banners');
-        $doBanners->storagetype = 'sql';
-        $doBanners->filename = $this->filename;
-        $doBanners->find();
-        if ($doBanners->getRowCount() == 1) {
-            $doBanners->fetch();
-            // Return the owning account IDs of the image's owning
-            // banner
+        $doBanners = $this->getBanner();
+
+        if ($doBanners instanceof \DataObjects_Banners) {
+            // Return the owning account IDs of the image's owning banner
             return $doBanners->getOwningAccountIds();
         }
+
         // Alas, the image doesn't have an owning banner yet,
         // so return the special case of
-        $aAccountIds = array(
-            OA_ACCOUNT_ADMIN => OA_Dal_ApplicationVariables::get('admin_account_id')
-        );
+        $aAccountIds = [
+            OA_ACCOUNT_ADMIN => OA_Dal_ApplicationVariables::get('admin_account_id'),
+        ];
         return $aAccountIds;
     }
 
@@ -198,31 +199,42 @@ class DataObjects_Images extends DB_DataObjectCommon
      * @param integer $actionid
      * @param array $aAuditFields
      */
-    function _buildAuditArray($actionid, &$aAuditFields)
+    public function _buildAuditArray($actionid, &$aAuditFields)
     {
         // Do not log binary data
         $aAuditFields['contents'] = $GLOBALS['strBinaryData'];
 
-        $aAuditFields['key_desc']   = $this->filename;
-        switch ($actionid)
-        {
-            case OA_AUDIT_ACTION_UPDATE:
-                        $aAuditFields['bannerid']   = $this->bannerid;
-                        break;
+        $aAuditFields['key_desc'] = $this->filename;
+        if ($actionid === OA_AUDIT_ACTION_UPDATE) {
+            if (($doBanner = $this->getBanner()) instanceof \DataObjects_Banners) {
+                $aAuditFields['bannerid'] = $doBanner->bannerid;
+            }
         }
     }
 
 
-    function _formatValue($field, $type ='')
+    public function _formatValue($field, $type = 0)
     {
         $fieldVal = $this->$field;
         if (is_a($fieldVal, 'DB_DataObject_Cast') && $fieldVal->type == 'blob') {
             return 'binary data';
         }
-        else {
-            parent::_formatValue($field, $type);
+        parent::_formatValue($field, $type);
+    }
+
+    private function getBanner(): ?DataObjects_Banners
+    {
+        /** @var DataObjects_Banners $doBanners */
+        $doBanners = OA_Dal::factoryDO('banners');
+        $doBanners->storagetype = 'sql';
+        $doBanners->filename = $this->filename;
+
+        if (!$doBanners->find()) {
+            return null;
         }
+
+        $doBanners->fetch();
+
+        return $doBanners;
     }
 }
-
-?>

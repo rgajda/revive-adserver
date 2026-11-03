@@ -18,24 +18,27 @@ require_once MAX_PATH . '/lib/OA/Dal/ApplicationVariables.php';
 
 class DataObjects_Accounts extends DB_DataObjectCommon
 {
-    var $onDeleteCascade = true;
-    var $onDeleteCascadeSkip = array(
-        'audit', 'users'
-    );
+    public $onDeleteCascade = true;
+    public $onDeleteCascadeSkip = [
+        'audit', 'users',
+    ];
     ###START_AUTOCODE
     /* the code below is auto generated do not remove the above tag */
 
     public $__table = 'accounts';                        // table name
-    public $account_id;                      // MEDIUMINT(9) => openads_mediumint => 129 
-    public $account_type;                    // VARCHAR(16) => openads_varchar => 130 
-    public $account_name;                    // VARCHAR(255) => openads_varchar => 2 
+    public $account_id;                      // MEDIUMINT(9) => openads_mediumint => 129
+    public $account_type;                    // VARCHAR(16) => openads_varchar => 130
+    public $account_name;                    // VARCHAR(255) => openads_varchar => 2
 
     /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGetFromClassName('DataObjects_Accounts',$k,$v); }
+    public static function staticGet($k, $v = null)
+    {
+        return DB_DataObject::staticGetFromClassName('DataObjects_Accounts', $k, $v);
+    }
 
-    var $defaultValues = array(
-                'account_type' => '',
-                );
+    public $defaultValues = [
+        'account_type' => '',
+    ];
 
     /* the code above is auto generated do not remove the tag below */
     ###END_AUTOCODE
@@ -45,7 +48,7 @@ class DataObjects_Accounts extends DB_DataObjectCommon
      *
      * @see DB_DataObject::insert()
      */
-    function insert()
+    public function insert()
     {
         $result = parent::insert();
 
@@ -66,36 +69,36 @@ class DataObjects_Accounts extends DB_DataObjectCommon
      * @return boolean  True on success else false
      * @access public
      **/
-    function deleteCascade($linkedRefs, $primaryKey, $parentid)
+    public function deleteCascade($linkedRefs, $primaryKey, $parentid)
     {
         $result = parent::deleteCascade($linkedRefs, $primaryKey, $parentid);
-        // Delete users or link them to other accounts 
+        // Delete users or link them to other accounts
         if ($result) {
             return $this->_relinkOrDeleteUsers();
         }
         return $result;
     }
-    
+
     /**
      * Returns ADMIN account ID
      *
      */
-    function getAdminAccountId()
+    public function getAdminAccountId()
     {
         return OA_Dal_ApplicationVariables::get('admin_account_id');
     }
 
-    function _auditEnabled()
+    public function _auditEnabled()
     {
         return true;
     }
 
-    function _getContextId()
+    public function _getContextId()
     {
         return $this->account_id;
     }
 
-    function _getContext()
+    public function _getContext()
     {
         return 'Account';
     }
@@ -106,20 +109,20 @@ class DataObjects_Accounts extends DB_DataObjectCommon
      * @param integer $actionid
      * @param array $aAuditFields
      */
-    function _buildAuditArray($actionid, &$aAuditFields)
+    public function _buildAuditArray($actionid, &$aAuditFields)
     {
         if (count($aAuditFields)) {
-            $aAuditFields['key_desc']     = $this->account_name;
+            $aAuditFields['key_desc'] = $this->account_name;
         }
     }
-    
+
     /**
      * On cascade deleting check if linked users should be deleted
      * or can be relinked to other account
      *
      * @return bool True on succes False on error
      */
-    function _relinkOrDeleteUsers()
+    public function _relinkOrDeleteUsers()
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doUsers->default_account_id = $this->account_id;
@@ -138,7 +141,7 @@ class DataObjects_Accounts extends DB_DataObjectCommon
                 $aAccountsIds = $doUsers->getLinkedAccountsIds();
                 sort($aAccountsIds);
                 reset($aAccountsIds);
-                $doUserUpdate = clone($doUsers);
+                $doUserUpdate = clone ($doUsers);
                 $doUserUpdate->default_account_id = current($aAccountsIds);
                 $doUserUpdate->update();
             }

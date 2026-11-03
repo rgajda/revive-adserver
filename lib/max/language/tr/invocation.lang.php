@@ -31,9 +31,7 @@ $GLOBALS['strInvocationComments'] = "Yorumlarla birlikte";
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "Şu zaman sonunda yenile";
-$GLOBALS['strIframeResizeToBanner'] = "Çerçeveyi banner ölçüsüne göre yeniden boyutlandır";
 $GLOBALS['strIframeMakeTransparent'] = "Çerçeveyi şeffaf yap";
-$GLOBALS['strIframeIncludeNetscape4'] = "Netscape 4 uyumlu ilayer kullan";
 
 // PopUp
 $GLOBALS['strPopUpStyle'] = "Pop-up tipi";
@@ -43,16 +41,16 @@ $GLOBALS['strPopUpAfterSec'] = "Sonra";
 $GLOBALS['strAutoCloseAfter'] = "Süre sonra otomatik kapat";
 $GLOBALS['strPopUpTop'] = "Başlangıç konumu (üst)";
 $GLOBALS['strPopUpLeft'] = "Başlangıç konumu (sol)";
+$GLOBALS['strWindowOptions'] = "Pencere seçenekleri";
+$GLOBALS['strShowToolbars'] = "Araç Çubukları";
+$GLOBALS['strShowLocation'] = "Konum";
+$GLOBALS['strShowMenubar'] = "Menü çubuğu";
 $GLOBALS['strShowStatus'] = "Durum";
-
-// XML-RPC
-$GLOBALS['strXmlRpcLanguage'] = "Sunucu Dili";
-
-// Support for 3rd party server clicktracking
+$GLOBALS['strWindowResizable'] = "Boyutlandırılabilir";
+$GLOBALS['strShowScrollbars'] = "Kaydırma çubukları";
 
 // Support for cachebusting code
 
 // IMG invocation selected for tracker with appended code
-
-// Local Invocation
-
+$GLOBALS['strWarning'] = "Uyarı";
+$GLOBALS['strImgWithAppendWarning'] = "Bu izleyici eklenmiş kodu ekledi, eklenen kod <strong>yalnızca</strong> JavaScript etiketleri ile çalışacak";

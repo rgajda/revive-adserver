@@ -31,13 +31,13 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @var OA_Dll_Banner $_dllBanner
      */
-    var $_dllBanner;
+    public $_dllBanner;
 
     /**
      *
      * The BannerServiceImpl method is the constructor for the BannerServiceImpl class.
      */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->_dllBanner = new OA_Dll_Banner();
@@ -53,14 +53,13 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function _validateResult($result)
+    public function _validateResult($result)
     {
         if ($result) {
             return true;
-        } else {
-            $this->raiseError($this->_dllBanner->getLastError());
-            return false;
         }
+        $this->raiseError($this->_dllBanner->getLastError());
+        return false;
     }
 
     /**
@@ -76,17 +75,12 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function addBanner($sessionId, &$oBanner)
+    public function addBanner($sessionId, &$oBanner)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult($this->_dllBanner->modify($oBanner));
-
-        } else {
-
-            return false;
         }
-
+        return false;
     }
 
     /**
@@ -103,27 +97,16 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function modifyBanner($sessionId, &$oBanner)
+    public function modifyBanner($sessionId, &$oBanner)
     {
         if ($this->verifySession($sessionId)) {
-
-
             if (isset($oBanner->bannerId)) {
-
                 return $this->_validateResult($this->_dllBanner->modify($oBanner));
-
-            } else {
-
-                $this->raiseError("Field 'bannerId' in structure does not exists");
-                return false;
-
             }
-
-        } else {
-
+            $this->raiseError("Field 'bannerId' in structure does not exists");
             return false;
         }
-
+        return false;
     }
 
     /**
@@ -137,16 +120,12 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function deleteBanner($sessionId, $bannerId)
+    public function deleteBanner($sessionId, $bannerId)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult($this->_dllBanner->delete($bannerId));
-
-        } else {
-
-            return false;
         }
+        return false;
     }
 
     /**
@@ -161,14 +140,15 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getBannerTargeting($sessionId, $bannerId, &$aTargeting)
+    public function getBannerTargeting($sessionId, $bannerId, &$aTargeting)
     {
         if ($this->verifySession($sessionId)) {
             return $this->_validateResult($this->_dllBanner->getBannerTargeting(
-                $bannerId, $aTargeting));
-        } else {
-            return false;
+                $bannerId,
+                $aTargeting,
+            ));
         }
+        return false;
     }
 
 
@@ -184,14 +164,15 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function setBannerTargeting($sessionId, $bannerId, &$aTargeting)
+    public function setBannerTargeting($sessionId, $bannerId, &$aTargeting)
     {
         if ($this->verifySession($sessionId)) {
             return $this->_validateResult($this->_dllBanner->setBannerTargeting(
-                $bannerId, $aTargeting));
-        } else {
-            return false;
+                $bannerId,
+                $aTargeting,
+            ));
         }
+        return false;
     }
 
     /**
@@ -209,17 +190,51 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getBannerDailyStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$aData)
+    public function getBannerDailyStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$aData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllBanner->getBannerDailyStatistics(
-                    $bannerId, $oStartDate, $oEndDate, $localTZ, $aData));
-        } else {
-
-            return false;
+                    $bannerId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $aData,
+                ),
+            );
         }
+        return false;
+    }
+
+    /**
+     * The getBannerHourlyStatistics method returns hourly statistics for a
+     * banner for a specified period.
+     *
+     * @access public
+     *
+     * @param string $sessionId
+     * @param integer $bannerId
+     * @param date $oStartDate
+     * @param date $oEndDate
+     * @param bool $localTZ
+     * @param array &$aData  return data
+     *
+     * @return boolean
+     */
+    public function getBannerHourlyStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$aData)
+    {
+        if ($this->verifySession($sessionId)) {
+            return $this->_validateResult(
+                $this->_dllBanner->getBannerHourlyStatistics(
+                    $bannerId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $aData,
+                ),
+            );
+        }
+        return false;
     }
 
     /**
@@ -237,17 +252,20 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getBannerPublisherStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getBannerPublisherStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllBanner->getBannerPublisherStatistics(
-                    $bannerId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $bannerId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -265,17 +283,20 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getBannerZoneStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getBannerZoneStatistics($sessionId, $bannerId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllBanner->getBannerZoneStatistics(
-                    $bannerId, $oStartDate, $oEndDate, $localTZ, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $bannerId,
+                    $oStartDate,
+                    $oEndDate,
+                    $localTZ,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -289,16 +310,14 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getBanner($sessionId, $bannerId, &$oBanner)
+    public function getBanner($sessionId, $bannerId, &$oBanner)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
-                $this->_dllBanner->getBanner($bannerId, $oBanner));
-        } else {
-
-            return false;
+                $this->_dllBanner->getBanner($bannerId, $oBanner),
+            );
         }
+        return false;
     }
 
     /**
@@ -312,19 +331,16 @@ class BannerServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getBannerListByCampaignId($sessionId, $campaignId, &$aBannerList)
+    public function getBannerListByCampaignId($sessionId, $campaignId, &$aBannerList)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
-                $this->_dllBanner->getBannerListByCampaignId($campaignId,
-                                                    $aBannerList));
-        } else {
-
-            return false;
+                $this->_dllBanner->getBannerListByCampaignId(
+                    $campaignId,
+                    $aBannerList,
+                ),
+            );
         }
+        return false;
     }
 }
-
-
-?>

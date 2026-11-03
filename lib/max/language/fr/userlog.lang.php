@@ -23,7 +23,7 @@ $GLOBALS['strDelete'] = "Supprimer";
 $GLOBALS['strHas'] = "contient";
 $GLOBALS['strFilters'] = "Filtres";
 $GLOBALS['strAdvertiser'] = "Annonceur";
-$GLOBALS['strPublisher'] = "Site web";
+$GLOBALS['strPublisher'] = "Site internet";
 $GLOBALS['strCampaign'] = "Campagne";
 $GLOBALS['strZone'] = "Zone";
 $GLOBALS['strType'] = "Type";
@@ -38,6 +38,6 @@ $GLOBALS['strCollectedAllEvents'] = "Tous les évènements";
 $GLOBALS['strClear'] = "Vider";
 
 if (!isset($GLOBALS['strUserlog'])) {
-    $GLOBALS['strUserlog'] = array();
+    $GLOBALS['strUserlog'] = [];
 }
 $GLOBALS['strUserlog'][phpAds_actionActivationMailed] = "Notification d'activation de la campagne {id} envoyée par e-mail";

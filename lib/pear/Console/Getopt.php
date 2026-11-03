@@ -61,7 +61,7 @@ class Console_Getopt {
      * @access public
      *
      */
-    function getopt2($args, $short_options, $long_options = null)
+    public static function getopt2($args, $short_options, $long_options = null)
     {
         return Console_Getopt::doGetopt(2, $args, $short_options, $long_options);
     }
@@ -79,7 +79,7 @@ class Console_Getopt {
     /**
      * The actual implementation of the argument parsing code.
      */
-    function doGetopt($version, $args, $short_options, $long_options = null)
+    public static function doGetopt($version, $args, $short_options, $long_options = null)
     {
         // in case you pass directly readPHPArgv() as the first arg
         if (PEAR::isError($args)) {
@@ -102,13 +102,14 @@ class Console_Getopt {
          * erroneous POSIX fix.
          */
         if ($version < 2) {
-            if (isset($args[0]{0}) && $args[0]{0} != '-') {
+            if (isset($args[0][0]) && $args[0][0] != '-') {
                 array_shift($args);
             }
         }
 
         reset($args);
-        while (list($i, $arg) = each($args)) {
+        while ($res = each($args)) {
+            [$i, $arg] = $res;
 
             /* The special element '--' means explicit end of
                options. Treat the rest of the arguments as non-options
@@ -118,10 +119,10 @@ class Console_Getopt {
                 break;
             }
 
-            if ($arg{0} != '-' || (strlen($arg) > 1 && $arg{1} == '-' && !$long_options)) {
+            if ($arg[0] != '-' || (strlen($arg) > 1 && $arg[1] == '-' && !$long_options)) {
                 $non_opts = array_merge($non_opts, array_slice($args, $i));
                 break;
-            } elseif (strlen($arg) > 1 && $arg{1} == '-') {
+            } elseif (strlen($arg) > 1 && $arg[1] == '-') {
                 $error = Console_Getopt::_parseLongOption(substr($arg, 2), $long_options, $opts, $args);
                 if (PEAR::isError($error))
                     return $error;
@@ -135,24 +136,20 @@ class Console_Getopt {
         return array($opts, $non_opts);
     }
 
-    /**
-     * @access private
-     *
-     */
-    function _parseShortOption($arg, $short_options, &$opts, &$args)
+    private static function _parseShortOption($arg, $short_options, &$opts, &$args): ?PEAR_Error
     {
         for ($i = 0; $i < strlen($arg); $i++) {
-            $opt = $arg{$i};
+            $opt = $arg[$i];
             $opt_arg = null;
 
             /* Try to find the short option in the specifier string. */
-            if (($spec = strstr($short_options, $opt)) === false || $arg{$i} == ':')
+            if (($spec = strstr($short_options, $opt)) === false || $arg[$i] == ':')
             {
                 return PEAR::raiseError("Console_Getopt: unrecognized option -- $opt");
             }
 
-            if (strlen($spec) > 1 && $spec{1} == ':') {
-                if (strlen($spec) > 2 && $spec{2} == ':') {
+            if (strlen($spec) > 1 && $spec[1] == ':') {
+                if (strlen($spec) > 2 && $spec[2] == ':') {
                     if ($i + 1 < strlen($arg)) {
                         /* Option takes an optional argument. Use the remainder of
                            the arg string if there is anything left. */
@@ -178,32 +175,22 @@ class Console_Getopt {
 
             $opts[] = array($opt, $opt_arg);
         }
+
+        return null;
     }
 
-    /**
-     * @access private
-     *
-     */
-    function _isShortOpt($arg)
+    private static function _isShortOpt($arg)
     {
         return strlen($arg) == 2 && $arg[0] == '-' && preg_match('/[a-zA-Z]/', $arg[1]);
     }
 
-    /**
-     * @access private
-     *
-     */
-    function _isLongOpt($arg)
+    private static function _isLongOpt($arg)
     {
         return strlen($arg) > 2 && $arg[0] == '-' && $arg[1] == '-' &&
             preg_match('/[a-zA-Z]+$/', substr($arg, 2));
     }
 
-    /**
-     * @access private
-     *
-     */
-    function _parseLongOption($arg, $long_options, &$opts, &$args)
+    private static function _parseLongOption($arg, $long_options, &$opts, &$args): ?PEAR_Error
     {
         @list($opt, $opt_arg) = explode('=', $arg, 2);
         $opt_len = strlen($opt);
@@ -222,12 +209,12 @@ class Console_Getopt {
 
             /* Check that the options uniquely matches one of the allowed
                options. */
-            $next_option_rest = substr($long_options[$i + 1], $opt_len);
-            if ($opt_rest != '' && $opt{0} != '=' &&
+            $next_option_rest = substr($long_options[$i + 1] ?? '', $opt_len);
+            if ($opt_rest != '' && $opt[0] != '=' &&
                 $i + 1 < count($long_options) &&
                 $opt == substr($long_options[$i+1], 0, $opt_len) &&
                 $next_option_rest != '' &&
-                $next_option_rest{0} != '=') {
+                $next_option_rest[0] != '=') {
                 return PEAR::raiseError("Console_Getopt: option --$opt is ambiguous");
             }
 
@@ -244,7 +231,7 @@ class Console_Getopt {
             }
 
             $opts[] = array('--' . $opt, $opt_arg);
-            return;
+            return null;
         }
 
         return PEAR::raiseError("Console_Getopt: unrecognized option --$opt");
@@ -252,23 +239,17 @@ class Console_Getopt {
 
     /**
     * Safely read the $argv PHP array across different PHP configurations.
-    * Will take care on register_globals and register_argc_argv ini directives
     *
-    * @access public
-    * @return mixed the $argv PHP array or PEAR error if not registered
+    * @return array|PEAR_Error the $argv PHP array or PEAR error if not registered
     */
-    function readPHPArgv()
+    public static function readPHPArgv()
     {
         global $argv;
-        if (!is_array($argv)) {
-            if (!@is_array($_SERVER['argv'])) {
-                if (!@is_array($GLOBALS['HTTP_SERVER_VARS']['argv'])) {
-                    return PEAR::raiseError("Console_Getopt: Could not read cmd args (register_argc_argv=Off?)");
-                }
-                return $GLOBALS['HTTP_SERVER_VARS']['argv'];
-            }
-            return $_SERVER['argv'];
+
+        if (!isset($argv) || !is_array($argv)) {
+            return PEAR::raiseError("Console_Getopt: Could not read cmd args");
         }
+
         return $argv;
     }
 

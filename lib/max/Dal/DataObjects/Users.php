@@ -19,7 +19,7 @@ require_once 'Date.php';
 
 class DataObjects_Users extends DB_DataObjectCommon
 {
-    var $onDeleteCascade = true;
+    public $onDeleteCascade = true;
     ###START_AUTOCODE
     /* the code below is auto generated do not remove the above tag */
 
@@ -27,8 +27,8 @@ class DataObjects_Users extends DB_DataObjectCommon
     public $user_id;                         // MEDIUMINT(9) => openads_mediumint => 129
     public $contact_name;                    // VARCHAR(255) => openads_varchar => 130
     public $email_address;                   // VARCHAR(64) => openads_varchar => 130
-    public $username;                        // VARCHAR(64) => openads_varchar => 2
-    public $password;                        // VARCHAR(64) => openads_varchar => 2
+    public $username;                        // VARCHAR(64) => openads_varchar => 130
+    public $password;                        // VARCHAR(64) => openads_varchar => 130
     public $language;                        // VARCHAR(5) => openads_varchar => 2
     public $default_account_id;              // MEDIUMINT(9) => openads_mediumint => 1
     public $comments;                        // TEXT() => openads_text => 34
@@ -39,35 +39,47 @@ class DataObjects_Users extends DB_DataObjectCommon
     public $email_updated;                   // DATETIME() => openads_datetime => 14
 
     /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGetFromClassName('DataObjects_Users',$k,$v); }
+    public static function staticGet($k, $v = null)
+    {
+        return DB_DataObject::staticGetFromClassName('DataObjects_Users', $k, $v);
+    }
 
-    var $defaultValues = array(
-                'contact_name' => '',
-                'email_address' => '',
-                'active' => 1,
-                'sso_user_id' => OX_DATAOBJECT_NULL,
-                'date_last_login' => OX_DATAOBJECT_NULL,
-                'email_updated' => OX_DATAOBJECT_NULL,
-                );
+    public $defaultValues = [
+        'contact_name' => '',
+        'email_address' => '',
+        'username' => '',
+        'password' => '',
+        'active' => 1,
+        'sso_user_id' => OX_DATAOBJECT_NULL,
+        'date_last_login' => OX_DATAOBJECT_NULL,
+        'email_updated' => OX_DATAOBJECT_NULL,
+    ];
 
     /* the code above is auto generated do not remove the tag below */
     ###END_AUTOCODE
+
+    /** @var bool */
+    private $resetRequired = false;
+
+    /** @var bool */
+    private $unsafePassword = false;
 
     /**
      * Handle all necessary operations when a user is inserted
      *
      * @see DB_DataObject::insert()
      */
-    function insert()
+    public function insert()
     {
+        $now = gmdate(OA_DATETIME_FORMAT);
         if (isset($this->username)) {
             $this->username = strtolower($this->username);
         }
         if (empty($this->date_created)) {
-            $this->date_created = $this->formatDate(new Date());
+            $this->date_created = $now;
         }
         if (empty($this->email_updated)) {
-            $this->email_updated = $this->formatDate(new Date());
+            $this->email_updated = $now;
         }
         return parent::insert();
     }
@@ -78,7 +90,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      *
      * @see DB_DataObject::update()
      */
-    function update($dataObject = false)
+    public function update($dataObject = false)
     {
         if (isset($this->username)) {
             $this->username = strtolower($this->username);
@@ -93,10 +105,10 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param string $username
      * @return boolean
      */
-    function userExists($username)
+    public function userExists($username)
     {
         $this->username = strtolower($username);
-        return (bool)$this->count();
+        return (bool) $this->count();
     }
 
     /**
@@ -105,7 +117,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @return array
      * @access public
      */
-    function getUniqueUsers()
+    public function getUniqueUsers()
     {
         return $this->getUniqueValuesFromColumn('username');
     }
@@ -115,7 +127,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      *
      * @return boolean  True if linked only to one account, else false
      */
-    function countLinkedAccounts()
+    public function countLinkedAccounts()
     {
         $doAccount_user_assoc = OA_Dal::factoryDO('account_user_assoc');
         $doAccount_user_assoc->user_id = $this->user_id;
@@ -128,7 +140,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param string $userName  Username
      * @return integer  User ID or false if user do not exists
      */
-    function getUserIdByUserName($userName)
+    public function getUserIdByUserName($userName)
     {
         return $this->getUserIdByProperty('username', $userName);
     }
@@ -139,9 +151,9 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param string $userName  Username
      * @return integer  User ID or false if user do not exists
      */
-    function getUserIdByProperty($propertyName, $propertyValue)
+    public function getUserIdByProperty($propertyName, $propertyValue)
     {
-        $this->whereAdd($propertyName.' = '.$this->quote($propertyValue));
+        $this->whereAdd($propertyName . ' = ' . $this->quote($propertyValue));
         if ($this->find()) {
             $this->fetch();
             return $this->user_id;
@@ -156,7 +168,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param integer $entityId  Inventory entity ID
      * @return array
      */
-    function getAccountUsersByEntity($entityName, $entityId)
+    public function getAccountUsersByEntity($entityName, $entityId)
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doAccount_user_assoc = OA_Dal::factoryDO('account_user_assoc');
@@ -173,7 +185,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      *
      * @return array
      */
-    function getAdminUsers()
+    public function getAdminUsers()
     {
         $doUsers = OA_Dal::factoryDO('users');
         $doAccounts = OA_Dal::factoryDO('accounts');
@@ -190,7 +202,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      *
      * @return date
      */
-    function logDateLastLogIn($date = null)
+    public function logDateLastLogIn($date = null)
     {
         if (!$date) {
             $date = new Date();
@@ -205,7 +217,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param integer $userId
      * @param array $aAccountPermissions
      */
-    function addUserPermissions($userId, $aAccountPermissions)
+    public function addUserPermissions($userId, $aAccountPermissions)
     {
         foreach ($aAccountPermissions as $accountId => $aPermissions) {
             foreach ($aPermissions as $permissionId => $isAllowed) {
@@ -236,9 +248,9 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param integer $userId
      * @return array
      */
-    function getUsersPermissions($userId)
+    public function getUsersPermissions($userId)
     {
-        $aPermissions = array();
+        $aPermissions = [];
         $doAccount_user_permission_assoc =
             OA_Dal::factoryDO('account_user_permission_assoc');
         $doAccount_user_permission_assoc->user_id = $userId;
@@ -256,7 +268,7 @@ class DataObjects_Users extends DB_DataObjectCommon
      *
      * @return array
      */
-    function getLinkedAccountsIds($userId = null)
+    public function getLinkedAccountsIds($userId = null)
     {
         if (empty($userId)) {
             $userId = $this->user_id;
@@ -273,10 +285,10 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param DataObjects_Users $doUsers
      * @return array
      */
-    function _buildUsersTable(&$doUsers)
+    public function _buildUsersTable(&$doUsers)
     {
-        $aUsers = array();
-        while($doUsers->fetch()) {
+        $aUsers = [];
+        while ($doUsers->fetch()) {
             $aUsers[$doUsers->user_id] = $doUsers->toArray();
             // is user linked to his last account
             $aUsers[$doUsers->user_id]['toDelete'] = ($doUsers->countLinkedAccounts() == 1);
@@ -284,17 +296,17 @@ class DataObjects_Users extends DB_DataObjectCommon
         return $aUsers;
     }
 
-    function _auditEnabled()
+    public function _auditEnabled()
     {
         return true;
     }
 
-    function _getContextId()
+    public function _getContextId()
     {
         return $this->user_id;
     }
 
-    function _getContext()
+    public function _getContext()
     {
         return 'User';
     }
@@ -333,9 +345,9 @@ class DataObjects_Users extends DB_DataObjectCommon
         // to record all possible manager account IDs; so, we restrict
         // auditing of user entities to be only visible to the admin
         // account
-        $aAccountIds = array(
-            OA_ACCOUNT_ADMIN => OA_Dal_ApplicationVariables::get('admin_account_id')
-        );
+        $aAccountIds = [
+            OA_ACCOUNT_ADMIN => OA_Dal_ApplicationVariables::get('admin_account_id'),
+        ];
         return $aAccountIds;
     }
 
@@ -345,13 +357,33 @@ class DataObjects_Users extends DB_DataObjectCommon
      * @param integer $actionid
      * @param array $aAuditFields
      */
-    function _buildAuditArray($actionid, &$aAuditFields)
+    public function _buildAuditArray($actionid, &$aAuditFields)
     {
-        $aAuditFields['key_desc']     = $this->username;
+        $aAuditFields['key_desc'] = $this->username;
 
         // Do not log the password hash in the audit record, just the fact that it was changed
-        if (isset($aAuditFields['password'])) { $aAuditFields['password'] = '******'; }
+        if (isset($aAuditFields['password'])) {
+            $aAuditFields['password'] = '******';
+        }
+    }
+
+    public function isResetRequired(): bool
+    {
+        return $this->resetRequired;
+    }
+
+    public function setResetRequired(bool $resetRequired = true): void
+    {
+        $this->resetRequired = $resetRequired;
+    }
+
+    public function hasUnsafePassword(): bool
+    {
+        return $this->unsafePassword;
+    }
+
+    public function setUnsafePassword(bool $unsafePassword = true): void
+    {
+        $this->unsafePassword = $unsafePassword;
     }
 }
-
-?>

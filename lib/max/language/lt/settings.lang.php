@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "Tęsti »";
 $GLOBALS['strBtnRecover'] = "Atnaujinti »";
 $GLOBALS['strBtnAgree'] = "Aš sutinku »";
 $GLOBALS['strBtnRetry'] = "Bandyti dar kartą";
-$GLOBALS['strWarningRegisterArgcArv'] = " PHP registracijos konfigūracija _argc_argv turi būti įjungta, tam kad būtų paleistas aptarnavimo komanda.";
+$GLOBALS['strTablesPrefix'] = "Lentelių pavadinimų priešdelis";
 $GLOBALS['strTablesType'] = "Lentelės tipas";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Jūsų pastarasis bandymas buvo su klaida";
@@ -46,10 +46,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "Vaizdų išsaugojimo URL (SSL)";
 $GLOBALS['strChooseSection'] = "Pasirinkti dalį";
 $GLOBALS['strUnableToWriteConfig'] = "Neįmano įrašyti pakeitimų į šiuos konfigūracijos failus";
 $GLOBALS['strUnableToWritePrefs'] = "Neįmanoma nustatyti pirmenybių duomenų bazėje";
-$GLOBALS['strImageDirLockedDetected'] = "Pateiktas <b>Paveikslėlių aplankas</b> nėra įrašomas per serverį. <br> Jūs negalite tęsti kol nepakeitėte aplankų galimų leidimų arba nesukūrėte naujo aplanko.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Konfigūracijos nustatymai";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Administratoriaus vartotojo avrdas";
@@ -84,6 +82,8 @@ $GLOBALS['strEmailFromAddress'] = "El. paštas  el. pašto adresas";
 $GLOBALS['strEnableQmailPatch'] = "Įgalinti pašto taisymą";
 $GLOBALS['strEmailHeader'] = "El. pašto antraštė";
 $GLOBALS['strEmailLog'] = "El. pašto registras";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Audit trail nustatymai";
@@ -147,15 +147,8 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Ad rodymas";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPC kreipimasis";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Vietinis kreipimasis";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Priekinis tikrintojas";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Pridėti Flash (gali būti pilnas URL)";
 $GLOBALS['strDeliveryCaching'] = "Banerio pristatymo kelio nustatymai";
 $GLOBALS['strDeliveryCacheLimit'] = "Laikas ";
-$GLOBALS['strDeliveryExecPhp'] = "Leisti PHP kodui, kai pridedamas būti pašalintam<br />(Įspėjimas: Security risk)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Trečiosios šalies paspaudimų seklio delimiter";
-$GLOBALS['strP3PSettings'] = "P3P privatumo politika";
-$GLOBALS['strUseP3P'] = "Naudoti P3P politiką";
-$GLOBALS['strP3PCompactPolicy'] = "P3P susitarimo politika";
-$GLOBALS['strP3PPolicyLocation'] = "P3P vietos politika";
 
 // General Settings
 

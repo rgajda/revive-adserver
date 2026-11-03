@@ -28,17 +28,6 @@ require_once OX_PATH . '/lib/pear/Date.php';
  */
 class MAX_Dal_Statistics extends MAX_Dal_Common
 {
-
-    /**
-     * The constructor method.
-     *
-     * @return MAX_Dal_Statistics
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * A method to determine the day/hour that a placement first became active,
      * based on the first record of its children ads delivering.
@@ -48,7 +37,7 @@ class MAX_Dal_Statistics extends MAX_Dal_Common
      *               PEAR::Date object representing the time the placement started
      *               delivery, or, if not yet active, the current date/time.
      */
-    function getPlacementFirstStatsDate($placementId)
+    public function getPlacementFirstStatsDate($placementId)
     {
         // Test the input values
         if (!is_numeric($placementId)) {
@@ -56,8 +45,8 @@ class MAX_Dal_Statistics extends MAX_Dal_Common
         }
         // Get the required data
         $conf = $GLOBALS['_MAX']['CONF'];
-        $adTable = $this->oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['banners'],true);
-        $dsahTable = $this->oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['data_summary_ad_hourly'],true);
+        $adTable = $this->oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['banners'], true);
+        $dsahTable = $this->oDbh->quoteIdentifier($conf['table']['prefix'] . $conf['table']['data_summary_ad_hourly'], true);
         $query = "
             SELECT
                 DATE_FORMAT(dsah.date_time, '%Y-%m-%d') AS day,
@@ -66,7 +55,7 @@ class MAX_Dal_Statistics extends MAX_Dal_Common
                 $adTable AS a,
                 $dsahTable AS dsah
             WHERE
-                a.campaignid = ". $this->oDbh->quote($placementId, 'integer') ."
+                a.campaignid = " . $this->oDbh->quote($placementId, 'integer') . "
                 AND
                 a.bannerid = dsah.ad_id
             ORDER BY
@@ -81,13 +70,10 @@ class MAX_Dal_Statistics extends MAX_Dal_Common
         // Was a result found?
         if ($rc->numRows() == 0) {
             // Return the current time
-            $oDate = new Date();
-        } else {
-            // Store the results
-            $aRow = $rc->fetchRow();
-            $oDate = new Date($aRow['day'] . ' ' . $aRow['hour'] . ':00:00');
+            return new Date();
         }
-        return $oDate;
+        // Store the results
+        $aRow = $rc->fetchRow();
+        return new Date($aRow['day'] . ' ' . $aRow['hour'] . ':00:00');
     }
-
 }

@@ -12,10 +12,9 @@
 
 namespace RV\Manager;
 
-use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
-use League\Flysystem\MountManager;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
+use League\Flysystem\ZipArchive\FilesystemZipArchiveProvider;
 use RV\Parser\Html5ParserInterface;
 
 class Html5ZipManager
@@ -36,7 +35,8 @@ EOF;
 
     /**
      * An array containing all the allowed (lowercase) extension as key. If a file with a non-listed extension is
-     * found, an exception will be thrown. Extensions with false as a value are skipped during the copy.
+     * found, an exception will be thrown. Files with an extension that is listed with false as a value here
+     * are not copied to the images folder.
      *
      * @var array
      */
@@ -51,11 +51,18 @@ EOF;
         'mp4' => true,
         'mov' => true,
         'webm' => true,
+        'webp' => true,
         'mp3' => true,
         'ogg' => true,
         'woff' => true,
         'woff2' => true,
         'eot' => true,
+        'svg' => true,
+        'json' => true,
+        'xml' => true,
+        'txt' => true,
+        'md' => true,
+
         'ds_store' => false,
         'ini' => false,
     ];
@@ -66,9 +73,9 @@ EOF;
     private $destination;
 
     /**
-     * @var MountManager
+     * @var Filesystem
      */
-    private $mountManager;
+    private $source;
 
     /**
      *
@@ -109,9 +116,7 @@ EOF;
      */
     public function addParser(Html5ParserInterface $parser, $priority)
     {
-        if (!isset($this->parsers[$priority])) {
-            $this->parsers[$priority] = [];
-        }
+        $this->parsers[$priority] ??= [];
 
         $this->parsers[$priority][] = $parser;
     }
@@ -121,11 +126,11 @@ EOF;
      *
      * @param string $zipFile
      *
-     * @return Filesystem
+     * @return void
      */
     public function open($zipFile)
     {
-        $source = new Filesystem(new ZipArchiveAdapter($zipFile));
+        $source = new Filesystem(new ZipArchiveAdapter(new FilesystemZipArchiveProvider($zipFile)));
         $this->hash = md5(file_get_contents($zipFile));
 
         self::stripMacOsDir($source);
@@ -133,13 +138,10 @@ EOF;
         $basedir = self::findBasedir($source);
 
         if (!empty($basedir)) {
-            $source = new Filesystem(new ZipArchiveAdapter($zipFile, null, $basedir));
+            $source = new Filesystem(new ZipArchiveAdapter(new FilesystemZipArchiveProvider($zipFile), $basedir));
         }
 
-        $this->mountManager = new MountManager(array(
-            'src'  => $source,
-            'dst' => $this->destination,
-        ));
+        $this->source = $source;
 
         $this->verifyContent();
         $this->parseSize();
@@ -152,18 +154,23 @@ EOF;
      */
     public function copyToWebdir()
     {
-        foreach ($this->mountManager->listContents('src://', true) as $entry) {
-            if ('file' !== $entry['type'] || empty(self::$extensions[strtolower($entry['extension'])])) {
+        foreach ($this->source->listContents('', true) as $entry) {
+            if (!$entry->isFile() || empty(self::$extensions[strtolower(pathinfo($entry->path(), PATHINFO_EXTENSION))])) {
                 continue;
             }
 
-            $srcPath = "src://{$entry['path']}";
-            $dstPath = "dst://{$this->hash}/{$entry['path']}";
+            $srcPath = $entry->path();
+            $dstPath = "{$this->hash}/{$srcPath}";
 
-            if ('index.html' === $entry['basename']) {
-                $this->mountManager->put($dstPath, $this->alterHtml($this->mountManager->read($srcPath)));
+            if ('index.html' === basename($entry->path())) {
+                $this->destination->write($dstPath, $this->alterHtml($this->source->read($srcPath)));
             } else {
-                $this->mountManager->putStream($dstPath, $this->mountManager->readStream($srcPath));
+                $stream = $this->source->readStream($srcPath);
+                try {
+                    $this->destination->writeStream($dstPath, $stream);
+                } finally {
+                    fclose($stream);
+                }
             }
         }
 
@@ -195,13 +202,13 @@ EOF;
      */
     private function parseSize()
     {
-        $html = $this->mountManager->read('src://index.html');
+        $html = $this->source->read('index.html');
 
         foreach ($this->getSortedParsers() as $parser) {
             $size = $parser->parseSize($html);
 
             if (null !== $size) {
-                list($this->width, $this->height) = $size;
+                [$this->width, $this->height] = $size;
                 return;
             }
         }
@@ -226,19 +233,19 @@ EOF;
             return $html;
         }
 
-        $newhead = substr($head, 0, $pos).self::$reviveScript.substr($head, $pos);
+        $newhead = substr($head, 0, $pos) . self::$reviveScript . substr($head, $pos);
 
         preg_match_all('#<script.*?>(.*?)</script>#is', $head, $m);
 
         foreach ($m[1] as $script) {
-            preg_match_all('#var\s+(clickTag)\s+=\s+((["\'])(.*?)\\3);#i', $head, $jsvar);
+            preg_match_all('#var\s+(clickTag)\s*=\s*((["\'])(.*?)\\3)\s*;#i', $head, $jsvar);
 
             $newscript = $script;
             foreach ($jsvar[1] as $k => $var) {
                 $newscript = str_replace(
                     $jsvar[0][$k],
                     str_replace($jsvar[2][$k], "REVIVE.getParameter('{$var}', {$jsvar[2][$k]})", $jsvar[0][$k]),
-                    $newscript
+                    $newscript,
                 );
             }
 
@@ -255,9 +262,9 @@ EOF;
      */
     private function verifyContent()
     {
-        foreach ($this->mountManager->listContents('src://', true) as $entry) {
-            if ('file' === $entry['type'] && !isset(self::$extensions[strtolower($entry['extension'])])) {
-                throw new \RuntimeException("Invalid file type: {$entry['basename']}");
+        foreach ($this->source->listContents('', true) as $entry) {
+            if ($entry->isFile() && !isset(self::$extensions[strtolower(pathinfo($entry->path(), PATHINFO_EXTENSION))])) {
+                throw new \RuntimeException(sprintf($GLOBALS['strHtml5InvalidFileType'], basename($entry->path())));
             }
         }
     }
@@ -269,14 +276,12 @@ EOF;
      */
     private static function stripMacOsDir(Filesystem $filesystem)
     {
-        try {
-            $macOsDir = $filesystem->getMetadata('__MACOSX');
-
-            if (false !== $macOsDir && 'dir' === $macOsDir['type']) {
-                $filesystem->deleteDir('__MACOSX');
+        foreach ($filesystem->listContents('__MACOSX', true)->toArray() as $entry) {
+            if ($entry->isFile()) {
+                $filesystem->delete($entry->path());
             }
-        } catch (FileNotFoundException $e) {
         }
+        $filesystem->deleteDirectory('__MACOSX');
     }
 
     /**
@@ -292,15 +297,14 @@ EOF;
     {
         $htmls = [];
         foreach ($filesystem->listContents('', true) as $entry) {
-            if ('file' !== $entry['type'] || 'html' !== $entry['extension']) {
+            if (!$entry->isFile() || 'html' !== pathinfo($entry->path(), PATHINFO_EXTENSION)) {
                 continue;
             }
 
-            if (!isset($htmls[$entry['basename']])) {
-                $htmls[$entry['basename']] = [];
-            }
+            $htmls[basename($entry->path())] ??= [];
 
-            $htmls[$entry['basename']][] = $entry['dirname'];
+            $dirname = dirname($entry->path());
+            $htmls[basename($entry->path())][] = '.' === $dirname ? '' : $dirname;
         }
 
         if (isset($htmls['index.html'])) {
@@ -308,19 +312,23 @@ EOF;
                 return $htmls['index.html'][0];
             }
 
-            throw new \RuntimeException("Multiple 'index.html' files found");
+            throw new \RuntimeException($GLOBALS['strHtml5MultipleIndexHtml']);
         }
 
         // Is there a single HTML file that we can rename to index.html?
         $fileName = key($htmls);
         if (1 === count($htmls) && 1 === count($htmls[$fileName])) {
             $dir = current($htmls[$fileName]);
-            $filesystem->rename("{$dir}/{$fileName}", "{$dir}/index.html");
+            $filesystem->move("{$dir}/{$fileName}", "{$dir}/index.html");
 
             return $dir;
         }
 
-        throw new \RuntimeException("Multiple '*.html' files found, please rename the main one to 'index.html'".print_r($htmls, true));
+        if (empty($htmls)) {
+            throw new \RuntimeException($GLOBALS['strHtml5NoHtml']);
+        }
+
+        throw new \RuntimeException($GLOBALS['strHtml5MultipleHtml']);
     }
 
     /**
@@ -330,7 +338,7 @@ EOF;
     {
         ksort($this->parsers);
 
-        $sortedParsers = call_user_func_array('array_merge', $this->parsers);
+        $sortedParsers = call_user_func_array(array_merge(...), $this->parsers);
 
         foreach ($sortedParsers as $parser) {
             yield $parser;

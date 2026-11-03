@@ -17,18 +17,12 @@ require_once MAX_PATH . '/lib/OA/Upgrade/UpgradeLogger.php';
 
 class OA_UpgradePostscript_2_7_30_beta_rc4
 {
-    var $oUpgrade;
+    public $oUpgrade;
 
-    function __construct()
+    public function execute($aParams)
     {
-
-    }
-
-    function execute($aParams)
-    {
-        $this->oUpgrade = & $aParams[0];
+        $this->oUpgrade = &$aParams[0];
         $this->oUpgrade->addPostUpgradeTask('Rebuild_Banner_Cache');
         return true;
     }
-
 }

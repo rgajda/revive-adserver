@@ -35,7 +35,7 @@ function OA_HeaderNavigation()
     if (OA_Permission::isAccount(OA_ACCOUNT_ADMIN)) {
         phpAds_PageHeader("agency-access");
         $doAgency = OA_Dal::staticGetDO('agency', $agencyid);
-        MAX_displayInventoryBreadcrumbs(array(array("name" => $doAgency->name)), "agency");
+        MAX_displayInventoryBreadcrumbs([["name" => $doAgency->name]], "agency");
     } else {
         phpAds_PageHeader("agency-user");
     }
@@ -47,16 +47,20 @@ $userAccess->setAccountId($accountId);
 
 $userAccess->setPagePrefix('agency');
 
-$aAllowedPermissions = array();
+$aAllowedPermissions = [];
+
 if (OA_Permission::hasPermission(OA_PERM_SUPER_ACCOUNT, $accountId)) {
-    $aAllowedPermissions[OA_PERM_SUPER_ACCOUNT] = array($strAllowCreateAccounts, false);
+    $aAllowedPermissions[OA_PERM_SUPER_ACCOUNT] = [$strAllowCreateAccounts, false];
 }
+
+if (OA_Permission::isUserLinkedToAdmin()) {
+    $aAllowedPermissions[OA_PERM_MANAGER_DELETE] = [$strAllowDeleteItems, false];
+}
+
 $userAccess->setAllowedPermissions($aAllowedPermissions);
 
-$userAccess->setHiddenFields(array('agencyid' => $agencyid));
-$userAccess->setRedirectUrl('agency-access.php?agencyid='.$agencyid);
-$userAccess->setBackUrl('agency-user-start.php?agencyid='.$agencyid);
+$userAccess->setHiddenFields(['agencyid' => $agencyid]);
+$userAccess->setRedirectUrl('agency-access.php?agencyid=' . $agencyid);
+$userAccess->setBackUrl('agency-user-start.php?agencyid=' . $agencyid);
 
 $userAccess->process();
-
-?>

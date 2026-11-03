@@ -26,11 +26,9 @@
  */
 function parseDeliveryIniFile($configPath = null, $configFile = null, $sections = true)
 {
-    $fixMysqli = function($conf) {
-        if ('mysql' === $conf['database']['type'] && !extension_loaded('mysql') && extension_loaded('mysqli')) {
+    $fixMysqli = function ($conf) {
+        if (0 === stripos($conf['database']['type'] ?? '', 'mysql')) {
             $conf['database']['type'] = 'mysqli';
-        } elseif ('mysqli' === $conf['database']['type'] && !extension_loaded('mysqli') && extension_loaded('mysql')) {
-            $conf['database']['type'] = 'mysql';
         }
 
         return $conf;
@@ -53,7 +51,8 @@ function parseDeliveryIniFile($configPath = null, $configFile = null, $sections 
     }
     if (!empty($conf)) {
         return $fixMysqli($conf);
-    } elseif ($configFile === '.plugin') {
+    }
+    if ($configFile === '.plugin') {
         // For plugins, if no configuration file is found, return the sane default values
         $pluginType = basename($configPath);
         $defaultConfig = MAX_PATH . '/plugins/' . $pluginType . '/default.plugin.conf.php';
@@ -85,32 +84,25 @@ function parseDeliveryIniFile($configPath = null, $configFile = null, $sections 
     exit(1);
 }
 
-if (!function_exists('mergeConfigFiles'))
-{
+if (!function_exists('mergeConfigFiles')) {
     function mergeConfigFiles($realConfig, $fakeConfig)
     {
         foreach ($fakeConfig as $key => $value) {
             if (is_array($value)) {
-                if (!isset($realConfig[$key])) {
-                    $realConfig[$key] = array();
-                }
+                $realConfig[$key] ??= [];
                 $realConfig[$key] = mergeConfigFiles($realConfig[$key], $value);
+            } elseif (isset($realConfig[$key]) && is_array($realConfig[$key])) {
+                $realConfig[$key][0] = $value;
             } else {
-                if (isset($realConfig[$key]) && is_array($realConfig[$key])) {
-                    $realConfig[$key][0] = $value;
-                } else {
-                    if (isset($realConfig) && !is_array($realConfig)) {
-                        $temp = $realConfig;
-                        $realConfig = array();
-                        $realConfig[0] = $temp;
-                    }
-                    $realConfig[$key] = $value;
+                if (isset($realConfig) && !is_array($realConfig)) {
+                    $temp = $realConfig;
+                    $realConfig = [];
+                    $realConfig[0] = $temp;
                 }
+                $realConfig[$key] = $value;
             }
         }
         unset($realConfig['realConfig']);
         return $realConfig;
     }
 }
-
-?>

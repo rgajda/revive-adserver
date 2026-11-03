@@ -21,18 +21,28 @@ if (php_sapi_name() != 'cli') {
     exit;
 }
 
-error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_DEPRECATED | E_STRICT));
+error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_DEPRECATED));
 
 echo "=> STARTING TO RE-COMPILE THE DELIVERY ENGINE FILES\n";
 
 // Set the MAX_PATH constant (this assumes that the script is located in
 // MAX_PATH . '/scripts'
-define('MAX_PATH', dirname(dirname(dirname(__FILE__))));
-define('OX_PATH',  dirname(dirname(dirname(__FILE__))));
-define('LIB_PATH', MAX_PATH.'/lib/OX');
+define('MAX_PATH', dirname(__FILE__, 3));
+define('OX_PATH', MAX_PATH);
+define('LIB_PATH', MAX_PATH . '/lib/OX');
 define('RV_PATH', MAX_PATH);
 
-$ignored_files = array('template.php');
+$ignored_files = [
+    'template.php',
+];
+
+// Not needed anymore, but I'm leaving it here for reference
+// 'axmlrpc.php' => 'axmlrpc.txt',
+$renamed_files = [];
+
+$blacklist = [
+    'asyncjs.php',
+];
 
 /**
  * Function to get values for timing the compilation
@@ -41,18 +51,18 @@ $ignored_files = array('template.php');
  */
 function get_microtime()
 {
-    list($usec, $sec) = explode(" ", microtime());
-    return ((float)$usec + (float)$sec);
+    [$usec, $sec] = explode(" ", microtime());
+    return ((float) $usec + (float) $sec);
 }
 
 // Source folder for the file to be processed
-$input_dir  = MAX_PATH . '/www/delivery_dev/';
+$input_dir = MAX_PATH . '/www/delivery_dev/';
 // Destination folder for the compiled scripts
 $output_dir = MAX_PATH . '/www/delivery/';
 
 $start_time = get_microtime();
 
-$DIR_INPUT  = opendir($input_dir);
+$DIR_INPUT = opendir($input_dir);
 $DIR_OUTPUT = opendir($output_dir);
 
 $header = file_get_contents($input_dir . 'template.php');
@@ -61,16 +71,12 @@ require_once LIB_PATH . '/Util/CodeMunger.php';
 $oCodeMunger = new OX_Util_CodeMunger();
 $oCodeMunger->setHeader($header);
 
-$blacklist = array(
-    'asyncjs.php',
-);
-
 // Process all files in the www/delivery_dev folder (except those being
 // explicitly ignored)
 while (false !== ($file = readdir($DIR_INPUT))) {
     // Skip hidden file, directories, and ignored files
     if (
-        (substr($file, 0, 1) == '.')
+        (str_starts_with($file, '.'))
         || is_dir($input_dir . $file)
         || in_array($file, $ignored_files)
     ) {
@@ -85,7 +91,9 @@ while (false !== ($file = readdir($DIR_INPUT))) {
         continue;
     }
 
-    $FILE_OUT = @fopen($output_dir . $file, 'w');
+    $destfile = $renamed_files[$file] ?? $file;
+
+    $FILE_OUT = @fopen($output_dir . $destfile, 'w');
     if (!is_resource($FILE_OUT)) {
         echo "  => Unable to open output file for writing: {$output_dir}{$file}\n";
         continue;
@@ -97,7 +105,7 @@ while (false !== ($file = readdir($DIR_INPUT))) {
     } elseif (in_array($file, $blacklist)) {
         echo "  => {$file} blacklisted, copying as-is\n";
     } else {
-        echo "  => Processing php file: {$file}\n";
+        echo "  => Processing php file: {$destfile}\n";
         $munge = true;
     }
 
@@ -114,5 +122,3 @@ $end_time = get_microtime();
 
 echo "  => Time taken: " . ($end_time - $start_time) . " s\n";
 echo "=> FINISHED RE-COMPILING THE DELIVERY ENGINE FILES\n\n";
-
-?>

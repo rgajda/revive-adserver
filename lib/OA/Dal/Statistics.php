@@ -34,21 +34,21 @@ class OA_Dal_Statistics extends OA_Dal
      *
      * @return string
      */
-    function getWhereDate($oStartDate, $oEndDate, $localTZ = false, $dateField = 's.date_time')
+    public function getWhereDate($oStartDate, $oEndDate, $localTZ = false, $dateField = 's.date_time')
     {
         $where = '';
         if (isset($oStartDate)) {
             $oStart = $this->setTimeAndReturnUTC($oStartDate, $localTZ, 0, 0, 0);
             $where .= '
                 AND ' .
-                $dateField .' >= '.$this->oDbh->quote($oStart->getDate(DATE_FORMAT_ISO), 'timestamp');
+                $dateField . ' >= ' . $this->oDbh->quote($oStart->getDate(DATE_FORMAT_ISO), 'timestamp');
         }
 
         if (isset($oEndDate)) {
             $oEnd = $this->setTimeAndReturnUTC($oEndDate, $localTZ, 23, 59, 59);
             $where .= '
                 AND ' .
-                $dateField .' <= '.$this->oDbh->quote($oEnd->getDate(DATE_FORMAT_ISO), 'timestamp');
+                $dateField . ' <= ' . $this->oDbh->quote($oEnd->getDate(DATE_FORMAT_ISO), 'timestamp');
         }
         return $where;
     }
@@ -62,13 +62,11 @@ class OA_Dal_Statistics extends OA_Dal
     private function getTimeZone($localTZ = false)
     {
         if (empty($localTZ)) {
-            $oTz = new Date_TimeZone('UTC');
-        } else {
-            $oNow = new Date();
-            $oTz = $oNow->tz;
+            return new Date_TimeZone('UTC');
         }
+        $oNow = new Date();
 
-        return $oTz;
+        return $oNow->tz;
     }
 
     /**
@@ -99,22 +97,22 @@ class OA_Dal_Statistics extends OA_Dal
     /**
      * A method that runs the supplied query and returns data grouped by day either in UTC or manager's TZ
      *
-     * The query needs to return "day" and "hour" fields. Any other field will be aggregated with a SUM()
+     * The query needs to return "day" and "hour" fields. Any other field will be aggregated.
      *
      * @param string $query
      * @param bool $localTZ
      * @return array
      */
-    function getDailyStatsAsArray($query, $localTZ = false)
+    public function getDailyStatsAsArray($query, $localTZ = false)
     {
-        $oTz  = $this->getTimeZone($localTZ);
+        $oTz = $this->getTimeZone($localTZ);
         if ($oTz->getShortName() == 'UTC') {
             // Disable TZ conversion
             $oTz = false;
         } else {
             $oUTC = new Date_TimeZone('UTC');
         }
-        $aResult = array();
+        $aResult = [];
         $oResult = $this->oDbh->query($query);
         while ($aRow = $oResult->fetchRow()) {
             if ($oTz) {
@@ -124,8 +122,10 @@ class OA_Dal_Statistics extends OA_Dal
                 $oDate->convertTZ($oTz);
                 $aRow['day'] = $oDate->format('%Y-%m-%d');
             }
-            // Remove day & hour
+
+            // Remove hour
             unset($aRow['hour']);
+
             // Add entry
             if (!isset($aResult[$aRow['day']])) {
                 $aResult[$aRow['day']] = $aRow;
@@ -144,23 +144,58 @@ class OA_Dal_Statistics extends OA_Dal
     }
 
     /**
+     * A method that runs the supplied query and returns data grouped by day and hour either in UTC or manager's TZ
+     *
+     * The query needs to return "day" and "hour" fields. Any other field will be aggregated.
+     *
+     * @param string $query
+     * @param bool $localTZ
+     * @return array
+     */
+    public function getHourlyStatsAsArray($query, $localTZ = false)
+    {
+        $oTz = $this->getTimeZone($localTZ);
+        if ($oTz->getShortName() == 'UTC') {
+            // Disable TZ conversion
+            $oTz = false;
+        } else {
+            $oUTC = new Date_TimeZone('UTC');
+        }
+        $aResult = [];
+        $oResult = $this->oDbh->query($query);
+
+        while ($aRow = $oResult->fetchRow()) {
+            if ($oTz) {
+                $oDate = new Date($aRow['day']);
+                $oDate->setHour($aRow['hour']);
+                $oDate->setTZ($oUTC);
+                $oDate->convertTZ($oTz);
+                $aRow['day'] = $oDate->format('%Y-%m-%d');
+            }
+
+            // Add entry
+            $aResult [ count($aResult) ] = $aRow;
+        }
+
+        return array_values($aResult);
+    }
+
+    /**
      * Add quote for table name.
      *
-	 * @access public
-	 *
+     * @access public
+     *
      * @param string $tableName
      *
      * @return string  quotes table name
      */
-    function quoteTableName($tableName)
+    public function quoteTableName($tableName)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         return $this->oDbh->quoteIdentifier(
-                            $aConf['table']['prefix'].$aConf['table'][$tableName],
-                            true);
+            $aConf['table']['prefix'] . $aConf['table'][$tableName],
+            true,
+        );
     }
-
 }
-
-?>

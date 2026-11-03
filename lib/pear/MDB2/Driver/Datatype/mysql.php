@@ -113,7 +113,7 @@ class MDB2_Driver_Datatype_mysql extends MDB2_Driver_Datatype_Common
      */
     function getTypeDeclaration($field)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -216,7 +216,7 @@ class MDB2_Driver_Datatype_mysql extends MDB2_Driver_Datatype_Common
      */
     function _getIntegerDeclaration($name, $field)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -261,7 +261,7 @@ class MDB2_Driver_Datatype_mysql extends MDB2_Driver_Datatype_Common
      */
     function matchPattern($pattern, $operator = null, $field = null)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -284,17 +284,19 @@ class MDB2_Driver_Datatype_mysql extends MDB2_Driver_Datatype_Common
                     'not a supported operator type:'. $operator, __FUNCTION__);
             }
         }
-        $match.= "'";
+
+        $like = '';
+
         foreach ($pattern as $key => $value) {
             if ($key % 2) {
-                $match.= $value;
+                $like.= $value;
             } else {
-                $match.= $db->escapePattern($db->escape($value));
+                $like.= $db->escapePattern($value);
             }
         }
-        $match.= "'";
-        $match.= $this->patternEscapeString();
-        return $match;
+
+        return "{$match}'{$db->escape($like)}'{$this->patternEscapeString()}";
+
     }
 
     // }}}
@@ -439,7 +441,7 @@ class MDB2_Driver_Datatype_mysql extends MDB2_Driver_Datatype_Common
             $length = null;
             break;
         default:
-            $db =& $this->getDBInstance();
+            $db = $this->getDBInstance();
             if (PEAR::isError($db)) {
                 return $db;
             }

@@ -22,23 +22,15 @@ require_once MAX_PATH . '/lib/OA/Dal/Maintenance/Priority.php';
 class Test_OA_Dal_Maintenance_Priority extends UnitTestCase
 {
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * A method for testing the obtainPriorityLock and
      * releasePriorityLock methods.
      *
      * @TODO Complete testing using a separate client connection to
      *       ensure locking works.
      */
-    function testLocking()
+    public function testLocking()
     {
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oDal = new OA_Dal_Maintenance_Priority();
         // Try to get the lock
         $result = $oDal->obtainPriorityLock();
@@ -53,9 +45,5 @@ class Test_OA_Dal_Maintenance_Priority extends UnitTestCase
         // ensure the lock IS obtained
 
         // Release the lock from the new connection
-
     }
-
 }
-
-?>

@@ -16,11 +16,11 @@
  */
 class OA_UpgradeLogger
 {
-    var $aErrors       = array();
-    var $aMessages     = array();
-    var $warningExists = false;
-    var $errorExists   = false;
-    var $logFile;
+    public $aErrors = [];
+    public $aMessages = [];
+    public $warningExists = false;
+    public $errorExists = false;
+    public $logFile;
 
     /**
      * @var array
@@ -35,26 +35,25 @@ class OA_UpgradeLogger
      * when both constructors are present
      *
      */
-//    function __construct()
-//    {
-//    }
+    //    function __construct()
+    //    {
+    //    }
 
     /**
      * php4 class constructor
      *
      * @return boolean
      */
-    function __construct()
+    public function __construct()
     {
         //this->__construct();
-        $this->logFile = MAX_PATH."/var/install.log";
+        $this->logFile = MAX_PATH . "/var/install.log";
     }
 
-    function setLogFile($logfile)
+    public function setLogFile($logfile)
     {
-        $this->logFile = MAX_PATH."/var/{$logfile}";
-        if (file_exists($this->logFile))
-        {
+        $this->logFile = MAX_PATH . "/var/{$logfile}";
+        if (file_exists($this->logFile)) {
             unlink($this->logFile);
         }
         $this->_logWrite(date('Y-m-d h:i:s'));
@@ -69,20 +68,19 @@ class OA_UpgradeLogger
      * @param string $message
      * @return boolean
      */
-    function isPearError($result, $message='omg it all went PEAR shaped!')
+    public function isPearError($result, $message = 'omg it all went PEAR shaped!')
     {
-        if (PEAR::isError($result))
-        {
-            $this->logError($message.' '. $result->getUserInfo());
+        if (PEAR::isError($result)) {
+            $this->logError($message . ' ' . $result->getUserInfo());
             return true;
         }
         return false;
     }
 
-    function logClear()
+    public function logClear()
     {
-        $this->aMessages = array();
-        $this->aErrors = array();
+        $this->aMessages = [];
+        $this->aErrors = [];
         $this->errorExists = false;
         $this->warningExists = false;
     }
@@ -92,13 +90,13 @@ class OA_UpgradeLogger
      *
      * @param string $message
      */
-    function log($message)
+    public function log($message)
     {
         $this->aMessages[] = $message;
         $this->_logWrite($message);
     }
 
-    function logOnly($message)
+    public function logOnly($message)
     {
         $this->_logWrite($message);
     }
@@ -108,7 +106,7 @@ class OA_UpgradeLogger
      *
      * @param string $message
      */
-    function logWarning($message)
+    public function logWarning($message)
     {
         $this->aMessages[] = "#> {$message}";
         $this->_logWrite("#> {$message}");
@@ -120,7 +118,7 @@ class OA_UpgradeLogger
      *
      * @param string $message
      */
-    function logError($message)
+    public function logError($message)
     {
         $this->log("#! {$message}");
         $this->errorExists = true;
@@ -131,41 +129,39 @@ class OA_UpgradeLogger
      *
      * @param string $message
      */
-    function logErrorUnlessEmpty($message)
+    public function logErrorUnlessEmpty($message)
     {
         if (!empty($message)) {
             $this->logError($message);
         }
     }
 
-    function _logWrite($message)
+    public function _logWrite($message)
     {
-        if (empty($this->logFile))
-        {
+        if (empty($this->logFile)) {
             $this->logBuffer[] = $message;
-        } else
-        {
+        } else {
             $log = fopen($this->logFile, 'a');
-            if (count($this->logBuffer))
-            {
-                $message = join("\n", $this->logBuffer);
-                $this->logBuffer = array();
+            if (!$log) {
+                return;
+            }
+            if (count($this->logBuffer)) {
+                $message = implode("\n", $this->logBuffer);
+                $this->logBuffer = [];
             }
             fwrite($log, "{$message}\n");
             fclose($log);
         }
     }
 
-    function getLogfilesList()
+    public function getLogfilesList()
     {
-        $aFiles = array();
-        $dh = opendir(MAX_PATH.'/var');
+        $aFiles = [];
+        $dh = opendir(MAX_PATH . '/var');
         if ($dh) {
-            while (false !== ($file = readdir($dh)))
-            {
-                $aMatches = array();
-                if (preg_match('/openads_upgrade_[\w\W\d]+\.log/', $file, $aMatches))
-                {
+            while (false !== ($file = readdir($dh))) {
+                $aMatches = [];
+                if (preg_match('/openads_upgrade_[\w\W\d]+\.log/', $file, $aMatches)) {
                     $aFiles[] = basename($file);
                 }
             }
@@ -174,14 +170,10 @@ class OA_UpgradeLogger
         return $aFiles;
     }
 
-    function deleteLogFile()
+    public function deleteLogFile()
     {
-        if (file_exists($this->logFile))
-        {
+        if (file_exists($this->logFile)) {
             unlink($this->logFile);
         }
     }
-
 }
-
-?>

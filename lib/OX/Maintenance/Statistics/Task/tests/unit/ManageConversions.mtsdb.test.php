@@ -23,19 +23,10 @@ require_once LIB_PATH . '/Maintenance/Statistics/Task/ManageConversions.php';
  */
 class Test_OX_Maintenance_Statistics_Task_ManageConversions extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Test the creation of the class.
      */
-    function testCreate()
+    public function testCreate()
     {
         $oManageConversions = new OX_Maintenance_Statistics_Task_ManageConversions();
         $this->assertTrue(is_a($oManageConversions, 'OX_Maintenance_Statistics_Task_ManageConversions'));
@@ -44,9 +35,9 @@ class Test_OX_Maintenance_Statistics_Task_ManageConversions extends UnitTestCase
     /**
      * A method to test the run() method.
      */
-    function testRun()
+    public function testRun()
     {
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $aConf['maintenance']['operationInterval'] = 60;
 
         // Test 1: Test with the bucket data not having been migrated,
@@ -87,25 +78,22 @@ class Test_OX_Maintenance_Statistics_Task_ManageConversions extends UnitTestCase
         $oDate->addSeconds(1);
         $oDal->expectOnce(
             'manageConversions',
-            array(
+            [
                 $oDate,
-                new Date('2008-09-08 17:59:59')
-            )
+                new Date('2008-09-08 17:59:59'),
+            ],
         );
         $oDal->__construct();
         $oServiceLocator->register('OX_Dal_Maintenance_Statistics', $oDal);
 
         // Set the controlling class' status and test
         $oManageConversions = new OX_Maintenance_Statistics_Task_ManageConversions();
-        $oManageConversions->oController->updateIntermediate        = true;
-        $oManageConversions->oController->oLastDateIntermediate     = new Date('2008-09-08 16:59:59');
+        $oManageConversions->oController->updateIntermediate = true;
+        $oManageConversions->oController->oLastDateIntermediate = new Date('2008-09-08 16:59:59');
         $oManageConversions->oController->oUpdateIntermediateToDate = new Date('2008-09-08 17:59:59');
         $oManageConversions->run();
         $oDal->tally();
 
         TestEnv::restoreConfig();
     }
-
 }
-
-?>

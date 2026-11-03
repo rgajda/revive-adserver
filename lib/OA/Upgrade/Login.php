@@ -17,12 +17,14 @@ require_once MAX_PATH . '/lib/OA/Auth.php';
  */
 class OA_Upgrade_Login
 {
+    public const SESSION_PASSWORD_HASH = 'password_hash';
+
     /**
      * Check administrator login during the upgrade steps
      *
      * @return boolean True if login succeded
      */
-    function checkLogin()
+    public static function checkLogin()
     {
         // Clean up session
         phpAds_clearSession();
@@ -46,40 +48,44 @@ class OA_Upgrade_Login
 
         phpAds_SessionStart();
 
-        OA_Upgrade_Login::readSession($panDetected);
+        self::readSession($panDetected);
 
         $oPlugin = new Plugins_Authentication();
 
+        $hasMd5Password = !$openadsDetected || version_compare($oUpgrader->versionInitialApplication, '5.4.0-beta-rc4', '<');
+
         if ($oPlugin->suppliedCredentials()) {
             // The new Users, Account, Permissions & Preference feature was introduced in OpenX 2.5.46-dev
-            $newLogin = $openadsDetected && version_compare($oUpgrader->versionInitialApplication, '2.5.46-dev', '>=') == -1;
+            $newLogin = $openadsDetected && version_compare($oUpgrader->versionInitialApplication, '2.5.46-dev', '>=');
 
             if ($newLogin) {
-                OA_Upgrade_Login::_checkLoginNew();
+                self::_checkLoginNew($hasMd5Password);
+            } elseif ($openadsDetected || $maxDetected) {
+                self::_checkLoginOld('preference', true);
+            } elseif ($max01Detected) {
+                self::_checkLoginOld('config', true);
+            } elseif ($panDetected) {
+                self::_checkLoginOld('config', false);
             } else {
-                if ($openadsDetected || $maxDetected) {
-                    OA_Upgrade_Login::_checkLoginOld('preference', true);
-                } elseif ($max01Detected) {
-                    OA_Upgrade_Login::_checkLoginOld('config', true);
-                } elseif ($panDetected) {
-                    OA_Upgrade_Login::_checkLoginOld('config', false);
-                } else {
-                    return false;
-                }
+                return false;
             }
+        }
+
+        if ($hasMd5Password && empty($GLOBALS['session'][self::SESSION_PASSWORD_HASH])) {
+            return false;
         }
 
         return OA_Permission::isAccount(OA_ACCOUNT_ADMIN) || OA_Permission::isUserLinkedToAdmin();
     }
 
-    function autoLogin()
+    public static function autoLogin()
     {
         $oPlugin = OA_Auth::staticGetAuthPlugin();
 
         phpAds_SessionStart();
 
         // No auto-login if auth is external
-        if (empty($oPlugin) || (get_class($oPlugin) != 'Plugins_Authentication')) {
+        if (empty($oPlugin) || ($oPlugin::class != 'Plugins_Authentication')) {
             phpAds_SessionDataDestroy();
             return;
         }
@@ -100,7 +106,7 @@ class OA_Upgrade_Login
         }
     }
 
-    function _checkLoginNew()
+    private static function _checkLoginNew(bool $allowMd5)
     {
         $oPlugin = new Plugins_Authentication();
 
@@ -109,17 +115,24 @@ class OA_Upgrade_Login
         if (!PEAR::isError($aCredentials)) {
             phpAds_SessionRegenerateId();
 
-            $doUser = $oPlugin->checkPassword($aCredentials['username'], $aCredentials['password']);
+            $doUser = $oPlugin->checkPassword($aCredentials['username'], $aCredentials['password'], $allowMd5);
 
             if ($doUser) {
-                phpAds_SessionDataRegister(OA_Auth::getSessionData($doUser));
+                $aSession = OA_Auth::getSessionData($doUser);
+
+                if ($doUser->isResetRequired()) {
+                    // Store password hash for later
+                    $aSession[self::SESSION_PASSWORD_HASH] = $oPlugin->getPasswordHash($aCredentials['password']);
+                }
+
+                phpAds_SessionDataRegister($aSession);
             }
         }
 
         phpAds_SessionDataStore();
     }
 
-    function _checkLoginOld($tableName, $agencySupport)
+    private static function _checkLoginOld($tableName, $agencySupport)
     {
         if (!isset($_COOKIE['sessionID'])) {
             return new PEAR_Error($GLOBALS['strEnableCookies']);
@@ -129,7 +142,7 @@ class OA_Upgrade_Login
 
         $oDbh = OA_DB::singleton();
         if (!PEAR::isError($oDbh)) {
-            $tblPreferences = $oDbh->quoteIdentifier($prefix.$tableName, true);
+            $tblPreferences = $oDbh->quoteIdentifier($prefix . $tableName, true);
 
             $query = "SELECT admin, admin_pw FROM {$tblPreferences}";
 
@@ -145,14 +158,20 @@ class OA_Upgrade_Login
                 if (!PEAR::isError($aCredentials)) {
                     phpAds_SessionRegenerateId();
 
-                    if (strtolower($aPref['admin']) == strtolower($aCredentials['username']) &&
-                        $aPref['admin_pw'] == md5($aCredentials['password']))
-                    {
+                    if (
+                        strtolower($aPref['admin']) == strtolower($aCredentials['username']) &&
+                        $aPref['admin_pw'] == md5($aCredentials['password'])
+                    ) {
+                        /** @var DataObjects_Users $doUser */
                         $doUser = OA_Dal::factoryDO('users');
+                        $doUser->user_id = -1;
                         $doUser->username = $aPref['admin'];
 
                         $aSession = OA_Auth::getSessionData($doUser, true);
                         $aSession['user']->aAccount['account_type'] = OA_ACCOUNT_ADMIN;
+
+                        // Store password hash for later
+                        $aSession[self::SESSION_PASSWORD_HASH] = $oPlugin->getPasswordHash($aCredentials['password']);
 
                         phpAds_SessionDataRegister($aSession);
                     }
@@ -174,7 +193,7 @@ class OA_Upgrade_Login
         }
     }
 
-    function readSession($panDetected)
+    private static function readSession($panDetected)
     {
         // Openads for PostgreSQL 2.0 session.last_used field is a
         // timestamp with timezone, which gives troubles reading back
@@ -195,5 +214,3 @@ class OA_Upgrade_Login
         phpAds_SessionDataFetch();
     }
 }
-
-?>

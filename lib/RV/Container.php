@@ -13,8 +13,9 @@
 namespace RV;
 
 use Psr\Container\ContainerInterface as PsrContainerInterface;
-use RV\Config\ConfigCache;
 use RV\Config\AdminServiceConfigurator;
+use RV\Config\ConfigCache;
+use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Config\ContainerParametersResource;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -39,15 +40,20 @@ class Container implements PsrContainerInterface
     {
         $container = $this->initContainerWithParameters($aConf);
 
+        if (!$isDelivery) {
+            // Track service registrations so they invalidate the compiled admin container.
+            $container->addResource(new FileResource(__DIR__ . '/Config/AdminServiceConfigurator.php'));
+        }
+
         $configCache = $this->getConfigCache($container, $hostname, $isDelivery);
 
         if ('test' === $hostname || !$configCache->isFresh()) {
             try {
                 $this->rebuildCachedContainer(
                     self::addServices($container, $isDelivery),
-                    $configCache
+                    $configCache,
                 );
-            } catch (IOException $e) {
+            } catch (IOException) {
                 // The cache couldn't be written, use the builder instead
                 $this->container = $container;
 
@@ -56,6 +62,7 @@ class Container implements PsrContainerInterface
         }
 
         require_once $configCache->getPath();
+
         $this->container = new \ReviveAdserverCachedContainer();
     }
 
@@ -70,7 +77,7 @@ class Container implements PsrContainerInterface
     /**
      * {@inheritdoc}
      */
-    public function has($id)
+    public function has($id): bool
     {
         return $this->container->has($id);
     }
@@ -81,16 +88,14 @@ class Container implements PsrContainerInterface
      * @param ContainerBuilder $container
      * @param string           $hostname
      * @param bool             $isDelivery
-     *
-     * @return ConfigCache
      */
-    public function getConfigCache(ContainerBuilder $container, $hostname = "", $isDelivery = false)
+    public function getConfigCache(ContainerBuilder $container, $hostname = "", $isDelivery = false): ConfigCache
     {
         $filename =
-            MAX_PATH.
-            '/var/cache/'.
-            ($hostname ?: OX_getHostName()).
-            ($isDelivery ? '_delivery' : '_admin').
+            MAX_PATH .
+            '/var/cache/' .
+            ($hostname ?: OX_getHostName()) .
+            ($isDelivery ? '_delivery' : '_admin') .
             '_container.php';
 
         return new ConfigCache($filename, $container);
@@ -103,24 +108,22 @@ class Container implements PsrContainerInterface
      * @param ConfigCache      $configCache
      *
      * @throws IOException
-     *
-     * @return ContainerInterface
      */
-    public function rebuildCachedContainer(ContainerBuilder $container, ConfigCache $configCache)
+    public function rebuildCachedContainer(ContainerBuilder $container, ConfigCache $configCache): ContainerInterface
     {
         $container->compile();
 
         $dumper = new PhpDumper($container);
         $configCache->write(
-            $dumper->dump(array('class' => 'ReviveAdserverCachedContainer')),
-            $container->getResources()
+            $dumper->dump(['class' => 'ReviveAdserverCachedContainer']),
+            $container->getResources(),
         );
 
         return $container;
     }
 
     /**
-     * Build a basinc container, loading parameters form the config file.
+     * Build a basic container, loading parameters form the config file.
      *
      * @param array $aConf
      *
@@ -133,7 +136,7 @@ class Container implements PsrContainerInterface
         $paramResource = $this->getParametersResource($aConf);
 
         foreach ($paramResource->getParameters() as $key => $value) {
-            $container->setParameter($key, $value);
+            $container->setParameter($key, str_replace('%', '%%', $value));
         }
 
         return $container->addResource($paramResource);
@@ -165,7 +168,7 @@ class Container implements PsrContainerInterface
     private static function addServices(ContainerBuilder $container, $isDelivery)
     {
         if (!$isDelivery) {
-            $container = AdminServiceConfigurator::configure($container);
+            return AdminServiceConfigurator::configure($container);
         }
 
         return $container;

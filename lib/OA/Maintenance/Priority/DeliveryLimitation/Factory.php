@@ -22,7 +22,7 @@ require_once MAX_PATH . '/lib/OA/Maintenance/Priority/DeliveryLimitation/Empty.p
  */
 class OA_Maintenance_Priority_DeliveryLimitation_Factory
 {
-    static $aPlugins;
+    public static $aPlugins;
 
     /**
      * A factory method to return the appropriate
@@ -46,12 +46,10 @@ class OA_Maintenance_Priority_DeliveryLimitation_Factory
      *                                   )
      * @return object OA_Maintenance_Priority_DeliveryLimitation_Common
      */
-    function &factory($aDeliveryLimitation)
+    public static function factory($aDeliveryLimitation)
     {
         // Load plugins if not already in cache
-        if (!isset(self::$aPlugins)) {
-            self::$aPlugins = OX_Component::getComponents('deliveryLimitations', null, false);
-        }
+        self::$aPlugins ??= OX_Component::getComponents('deliveryLimitations', null, false);
 
         // Return instance of the MPE DL class
         if (isset(self::$aPlugins[$aDeliveryLimitation['type']])) {
@@ -61,7 +59,4 @@ class OA_Maintenance_Priority_DeliveryLimitation_Factory
         // Unknown plugin? Return the empty MPE DL class
         return new OA_Maintenance_Priority_DeliveryLimitation_Empty($aDeliveryLimitation);
     }
-
 }
-
-?>

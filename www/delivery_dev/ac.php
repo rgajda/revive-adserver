@@ -21,27 +21,27 @@ require_once MAX_PATH . '/lib/max/Delivery/cache.php';
 MAX_commonSendContentTypeHeader('text/html');
 
 //Register any script specific input variables
-MAX_commonRegisterGlobalsArray(array('timeout'));
-$timeout  = !empty($timeout) ? $timeout : 0;
+MAX_commonRegisterGlobalsArray(['timeout']);
+$timeout = empty($timeout) ? 0 : $timeout;
 
 if ($zoneid > 0) {
     // Get the zone from cache
     $aZone = MAX_cacheGetZoneInfo($zoneid);
 } else {
     // Direct selection, or problem with admin DB
-    $aZone = array();
+    $aZone = [];
     $aZone['zoneid'] = $zoneid;
     $aZone['append'] = '';
     $aZone['prepend'] = '';
 }
 
 // Get the banner from cache
-$aBanner = MAX_cacheGetAd($bannerid);
+$aBanner = MAX_cacheGetAd($bannerid) ?? [];
 
-$prepend = !empty($aZone['prepend']) ? $aZone['prepend'] : '';
-$html    = MAX_adRender($aBanner, $zoneid, $source, $target, $ct0, $withtext);
-$append  = !empty($aZone['append']) ? $aZone['append'] : '';
-$title   = !empty($aBanner['alt']) ? $aBanner['alt'] : 'Advertisement';
+$prepend = empty($aZone['prepend']) ? '' : $aZone['prepend'];
+$html = MAX_adRender($aBanner, (int) $zoneid, $source, $target, $ct0, $withtext);
+$append = empty($aZone['append']) ? '' : $aZone['append'];
+$title = empty($aBanner['alt']) ? 'Advertisement' : htmlspecialchars($aBanner['alt']);
 
 echo "
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
@@ -59,11 +59,6 @@ if ($timeout > 0) {
 </script>";
 }
 
-// Include the FlashObject script if required
-if ($aBanner['contenttype'] == 'swf') {
-    echo MAX_flashGetFlashObjectExternal();
-}
-
 echo "
 <style type='text/css'>
 body {margin:0; height:100%; width:100%}
@@ -73,5 +68,3 @@ body {margin:0; height:100%; width:100%}
 {$prepend}{$html}{$append}
 </body>
 </html>";
-
-?>

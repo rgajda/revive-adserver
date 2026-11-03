@@ -21,23 +21,23 @@ class OX_Admin_UI_ViewHooks
     private $pageId;
     private $pageData;
 
-    
+
     public function __construct($pageId, $pageData = null)
     {
         $this->pageId = $pageId;
         $this->pageData = $pageData;
     }
-    
+
 
     /**
      * Register supported hooks on the view template.
      * In order to invoke listeners reacting on that hooks template must invoke
      * smarty functions.
-     * 
+     *
      * Registered hooks:
      * {view_before_content}
      * {view_after_content}
-     * 
+     *
      *
      * @param OA_Admin_Template $oTpl
      * @param string $pageId page identifier (is passed to listeners)
@@ -47,16 +47,16 @@ class OX_Admin_UI_ViewHooks
     {
         $oHooks = new self($pageId, $pageData);
         $oHooks->register($oTpl);
-        
+
         return $oHooks;
     }
-    
-    
+
+
     /**
      * Register supported hooks on the view template.
      * In order to invoke listeners reacting on that hooks template must invoke
      * smarty functions.
-     * 
+     *
      * Registered hooks:
      * {view_before_content}
      * {view_after_content}
@@ -65,17 +65,17 @@ class OX_Admin_UI_ViewHooks
      */
     protected function register(OA_Admin_Template $oTpl)
     {
-        $oTpl->register_function('view_before_content', array($this, 'beforeContent'));
-        $oTpl->register_function('view_after_content', array($this, 'afterContent'));
+        $oTpl->register_function('view_before_content', $this->beforeContent(...));
+        $oTpl->register_function('view_after_content', $this->afterContent(...));
     }
-    
-    
+
+
     public function beforeContent($aParams, &$oTpl)
     {
         return OX_Admin_UI_Hooks::beforePageContent($this->pageId, $this->pageData, $oTpl);
     }
-    
-    
+
+
     public function afterContent($aParams, &$oTpl)
     {
         return OX_Admin_UI_Hooks::afterPageContent($this->pageId, $this->pageData, $oTpl);

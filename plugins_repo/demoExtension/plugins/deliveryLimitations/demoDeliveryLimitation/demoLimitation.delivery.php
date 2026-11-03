@@ -25,7 +25,7 @@ require_once MAX_PATH . '/lib/max/Delivery/limitations.delivery.php';
  * @param array $aParams An array of additional parameters to be checked
  * @return boolean Whether this impression's IP address passes this limitation's test.
  */
-function MAX_checkDemoDeliveryLimitation_DemoLimitation($limitation, $op, $aParams = array())
+function MAX_checkDemoDeliveryLimitation_DemoLimitation($limitation, $op, $aParams = [])
 {
     if ($limitation == '') {
         return true;
@@ -41,8 +41,6 @@ function MAX_checkDemoDeliveryLimitation_DemoLimitation($limitation, $op, $aPara
 
     if ($op == '==') {
         return $limitation == $ip;
-    } else {
-        return $limitation != $ip;
     }
+    return $limitation != $ip;
 }
-?>

@@ -7,19 +7,25 @@
   <property file="etc/version.properties"/>
 
   <!-- YUI compressor -->
-  <path id="task.classpath">
+  <path id="yui.classpath">
     <pathelement location="${basedir}/lib/ant/yuicompressor-2.4.8.jar" />
     <pathelement location="${basedir}/lib/ant/yui-compressor-ant-task-0.5.jar" />
+    <pathelement location="${basedir}/lib/ant/ant-revive.jar" />
   </path>
   <taskdef name="yui-compressor" classname="net.noha.tools.ant.yuicompressor.tasks.YuiCompressorTask">
-    <classpath refid="task.classpath" />
+    <classpath refid="yui.classpath" />
+  </taskdef>
+
+  <!-- Package Integrity Plugin -->
+  <path id="revive.classpath">
+    <pathelement location="${basedir}/lib/ant/ant-revive.jar" />
+  </path>
+  <taskdef name="checkdistribution" classname="org.openads.ant.CheckDistributionTask">
+    <classpath refid="revive.classpath" />
   </taskdef>
 
   <!-- Import the include/exclude filelist -->
   <import file="build-filelist.xml"/>
-
-  <!-- Package Integrity Plugin -->
-  <taskdef name="checkdistribution" classname="org.openads.ant.CheckDistributionTask"/>
 
   <macrodef name="rv-version" description="Sets a value of the VERSION constant in the constants.php file.">
     <attribute name="versionstring" description="A version to be set."/>
@@ -73,6 +79,7 @@
     <touch file="should_not_exist"/>
     <mkdir dir="build/test-results"/>
     <mkdir dir="build/test-reports"/>
+    <touch file="var/UPGRADE"/>
   </target>
 
   <target name="init-timestamp" unless="cctimestamp">
@@ -81,7 +88,7 @@
   </target>
 
   <target name="init-label" unless="label">
-    <property name="label" value="trunk"/>
+    <property name="label" value="master"/>
   </target>
 
   <target name="init-version" unless="version" depends="init-timestamp, init-label">
@@ -143,10 +150,6 @@
     <delete dir="${release.dir}" failonerror="false"/>
   </target>
 
-  <target name="package-bzip2" depends="prepare-version-info">
-      <tar destfile="${dir.test.results}/${release}${origin}.tar.bz2" basedir="${dir.test.results}" includes="${release}/**" compression="bzip2" longfile="gnu"/>
-  </target>
-
   <target name="package-gz" depends="prepare-version-info">
     <tar destfile="${dir.test.results}/${release}${origin}.tar.gz" includes="${release}/**" basedir="${dir.test.results}" compression="gzip" longfile="gnu"/>
   </target>
@@ -155,13 +158,9 @@
     <zip destfile="${dir.test.results}/${release}${origin}.zip" basedir="${dir.test.results}"  includes="${release}/**"/>
   </target>
 
-  <target name="package" depends="generate-delivery, generate-xml-cache, checkconsistency, prepare-distribution, package-bzip2, package-gz, package-zip"/>
+  <target name="package" depends="generate-delivery, generate-xml-cache, checkconsistency, prepare-distribution, package-gz, package-zip"/>
 
-  <target name="write-origin-id" depends="prepare-version-info" if="originid">
-    <echo message="${originid}" file="${dir.test.results}/${release}/etc/origin.txt" append="no"/>
-  </target>
-
-  <target name="repackage" if="originid" depends="write-origin-id,package-bzip2,package-gz,package-zip"/>
+  <target name="repackage" if="originid" depends="package-gz,package-zip"/>
 
   <target name="build" depends="package" description="Run this if you want your own release files built."/>
 
@@ -183,9 +182,6 @@
     <xslt style="tests.xsl" in="${test.conf.xml}" out="tests.xml"/>
     <ant dir="${basedir}/plugins_repo" target="release">
         <property name="name" value="demoExtension"/>
-    </ant>
-    <ant dir="${basedir}/plugins_repo" target="release">
-        <property name="name" value="openXAdditionalBannerTypes"/>
     </ant>
     <ant dir="${basedir}/plugins_repo" target="release">
         <property name="name" value="openXTests"/>

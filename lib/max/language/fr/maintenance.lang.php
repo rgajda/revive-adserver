@@ -60,6 +60,8 @@ $GLOBALS['strMoveToDirectory'] = "Déplacer les images stockées dans la base de
 $GLOBALS['strStorageExplaination'] = " Les images utilisées par les bannières locales sont stockées dans la base de données ou dans un répertoire. Si vous stockez les images dans
  un répertoire, la charge de la base de données sera réduite et cela provoquera une accélération.";
 
+// Security
+
 // Encoding
 $GLOBALS['strEncoding'] = "Encodage";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME} stocke maintenant toutes les données de la base de données au format UTF-8.<br />Quand c'était possible, vos données auront été automatiquement converties vers cet encodage.<br />Si après la mise à jour vous trouvez des caractères corrompus et que vous connaissez l'encodage utilisé, vous pourrez utiliser cet outil pour convertir les données depuis ce format vers l'UTF-8";
@@ -91,16 +93,16 @@ $GLOBALS['strServerCommunicationError'] = "<b>La communication avec le serveur d
 
 $GLOBALS['strCheckForUpdatesDisabled'] = "<b>La recherche de mises à jour est désactivée. Â Veuillez l'activerÂ via l'écran <a href='account-settings-update.php'>paramètres de mise à jour</a>.</b>";
 
-$GLOBALS['strNewVersionAvailable'] = " <b>Une nouvelle version de {$PRODUCT_NAME} est disponible.</b><br /> Il est recommandé d\\'installer cette mise à jour,
- car elle pourrait corriger quelques problèmes existant actuellement et ajoutera de nouvelles fonctionnalités. Pour plus d\\'informations
+$GLOBALS['strNewVersionAvailable'] = " <b>Une nouvelle version de {$PRODUCT_NAME} est disponible.</b><br /> Il est recommandé d'installer cette mise à jour,
+ car elle pourrait corriger quelques problèmes existant actuellement et ajoutera de nouvelles fonctionnalités. Pour plus d'informations
  concernant la mise à jour, veuillez lire la documentation incluse dans les fichiers ci-dessous.";
 
-$GLOBALS['strSecurityUpdate'] = " <b>Il est hautement recommandé d\\'installer cette mise à jour aussi vite que possible, car elle contient quelques
+$GLOBALS['strSecurityUpdate'] = " <b>Il est hautement recommandé d'installer cette mise à jour aussi vite que possible, car elle contient quelques
  correctifs de sécurité.</b> La version de {$PRODUCT_NAME} que vous utilisez actuellement peut être
- vulnérable à certaines attaques et n\\'est sans doute pas sécurisée. Pour plus d\\'informations
+ vulnérable à certaines attaques et n'est sans doute pas sécurisée. Pour plus d\\'informations
  concernant les mises à jour, veuillez lire la documentation incluse dans les fichiers ci-dessous.";
 
-$GLOBALS['strNotAbleToCheck'] = " <b>En raison du fait que l\\'extension XML n\\'est pas disponible sur votre serveur, {$PRODUCT_NAME}
+$GLOBALS['strNotAbleToCheck'] = " <b>En raison du fait que l'extension XML n'est pas disponible sur votre serveur, {$PRODUCT_NAME}
     ne peut pas vérifier si une nouvelle version est disponible.</b>";
 
 $GLOBALS['strForUpdatesLookOnWebsite'] = " Si vous voulez savoir si une nouvelle version est disponible, veuillez visiter notre site web.";
@@ -112,6 +114,7 @@ $GLOBALS['strAndPlain'] = "et";
 
 //  Deliver Limitations
 $GLOBALS['strErrorsFound'] = "Erreurs trouvées";
+$GLOBALS['strRepairCompiledLimitations'] = "Quelques inconsistances ont été trouvées ci-dessus, vous pouvez les réparer en utilisant le bouton ci-dessous, ceci recompilera les limitations compilées pour chaque bannière/canal du système<br />";
 $GLOBALS['strRecompile'] = "Recompiler";
 
 //  Append codes
@@ -127,3 +130,5 @@ $GLOBALS['strPluginsPrecis'] = "Diagnostique et répare les problèmes des plugi
 
 $GLOBALS['strMenusPrecis'] = "Reconstruire le cache du menu";
 $GLOBALS['strMenusCachedOk'] = "Le cache du menu a été reconstruit";
+
+// Users

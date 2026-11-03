@@ -1224,6 +1224,7 @@ div.bannercode {
     margin-left: 20px;
 }
 
+div.breadcrumb .agen,
 div.breadcrumb .adv,
 div.breadcrumb .camp,
 div.breadcrumb .ban,
@@ -1234,6 +1235,7 @@ div.breadcrumb .day {
     background-repeat: no-repeat;
 }
 
+div.breadcrumb .agen,
 div.breadcrumb .adv {
     background-image: url("../images/icon-advertiser.gif");
 }
@@ -2251,3 +2253,20 @@ p {
   font-weight:bold;
 }
 
+#zxcvbn-container {
+    margin-bottom: -2px;
+    width: 0;
+    height: 19px;
+    background-color: #f6f6f6;
+    text-align: center;
+    padding: 0 0 4px;
+}
+#zxcvbn-display {
+    width: 0;
+    height: 6px;
+}
+#zxcvbn-text {
+    margin-top: 4px;
+    font-weight: bold;
+    display: inline-grid;
+}

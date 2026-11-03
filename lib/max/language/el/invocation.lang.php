@@ -23,14 +23,7 @@ $GLOBALS['strInvocationSource'] = "Πηγή";
 // PopUp
 $GLOBALS['strShowStatus'] = "Κατάσταση";
 
-// XML-RPC
-
-// Support for 3rd party server clicktracking
-
 // Support for cachebusting code
 
 // IMG invocation selected for tracker with appended code
 $GLOBALS['strWarning'] = "Προειδοποίηση";
-
-// Local Invocation
-

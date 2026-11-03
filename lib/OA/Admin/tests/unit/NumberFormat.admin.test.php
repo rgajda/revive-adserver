@@ -13,9 +13,10 @@
 //require_once ('lib/simpletest/unit_tester.php');
 require_once MAX_PATH . '/lib/OA/Admin/NumberFormat.php';
 
-class Test_OA_Admin_NumberFormat extends UnitTestCase {
-
-    function test_unformatNumber() {
+class Test_OA_Admin_NumberFormat extends UnitTestCase
+{
+    public function test_unformatNumber()
+    {
         global $phpAds_DecimalPoint;
         if (isset($phpAds_DecimalPoint)) {
             $remember_phpAds_DecimalPoint = $phpAds_DecimalPoint;
@@ -44,7 +45,7 @@ class Test_OA_Admin_NumberFormat extends UnitTestCase {
         if (isset($remember_phpAds_DecimalPoint)) {
             $phpAds_DecimalPoint = $remember_phpAds_DecimalPoint;
         } else {
-            unset ($phpAds_DecimalPoint);
+            unset($phpAds_DecimalPoint);
         }
     }
 
@@ -52,12 +53,8 @@ class Test_OA_Admin_NumberFormat extends UnitTestCase {
      * Test the number formatting method
      *
      */
-    function test_formatNumber()
+    public function test_formatNumber()
     {
-        $dec_point_save = $GLOBALS['phpAds_DecimalPoint'];
-        $thousands_save = $GLOBALS['phpAds_ThousandsSeperator'];
-        $decimals_save  = $GLOBALS['_MAX']['PREF']['ui_percentage_decimals'];
-
         $GLOBALS['phpAds_DecimalPoint'] = '.';
         $GLOBALS['phpAds_ThousandsSeperator'] = ',';
         $GLOBALS['_MAX']['PREF']['ui_percentage_decimals'] = 2;
@@ -82,12 +79,5 @@ class Test_OA_Admin_NumberFormat extends UnitTestCase {
 
         // Test NAN (NotANumber)
         $this->assertFalse(OA_Admin_NumberFormat::formatNumber('string'));
-
-        // Clean up
-        $GLOBALS['phpAds_DecimalPoint'] = $dec_point_save;
-        $GLOBALS['phpAds_ThousandsSeperator'] = $thousands_save;
-        $GLOBALS['_MAX']['PREF']['ui_percentage_decimals'] = $decimals_save;
     }
 }
-
-?>

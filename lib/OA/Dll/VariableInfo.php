@@ -17,13 +17,14 @@
 require_once MAX_PATH . '/lib/OA/Info.php';
 require_once MAX_PATH . '/lib/OA/Dll/TrackerInfo.php';
 
-class OA_Dll_VariableInfo extends OA_Info {
-    const VARIABLE_DATATYPE_NUMERIC = 'numeric';
-    const VARIABLE_DATATYPE_STRING = 'string';
-    const VARIABLE_DATATYPE_DATE = 'date';
-    const VARIABLE_PURPOSE_BASKET_VALUE = 'basket_value';
-    const VARIABLE_PURPOSE_NUM_ITEMS = 'num_items';
-    const VARIABLE_PURPOSE_POST_CODE = 'post_code';
+class OA_Dll_VariableInfo extends OA_Info
+{
+    public const VARIABLE_DATATYPE_NUMERIC = 'numeric';
+    public const VARIABLE_DATATYPE_STRING = 'string';
+    public const VARIABLE_DATATYPE_DATE = 'date';
+    public const VARIABLE_PURPOSE_BASKET_VALUE = 'basket_value';
+    public const VARIABLE_PURPOSE_NUM_ITEMS = 'num_items';
+    public const VARIABLE_PURPOSE_POST_CODE = 'post_code';
 
     // Required fields
     public $variableId;
@@ -45,7 +46,8 @@ class OA_Dll_VariableInfo extends OA_Info {
      * This method sets default values for optional fields when adding a new variable.
      *
      */
-    public function setDefaultForAdd() {
+    public function setDefaultForAdd()
+    {
         if (empty($this->description)) {
             $this->description = '';
         }
@@ -83,21 +85,22 @@ class OA_Dll_VariableInfo extends OA_Info {
         }
     }
 
-    public function getFieldsTypes() {
-        return array(
-        'variableId' => 'integer',
-        'trackerId' => 'integer',
-        'variableName' => 'string',
-        'description' => 'string',
-        'dataType' => 'string',
-        'purpose' => 'string',
-        'rejectIfEmpty' => 'boolean',
-        'isUnique' => 'boolean',
-        'uniqueWindow' => 'integer',
-        'variableCode' => 'string',
-        'hidden' => 'boolean',
-        'hiddenWebsites' => 'array'
-        );
+    public function getFieldsTypes()
+    {
+        return [
+            'variableId' => 'integer',
+            'trackerId' => 'integer',
+            'variableName' => 'string',
+            'description' => 'string',
+            'dataType' => 'string',
+            'purpose' => 'string',
+            'rejectIfEmpty' => 'boolean',
+            'isUnique' => 'boolean',
+            'uniqueWindow' => 'integer',
+            'variableCode' => 'string',
+            'hidden' => 'boolean',
+            'hiddenWebsites' => 'array',
+        ];
     }
 
     /**
@@ -105,7 +108,8 @@ class OA_Dll_VariableInfo extends OA_Info {
      *
      * @return array array of values to set on a dataobject.
      */
-    public function getDataObjectArray() {
+    public function getDataObjectArray()
+    {
         // Transalate any object variables to field names
         // eg, $aVariableData['tableColumnName'] = $aVariableData['objectVarName']
         $aVariableData = (array) $this;
@@ -131,7 +135,8 @@ class OA_Dll_VariableInfo extends OA_Info {
      *
      * @param array $aVariableData array of values to set on VariableInfo object.
      */
-    public function setVariableDataFromArray($aVariableData) {
+    public function setVariableDataFromArray($aVariableData)
+    {
         // Transalate any field names to object variables
         // eg, $aVariableData['objectVarName'] = $aVariableData['tableColumnName']
         $aVariableData['variableId'] = $aVariableData['variableid'];
@@ -140,16 +145,13 @@ class OA_Dll_VariableInfo extends OA_Info {
         $aVariableData['dataType'] = $aVariableData['datatype'];
 
         // Convert to boolean.
-        $aVariableData['rejectIfEmpty'] = $aVariableData['reject_if_empty'] == 1 ? true : false;
-        $aVariableData['isUnique'] = $aVariableData['is_unique'] == 1 ? true : false;
-        $aVariableData['hidden'] = $aVariableData['hidden'] == 1 ? true : false;
+        $aVariableData['rejectIfEmpty'] = $aVariableData['reject_if_empty'] == 1;
+        $aVariableData['isUnique'] = $aVariableData['is_unique'] == 1;
+        $aVariableData['hidden'] = $aVariableData['hidden'] == 1;
 
         $aVariableData['uniqueWindow'] = $aVariableData['unique_window'];
         $aVariableData['variableCode'] = $aVariableData['variablecode'];
 
         $this->readDataFromArray($aVariableData);
     }
-
 }
-
-?>

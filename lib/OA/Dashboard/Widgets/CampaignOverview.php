@@ -23,15 +23,14 @@ class OA_Dashboard_Widget_CampaignOverview extends OA_Dashboard_Widget
     /**
      * @var OA_Admin_Template
      */
-    var $oTpl;
+    public $oTpl;
 
     /**
      * The class constructor
      *
      * @param array $aParams The parameters array, usually $_REQUEST
-     * @return OA_Dashboard_Widget_Campaign_Overview
      */
-    function __construct($aParams)
+    public function __construct($aParams)
     {
         parent::__construct($aParams);
         $this->oTpl = new OA_Admin_Template('dashboard/campaign-overview.html');
@@ -42,17 +41,17 @@ class OA_Dashboard_Widget_CampaignOverview extends OA_Dashboard_Widget
      *
      * @param array $aParams The parameters array, usually $_REQUEST
      */
-    function display()
+    public function display($aParams = [])
     {
         $conf = $GLOBALS['_MAX']['CONF'];
         if (!$conf['audit']['enabled']) {
-            $this->oTpl->assign('screen',       'disabled');
-            $this->oTpl->assign('siteTitle',    $GLOBALS['strCampaignAuditTrailSetup']);
-            $this->oTpl->assign('siteUrl',      MAX::constructUrl(MAX_URL_ADMIN, 'account-settings-debug.php'));
+            $this->oTpl->assign('screen', 'disabled');
+            $this->oTpl->assign('siteTitle', $GLOBALS['strCampaignAuditTrailSetup']);
+            $this->oTpl->assign('siteUrl', MAX::constructUrl(MAX_URL_ADMIN, 'account-settings-debug.php'));
         } else {
             $oCache = new OA_Cache('campaignOverview', 'Widgets');
             $aCache = $oCache->load(true);
-            $aCampaign = array();
+            $aCampaign = [];
             if (isset($aCache['maxItems'])) {
                 if (OA_Permission::isAccount(OA_ACCOUNT_ADMIN)) {
                     foreach ($aCache['aAccounts'] as $aActions) {
@@ -64,7 +63,7 @@ class OA_Dashboard_Widget_CampaignOverview extends OA_Dashboard_Widget
                     $aAccountsId = OA_Permission::getOwnedAccounts(OA_Permission::getAccountId());
                     foreach ($aAccountsId as $accountId) {
                         if (isset($aCache['aAccounts'][$accountId])) {
-                            foreach ($aCache['aAccounts'][$accountId] as $aAction){
+                            foreach ($aCache['aAccounts'][$accountId] as $aAction) {
                                 $aCampaign[$aAction['auditid']] = $aAction;
                             }
                         }
@@ -73,15 +72,15 @@ class OA_Dashboard_Widget_CampaignOverview extends OA_Dashboard_Widget
                 krsort($aCampaign);
                 $aCampaign = array_slice($aCampaign, 0, $aCache['maxItems']);
             }
-            if (count($aCampaign)) {
-                $aActionMap = array(
-                    'added'     => $GLOBALS['strCampaignStatusAdded'],
-                    'started'   => $GLOBALS['strCampaignStatusStarted'],
+            if ($aCampaign !== []) {
+                $aActionMap = [
+                    'added' => $GLOBALS['strCampaignStatusAdded'],
+                    'started' => $GLOBALS['strCampaignStatusStarted'],
                     'restarted' => $GLOBALS['strCampaignStatusRestarted'],
                     'completed' => $GLOBALS['strCampaignStatusExpired'],
-                    'paused'    => $GLOBALS['strCampaignStatusPaused'],
-                	'deleted'   => $GLOBALS['strCampaignStatusDeleted'],
-                );
+                    'paused' => $GLOBALS['strCampaignStatusPaused'],
+                    'deleted' => $GLOBALS['strCampaignStatusDeleted'],
+                ];
                 foreach ($aCampaign as $k => $v) {
                     if (isset($aActionMap[$v['action']])) {
                         $aCampaign[$k]['actionDesc'] = $aActionMap[$v['action']];
@@ -90,10 +89,10 @@ class OA_Dashboard_Widget_CampaignOverview extends OA_Dashboard_Widget
             } else {
                 // Check if the account has any campaign in its realm
                 $doCampaigns = OA_Dal::factoryDO('campaigns');
-                if (!empty($aParam['account_id'])) {
+                if (!empty($aParams['account_id'])) {
                     $doClients = OA_Dal::factoryDO('clients');
-                    $doAgency  = OA_Dal::factoryDO('agency');
-                    $doAgency->account_id = $aParam['account_id'];
+                    $doAgency = OA_Dal::factoryDO('agency');
+                    $doAgency->account_id = $aParams['account_id'];
                     $doClients->joinAdd($doAgency);
                     $doCampaigns->joinAdd($doClients);
                 }
@@ -105,14 +104,12 @@ class OA_Dashboard_Widget_CampaignOverview extends OA_Dashboard_Widget
                 }
             }
 
-            $this->oTpl->assign('screen',       'enabled');
-            $this->oTpl->assign('aCampaign',    $aCampaign);
-            $this->oTpl->assign('siteUrl',      MAX::constructURL(MAX_URL_ADMIN, 'advertiser-campaigns.php'));
-            $this->oTpl->assign('baseUrl',      MAX::constructURL(MAX_URL_ADMIN, 'campaign-edit.php'));
+            $this->oTpl->assign('screen', 'enabled');
+            $this->oTpl->assign('aCampaign', $aCampaign);
+            $this->oTpl->assign('siteUrl', MAX::constructURL(MAX_URL_ADMIN, 'advertiser-campaigns.php'));
+            $this->oTpl->assign('baseUrl', MAX::constructURL(MAX_URL_ADMIN, 'campaign-edit.php'));
         }
 
         $this->oTpl->display();
     }
-
 }
-?>

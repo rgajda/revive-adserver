@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "متابعة >>";
 $GLOBALS['strBtnRecover'] = "إسترجاع >>";
 $GLOBALS['strBtnAgree'] = "موافق >>";
 $GLOBALS['strBtnRetry'] = "فصح جديد";
-$GLOBALS['strWarningRegisterArgcArv'] = "حتى تتم عملية الصيانة من خلال سطر الأوامر يجب أن يكون المتغير register_argc_argv مفعلاً في خيارات PHP.";
+$GLOBALS['strTablesPrefix'] = "السابقة لإسم الجداول";
 $GLOBALS['strTablesType'] = "نوع الجدول";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "عملية محاولة الترقية السابقة واجهت بعض المشاكل";
@@ -48,10 +48,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "رابط حفظ الصور (رابط آمن
 $GLOBALS['strChooseSection'] = "إختيار قسم";
 $GLOBALS['strUnableToWriteConfig'] = "تعذر حفظ التعديلات في ملف الإعدادات";
 $GLOBALS['strUnableToWritePrefs'] = "تعذر حفظ التعديلات في قاعدة البيانات";
-$GLOBALS['strImageDirLockedDetected'] = "<b>ملجد الصور</b>غير قابل للكتابة. <br> يجب عليك إنشاء المجلد او تعديل صلاحياته قبل الاستمرار";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "تعديل الاعدادات";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "اسم المستخدم للمدير";
@@ -76,6 +74,8 @@ $GLOBALS['strPersistentConnections'] = "استخدام الاتصال المست
 $GLOBALS['strCantConnectToDb'] = "لا يمكن الاتصال بقاعدة البيانات";
 
 // Email Settings
+
+// Security settings
 
 // Audit Trail Settings
 

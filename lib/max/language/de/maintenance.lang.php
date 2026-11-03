@@ -55,6 +55,13 @@ $GLOBALS['strMoveToDirectory'] = "Bilder aus der Datenbank in ein Verzeichnis ve
 $GLOBALS['strStorageExplaination'] = "	Bilddateien für lokale Banner werden in der Datenbank oder in einem lokalen Verzeichnis gespeichert.
 	Das Speichern in einem lokalen Verzeichnis anstelle in der Datenbank vermindert die Ladezeit.";
 
+// Security
+$GLOBALS['strSecurity'] = "Sicherheit";
+$GLOBALS['strSecurityExplanation'] = "Einige Verzeichnisse im {$PRODUCT_NAME}-Paket sollten aus Sicherheitsgründen nicht direkt über den Webserver zugänglich sein. Über diese Verzeichnisse und Dateien sind möglicherweise sensible oder private Informationen frei zugänglich, was ein Sicherheitsrisiko darstellt. Ein schnelle Sicherheitsprüfung wurde durchgeführt und hat zu den untenstehenden Resultaten geführt.";
+$GLOBALS['strSecurityOK'] = "Ihr Browser konnte nicht auf die geschützten Dateien zugreifen. Das sind gute Neuigkeiten!";
+$GLOBALS['strSecurityKO'] = "Ihr Browser konnte auf Dateien zugreifen, die nicht zugänglich sein sollten, z.B.:";
+$GLOBALS['strSecurityReadMore'] = "Klicken Sie hier, um weitere Informationen zur Absicherung Ihrer Installation zu erhalten.";
+
 // Encoding
 $GLOBALS['strEncoding'] = "Kodierung";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME} speichert jetzt alle Daten im UTF-8 Format. Wenn möglich wurden Ihre Daten automatisch in diese Kodierung überführt.<br />Sie können diesen Übersetzer verwenden, wenn Sie nach dem Update fehlerhafte Zeichen finden und Sie die verwendete Kodierung kennen, um die Zeichen in UTF-8 umzuwandeln.";
@@ -65,6 +72,7 @@ $GLOBALS['strConvertThese'] = "Die folgenden Daten werden verändert wenn Sie fo
 // Product Updates
 $GLOBALS['strSearchingUpdates'] = "Suche nach neuen Updates. Bitte warten...";
 $GLOBALS['strAvailableUpdates'] = "Verfügbare Updates";
+$GLOBALS['strAlternativeUpdateOptions'] = "Wenn ein Update auf eine neuere größe oder kleine Version nicht möglich ist, könten Sie diese Option in Betracht ziehen:";
 $GLOBALS['strDownloadZip'] = "Download (.zip)";
 $GLOBALS['strDownloadGZip'] = "Download (.tar.gz)";
 
@@ -107,8 +115,16 @@ $GLOBALS['strRunningOn'] = "laufend auf";
 $GLOBALS['strAndPlain'] = "und";
 
 //  Deliver Limitations
+$GLOBALS['strDeliveryLimitations'] = "Auslieferungsregeln";
+$GLOBALS['strAllBannerChannelCompiled'] = "Alle Banner und kompilierten Auslieferungsregeln wurden neu generiert.";
+$GLOBALS['strBannerChannelResult'] = "Hier sind die Ergebnisse der Überprüfung der kompilierten Banner und Auslieferungsregeln.";
+$GLOBALS['strChannelCompiledLimitationsValid'] = "Alle kompilierten Auslieferungsregeln für Auslieferungsregelsätze sind gültig";
+$GLOBALS['strBannerCompiledLimitationsValid'] = "Alle kompilierten Auslieferungsregeln für Banner sind gültig.";
 $GLOBALS['strErrorsFound'] = "Fehler gefunden";
+$GLOBALS['strRepairCompiledLimitations'] = "Obige Inkonsistenzen wurden ermittelt. Sie können diese reparieren durch die Verwendung des unten stehenden Buttons. Hierbei wird das System die Auslieferungsbeschränkungen jedes Banners und jeder Gruppe im System neu übersetzen.<br />";
 $GLOBALS['strRecompile'] = "Neu übersetzen";
+$GLOBALS['strDeliveryEngineDisagreeNotice'] = "Unter bestimmten Umständen kann das Auslieferungsmodul die gespeicherten Auslieferungsregeln für Banner und Auslieferungsregelsätze nicht verwenden. Folgen Sie dem nachstehenden Link um die Auslieferungsregeln in der Datenbank zu überprüfen";
+$GLOBALS['strCheckACLs'] = "Auslieferungsregeln überprüfen";
 
 //  Append codes
 $GLOBALS['strAppendCodesDesc'] = "Unter manchen Umständen kann das Auslieferungsmodul den gespeicherten Code-Anhang der Tracker nicht korrekt verarbeiten. Verwenden Sie den folgenden Link um die in der Datenbank gespeicherten Codes zu überprüfen.";
@@ -124,3 +140,12 @@ $GLOBALS['strPluginsPrecis'] = "Probleme mit den OpenX-Plugins überprüfen und 
 $GLOBALS['strMenus'] = "Menüs";
 $GLOBALS['strMenusPrecis'] = "Den Menü-Cache wiederaufbauen";
 $GLOBALS['strMenusCachedOk'] = "Der Menü-Cache wurde wiederaufgebaut";
+
+// Users
+$GLOBALS['strUserPasswords'] = "Benutzer-Passwörter";
+$GLOBALS['strUserPasswordsExplaination'] = "Ab Version 5.4 speichert {$PRODUCT_NAME} Passwörter in einem sichereren Format.
+Verwenden Sie dieses Tool, um zu überprüfen, ob Benutzer noch Passwörter im alten Format gespeichert haben und um den ausgewählten Benutzern eine E-Mail zu senden, mit der sie ein neues Passwort eingeben können.
+Das Tool kann auch verwendet werden, um neue Benutzer daran zu erinnern, dass sie ihr erstes Passwort festlegen sollen.";
+$GLOBALS['strCheckUserPasswords'] = "Benutzer-Passwörter überprüfen";
+$GLOBALS['strUserPasswordsEverythingOK'] = "Kein Benutzer muss ein Passwort zurücksetzen, alles ist in Ordnung.";
+$GLOBALS['strUserPasswordsEmailsSent'] = "Die E-Mails für die ausgewählten Benutzer wurden gesendet.";

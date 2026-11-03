@@ -66,13 +66,29 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function createDatabase($name)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
 
         $name = $db->quoteIdentifier($name, true);
         $query = "CREATE DATABASE $name";
+
+        // Charset handling - custom OpenX
+        if ($charset = $db->getOption('default_charset')) {
+            $aVersion = $db->getServerVersion();
+
+            // Use utf8mb4 instead if supported
+            if ('utf8' === $charset && version_compare($aVersion['native'], '5.5.3', '>=')) {
+                $charset = 'utf8mb4';
+            }
+
+            if (version_compare($aVersion['native'], '4.1.2', '>=')) {
+                $charset = $db->quote($charset);
+                $query .= " CHARACTER SET $charset";
+            }
+        }
+
         $result = $db->exec($query);
         if (PEAR::isError($result)) {
             return $result;
@@ -92,7 +108,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function dropDatabase($name)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -146,7 +162,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function createTable($name, $fields, $options = array())
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -280,7 +296,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function alterTable($name, $changes, $check)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -386,7 +402,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listDatabases()
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -412,7 +428,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listUsers()
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -431,7 +447,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listFunctions()
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -464,7 +480,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listTableTriggers($table = null)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -491,12 +507,13 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      * list all tables in the current database
      *
      * @param string database, the current is default
+     * @param OPENADS:: string prefix : allow a LIKE comparison search for table prefixes
      * @return mixed array of table names on success, a MDB2 error on failure
      * @access public
      */
     function listTables($database = null, $prefix='')
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -545,7 +562,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listViews($database = null)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -579,7 +596,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listTableFields($table)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -634,7 +651,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function createIndex($table, $name, $definition)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -667,7 +684,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function dropIndex($table, $name)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -689,7 +706,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listTableIndexes($table)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -753,7 +770,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function createConstraint($table, $name, $definition)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -795,7 +812,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function dropConstraint($table, $name, $primary = false)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -822,7 +839,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listTableConstraints($table)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -889,7 +906,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function createSequence($seq_name, $start = 1, $options = array())
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -966,7 +983,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function dropSequence($seq_name)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -987,7 +1004,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function listSequences($database = null)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }
@@ -1023,7 +1040,7 @@ class MDB2_Driver_Manager_mysqli extends MDB2_Driver_Manager_Common
      */
     function getTableStatus($table)
     {
-        $db =& $this->getDBInstance();
+        $db = $this->getDBInstance();
         if (PEAR::isError($db)) {
             return $db;
         }

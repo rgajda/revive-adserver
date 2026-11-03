@@ -23,7 +23,9 @@ require_once MAX_PATH . '/lib/RV/Admin/Languages.php';
  *
  * @static
  */
-class Language_Loader {
+class Language_Loader
+{
+    private static array $aLastLoaded = [];
 
     /**
      * The method to load the selected language file.
@@ -34,58 +36,64 @@ class Language_Loader {
      * @param string $section section of the system
      * @param string $lang  language symbol
      */
-    function load($section = 'default', $lang = null) {
-        if(!defined('phpAds_dbmsname')) {
-            define('phpAds_dbmsname','');
+    public static function load($section = 'default', $lang = null)
+    {
+        if (!defined('phpAds_dbmsname')) {
+            define('phpAds_dbmsname', '');
         }
-        $aConf = $GLOBALS['_MAX']['CONF'];
-        if (!empty($GLOBALS['_MAX']['PREF'])) {
-            $aPref = $GLOBALS['_MAX']['PREF'];
-        } else {
-            $aPref = array();
+        // Always load the English language, in case of incomplete translations
+        if (!self::loadLanguage($section, 'en')) {
+            return;
         }
-        if (is_null($lang) && !empty($aPref['language'])) {
-            $lang = $aPref['language'];
+
+        self::loadLanguage($section, self::resolveLanguage($lang));
+    }
+
+    /**
+     * Resolve an explicit language, the user preference, or the global configuration.
+     */
+    public static function resolveLanguage($lang = null): string
+    {
+        if ($lang === null && !empty($GLOBALS['_MAX']['PREF']['language'])) {
+            $lang = $GLOBALS['_MAX']['PREF']['language'];
+        }
+
+        // An explicit or user language takes precedence over the configuration,
+        // including when the language is English.
+        if (!empty($lang) && preg_match('#^[a-z][a-z](_[A-Z][A-Z])?$#', $lang)) {
+            return $lang;
+        }
+
+        // Map legacy full language names (for example, polish) to locale codes.
+        $confMaxLanguage = $GLOBALS['_MAX']['CONF']['max']['language'] ?? 'en';
+        if (isset(RV_Admin_Languages::$aOldLanguagesMap[$confMaxLanguage])) {
+            $confMaxLanguage = RV_Admin_Languages::$aOldLanguagesMap[$confMaxLanguage];
+        }
+
+        return $confMaxLanguage ?: 'en';
+    }
+
+    private static function loadLanguage($section, $lang): bool
+    {
+        if ($lang === (self::$aLastLoaded[$section] ?? null)) {
+            return true;
+        }
+
+        $path = MAX_PATH . '/lib/max/language/' . $lang . '/' . $section . '.lang.php';
+
+        if (!file_exists($path)) {
+            return false;
         }
 
         $PRODUCT_NAME = PRODUCT_NAME;
+        $PRODUCT_URL = PRODUCT_URL;
         $PRODUCT_DOCSURL = PRODUCT_DOCSURL;
         $phpAds_dbmsname = phpAds_dbmsname;
 
-        // Always load the English language, in case of incomplete translations
-        if (file_exists (MAX_PATH . '/lib/max/language/en/' . $section . '.lang.php')) {
-            include MAX_PATH . '/lib/max/language/en/' . $section . '.lang.php';
-        } else {
-            return; // Wrong section
-        }
-        // Load the language from preferences, if possible, otherwise load
-        // the global preference, if possible
-        // If language preference is set, do not load language from config file (common bug here is to check if prefereced language is 'en'!)
-        if (!empty($lang)
-            && file_exists(MAX_PATH . '/lib/max/language/' . $lang . '/' . $section . '.lang.php'))
-        {
-            // Now check if is need to load language (english is loaded)
-            if ($lang != 'en') {
-                include MAX_PATH . '/lib/max/language/' . $lang . '/' . $section . '.lang.php';
-            }
-        } else {
-            // Check if using full language name (polish), if so then set to use two letter abbr (pl).
-            if (!empty($aConf['max']['language'])) {
-                $confMaxLanguage = $aConf['max']['language'];
-                if (isset(RV_Admin_Languages::$aOldLanguagesMap[$confMaxLanguage])) {
-                    $confMaxLanguage = RV_Admin_Languages::$aOldLanguagesMap[$confMaxLanguage];
-                }
-            }
+        include $path;
 
-            if (!empty($confMaxLanguage) && $confMaxLanguage != 'en'
-                && file_exists(MAX_PATH . '/lib/max/language/' . $confMaxLanguage . '/' . $section . '.lang.php'))
-            {
-                include MAX_PATH . '/lib/max/language/' . $confMaxLanguage .
-                    '/' . $section . '.lang.php';
-            }
-        }
+        self::$aLastLoaded[$section] = $lang;
+
+        return true;
     }
-
 }
-
-?>

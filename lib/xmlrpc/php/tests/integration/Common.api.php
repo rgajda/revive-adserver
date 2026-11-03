@@ -43,21 +43,19 @@ define('OA_INSTALLATION_STATUS', OA_INSTALLATION_STATUS_INSTALLED);
  * @subpackage TestSuite
  * @author     Matteo Beccati <matteo.beccati@openx.org>
  */
-abstract class Test_OA_Api_XmlRpc extends UnitTestCase
+class Test_OA_Api_XmlRpc extends UnitTestCase
 {
-    /**
-     * @var OA_API_Xmlrpc
-     */
-    var $oApi;
+    protected OA_API_Xmlrpc $oApi;
+    protected int $agencyId;
 
     function __construct($createDefaultManager = true)
     {
         parent::__construct();
 
-        $this->oApi = &Test_OA_Api_XmlRpc::staticGetApi($createDefaultManager);
+        $this->oApi = Test_OA_Api_XmlRpc::staticGetApi($createDefaultManager);
     }
 
-    function &staticGetApi($createDefaultManager = true)
+    function staticGetApi($createDefaultManager = true)
     {
         $oApi = &$GLOBALS['_STATIC']['staticGetApi'];
 
@@ -70,14 +68,14 @@ abstract class Test_OA_Api_XmlRpc extends UnitTestCase
             if ($createDefaultManager) {
                 $doAgency = OA_Dal::factoryDO('agency');
                 $doAgency->name = 'Default Manager';
-                $agencyId = DataGenerator::generateOne($doAgency);
-                $doAgency = OA_Dal::staticGetDO('agency', $agencyId);
+                $this->agencyId = DataGenerator::generateOne($doAgency);
+                $doAgency = OA_Dal::staticGetDO('agency', $this->agencyId);
                 $managerAccountId = $doAgency->account_id;
             }
 
             $doUsers = OA_Dal::factoryDO('users');
             $doUsers->username = 'admin_'.md5(uniqid('', true));
-            $doUsers->password = md5('secret');
+            $doUsers->password = \RV\Manager\PasswordManager::getPasswordHash('secret');
             $doUsers->default_account_id = $createDefaultManager ? $managerAccountId : $adminAccountId;
             $userId = DataGenerator::generateOne($doUsers);
 
@@ -100,14 +98,14 @@ class Mocked_OA_Api_Xmlrpc extends OA_Api_Xmlrpc
         parent::__construct('foo', 'bar', $username, $password);
     }
 
-    function &_getClient($service)
+    function _getClient($service = null)
     {
-        $oClient = &Mocked_OA_Api_Xmlrpc::staticGetClient();
+        $oClient = Mocked_OA_Api_Xmlrpc::staticGetClient();
         $oClient->service = $service;
         return $oClient;
     }
 
-    function &staticGetClient()
+    function staticGetClient()
     {
         $oClient = &$GLOBALS['_STATIC']['staticGetClient'];
 
@@ -138,7 +136,7 @@ class Mocked_XML_RPC_Client
             // Strip init
             $file = str_replace("require_once '../../../../init.php';", '', $file);
             // Don't service now
-            $file = preg_replace('#1 +// *serviceNow#i', '0', $file);
+            $file = preg_replace('#1,? +// *serviceNow#i', '0', $file);
             // Write modified file
             $fp = fopen(MAX_PATH .'/var/cache/test_api_'.$this->service, 'w');
             fwrite($fp, $file);

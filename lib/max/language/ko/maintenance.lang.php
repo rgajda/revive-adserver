@@ -53,6 +53,8 @@ $GLOBALS['strStorage'] = "저장�?역";
 $GLOBALS['strMoveToDirectory'] = "�?��?�터베�?�스�? 저장�?� �?�미지를 디렉터리로 옮기기";
 $GLOBALS['strStorageExplaination'] = "로컬 배너로 사용하는 �?�미지는 �?��?�터베�?�스 �?는 디렉터리�? 저장�?�어 있습니다. �?�미지를 디렉터리�? 저장한 경우�?는 �?��?�터베�?�스�? 대한 부하를 줄임으로�?� �?�?�를 향�?시킬 수 있습니다.";
 
+// Security
+
 // Encoding
 $GLOBALS['strEncoding'] = "인코딩";
 $GLOBALS['strEncodingConvertTest'] = "변환 테스트";
@@ -64,8 +66,12 @@ $GLOBALS['strAvailableUpdates'] = "�?�용할 수 있는 업�?��?�트
 $GLOBALS['strDownloadZip'] = "다운로드(.zip)";
 $GLOBALS['strDownloadGZip'] = "다운로드(.tar.gz)";
 
-$GLOBALS['strUpdateAlert'] = "{$PRODUCT_NAME}�?� 새 버전�?� �?�용할 수 있습니다.\n\n새 업�?��?�트�? 대한 �?세한 정보를 보겠습니까?";
-$GLOBALS['strUpdateAlertSecurity'] = "{$PRODUCT_NAME}�?� 새 버전�?� �?�용할 수 있습니다.\n\n새 버전�?� 하나 �?는 그 �?��?�?� 보안 수정�?� �?�함하고 있으므로 가능한한 빨리 업그레�?�드할 것�?� 권합니다.";
+$GLOBALS['strUpdateAlert'] = "{$PRODUCT_NAME}�?� 새 버전�?� �?�용할 수 있습니다.
+
+새 업�?��?�트�? 대한 �?세한 정보를 보겠습니까?";
+$GLOBALS['strUpdateAlertSecurity'] = "{$PRODUCT_NAME}�?� 새 버전�?� �?�용할 수 있습니다.
+
+새 버전�?� 하나 �?는 그 �?��?�?� 보안 수정�?� �?�함하고 있으므로 가능한한 빨리 업그레�?�드할 것�?� 권합니다.";
 
 $GLOBALS['strUpdateServerDown'] = "    Due to an unknown reason it isn't possible to retrieve <br>
 	information about possible updates. Please try again later.";
@@ -96,3 +102,5 @@ $GLOBALS['strPlugins'] = "플러그인";
 $GLOBALS['strMenus'] = "메뉴";
 $GLOBALS['strMenusPrecis'] = "메뉴 캐시를 다시 작성";
 $GLOBALS['strMenusCachedOk'] = "메뉴 캐시가 다시 작성됨";
+
+// Users

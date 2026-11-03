@@ -20,24 +20,16 @@ $className = 'Client_UpgradePostscript_1_0_2';
  */
 class Client_UpgradePostscript_1_0_2
 {
-    function __construct()
+    public function execute($aParams)
     {
-
-    }
-
-    function execute($aParams)
-    {
-        if (isset($GLOBALS['_MAX']['CONF']['logging']['sniff']))
-        {
+        if (isset($GLOBALS['_MAX']['CONF']['logging']['sniff'])) {
             $value = $GLOBALS['_MAX']['CONF']['logging']['sniff'];
             unset($GLOBALS['_MAX']['CONF']['logging']['sniff']);
 
-            $oSettings  = new OA_Admin_Settings();
-            $oSettings->settingChange('Client','sniff',$value);
+            $oSettings = new OA_Admin_Settings();
+            $oSettings->settingChange('Client', 'sniff', $value);
             $oSettings->writeConfigChange();
         }
         return true;
     }
 }
-
-?>

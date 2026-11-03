@@ -17,7 +17,7 @@ $scriptName = $argv[0];
 //define('INTERVAL_END',   '2009-07-15 00:59:59');
 
 // Initialise the OpenX environment....
-$path = dirname(__FILE__);
+$path = __DIR__;
 require_once $path . '/../../../init.php';
 
 // Required files
@@ -66,7 +66,7 @@ if (!$result) {
     exit;
 }
 
-$oEndDate   = new Date(INTERVAL_END);
+$oEndDate = new Date(INTERVAL_END);
 $result = OX_OperationInterval::checkDateIsEndDate($oEndDate);
 if (!$result) {
     $message = "\nThe end date defined in the {$scriptName} script is not a valid operation interval start date.\nPlease edit the statisticsTestAndCorrect.php script before running.\n";
@@ -99,7 +99,7 @@ disable your central maintenance script while this script runs.
 Do you want to proceed with the summarisation process? [y/N]: ";
 
 $response = trim(fgets(STDIN));
-if (!($response == 'y' || $response == 'Y')) {
+if ($response != 'y' && $response != 'Y') {
     echo $haltMessage;
     exit;
 }

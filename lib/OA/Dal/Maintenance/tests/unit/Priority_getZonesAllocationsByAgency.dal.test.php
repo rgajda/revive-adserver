@@ -26,21 +26,13 @@ class Test_OA_Dal_Maintenance_Priority_getZonesAllocationsByAgency extends UnitT
     public $idZone1;
 
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Method to test the getZonesAllocationsByAgency method.
      *
      * Requirements:
      * Test 1: Test with no data, and ensure no data returned.
      * Test 2: Test with sample data, and ensure the correct data is returned.
      */
-    function testGetZonesAllocationsForEcpmRemnantByAgency()
+    public function testGetZonesAllocationsForEcpmRemnantByAgency()
     {
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
@@ -66,7 +58,7 @@ class Test_OA_Dal_Maintenance_Priority_getZonesAllocationsByAgency extends UnitT
      * Test 1: Test with no data, and ensure no data returned.
      * Test 2: Test with sample data, and ensure the correct data is returned.
      */
-    function testGetZonesAllocationsByAgencyAndCampaignPriority()
+    public function testGetZonesAllocationsByAgencyAndCampaignPriority()
     {
         $oMaxDalMaintenance = new OA_Dal_Maintenance_Priority();
 
@@ -88,7 +80,7 @@ class Test_OA_Dal_Maintenance_Priority_getZonesAllocationsByAgency extends UnitT
 
     public function _generateData($priority)
     {
-        $oDbh = &OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
 
         // Create the required temporary table for the tests
         $oTable = &OA_DB_Table_Priority::singleton();
@@ -247,8 +239,6 @@ class Test_OA_Dal_Maintenance_Priority_getZonesAllocationsByAgency extends UnitT
                 )";
         $rows = $oDbh->exec($query);
 
-        return array($agencyId1, $agencyId2);
+        return [$agencyId1, $agencyId2];
     }
 }
-
-?>

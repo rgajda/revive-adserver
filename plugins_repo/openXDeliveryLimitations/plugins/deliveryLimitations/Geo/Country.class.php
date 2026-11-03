@@ -31,7 +31,9 @@ require_once MAX_PATH . '/lib/max/Delivery/limitations.delivery.php';
  */
 class Plugins_DeliveryLimitations_Geo_Country extends Plugins_DeliveryLimitations_CommaSeparatedData
 {
-    function __construct()
+    use \RV\Extension\DeliveryLimitations\GeoLimitationTrait;
+
+    public function __construct()
     {
         parent::__construct();
         $this->nameEnglish = 'Geo - Country';
@@ -42,10 +44,9 @@ class Plugins_DeliveryLimitations_Geo_Country extends Plugins_DeliveryLimitation
      *
      * @return boolean
      */
-    function isAllowed($page = false)
+    public function isAllowed($page = false)
     {
-        return ((isset($GLOBALS['_MAX']['GEO_DATA']['country_code']))
-            || $GLOBALS['_MAX']['CONF']['geotargeting']['showUnavailable']);
+        return $this->hasCapability('country');
     }
 
     /**
@@ -53,17 +54,15 @@ class Plugins_DeliveryLimitations_Geo_Country extends Plugins_DeliveryLimitation
      *
      * @return void
      */
-    function displayArrayData()
+    public function displayArrayData()
     {
-        $tabindex =& $GLOBALS['tabindex'];
+        $tabindex = &$GLOBALS['tabindex'];
         echo "<div class='box'>";
         foreach ($this->res as $code => $name) {
             echo "<div class='boxrow'>";
-            echo "<input tabindex='".($tabindex++)."' ";
-            echo "type='checkbox' id='c_{$this->executionorder}_{$code}' name='acl[{$this->executionorder}][data][]' value='{$code}'".(in_array($code, $this->data) ? ' CHECKED' : '').">{$name}</div>";
+            echo "<input tabindex='" . ($tabindex++) . "' ";
+            echo "type='checkbox' id='c_{$this->executionorder}_{$code}' name='acl[{$this->executionorder}][data][]' value='{$code}'" . (in_array($code, $this->data) ? ' CHECKED' : '') . ">{$name}</div>";
         }
         echo "</div>";
     }
 }
-
-?>

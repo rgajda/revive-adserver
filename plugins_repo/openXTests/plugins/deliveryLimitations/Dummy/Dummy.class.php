@@ -23,19 +23,13 @@ class Plugins_DeliveryLimitations_Dummy_Dummy extends Plugins_DeliveryLimitation
      *
      * @return string
      */
-    function getName()
+    public function getName()
     {
         return 'Dummy';
     }
 
-    function isAllowed($param=false)
+    public function isAllowed($param = false)
     {
-        if ($param == 'disallow')
-        {
-            return false;
-        }
-        return true;
+        return $param != 'disallow';
     }
 }
-
-?>

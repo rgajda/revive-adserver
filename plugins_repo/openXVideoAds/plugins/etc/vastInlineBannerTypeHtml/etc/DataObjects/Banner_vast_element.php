@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Table Definition for banner_vast_element
  */
-require_once MAX_PATH.'/lib/max/Dal/DataObjects/DB_DataObjectCommon.php';
+require_once MAX_PATH . '/lib/max/Dal/DataObjects/DB_DataObjectCommon.php';
 
 class DataObjects_Banner_vast_element extends DB_DataObjectCommon
 {
@@ -10,7 +11,6 @@ class DataObjects_Banner_vast_element extends DB_DataObjectCommon
     /* the code below is auto generated do not remove the above tag */
 
     public $__table = 'banner_vast_element';             // table name
-    public $banner_vast_element_id;          // MEDIUMINT(9) => openads_mediumint => 129
     public $banner_id;                       // MEDIUMINT(9) => openads_mediumint => 129
     public $vast_element_type;               // VARCHAR(16) => openads_varchar => 130
     public $vast_video_id;                   // VARCHAR(100) => openads_varchar => 2
@@ -31,17 +31,28 @@ class DataObjects_Banner_vast_element extends DB_DataObjectCommon
     public $vast_overlay_text_description;    // TEXT() => openads_text => 34
     public $vast_overlay_text_call;          // TEXT() => openads_text => 34
     public $vast_creative_type;              // VARCHAR(20) => openads_varchar => 2
-    public $vast_thirdparty_impression;      // TEXT() => openads_text => 162
+    public $vast_thirdparty_impression;      // TEXT() => openads_text => 34
 
     /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGetFromClassName('DataObjects_Banner_vast_element',$k,$v); }
+    public static function staticGet($k, $v = null)
+    {
+        return DB_DataObject::staticGetFromClassName('DataObjects_Banner_vast_element', $k, $v);
+    }
 
-    var $defaultValues = array(
-                'vast_element_type' => '',
-                'vast_thirdparty_impression' => '',
-                );
+    public $defaultValues = [
+        'vast_element_type' => '',
+    ];
 
     /* the code above is auto generated do not remove the tag below */
     ###END_AUTOCODE
+
+    /**
+     * Table has no autoincrement/sequence so we override sequenceKey().
+     *
+     * @return array
+     */
+    public function sequenceKey()
+    {
+        return [false, false, false];
+    }
 }
-?>

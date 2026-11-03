@@ -25,7 +25,7 @@ class OA_DB_Charset_pgsql extends OA_DB_Charset
      *
      * @return mixed A string containing the charset or false if it cannot be retrieved
      */
-    function getDatabaseCharset()
+    public function getDatabaseCharset()
     {
         if ($this->oDbh) {
             return $this->oDbh->queryOne("SHOW server_encoding", 'text');
@@ -39,7 +39,7 @@ class OA_DB_Charset_pgsql extends OA_DB_Charset
      *
      * @return mixed A string containing the charset or false if it cannot be retrieved
      */
-    function getClientCharset()
+    public function getClientCharset()
     {
         if ($this->oDbh) {
             return $this->oDbh->queryOne("SHOW client_encoding", 'text');
@@ -54,17 +54,15 @@ class OA_DB_Charset_pgsql extends OA_DB_Charset
      * @param string $charset
      * @return mixed True on success, PEAR_Error otherwise
      */
-    function setClientCharset($charset)
+    public function setClientCharset($charset)
     {
         if (!empty($charset) && $this->oDbh) {
             $pg = $this->oDbh->getConnection();
             if (@pg_set_client_encoding($pg, $charset) == -1) {
-                return new PEAR_Error(pg_errormessage($pg));
+                return new PEAR_Error(pg_last_error($pg));
             }
         }
 
         return true;
     }
 }
-
-?>

@@ -69,6 +69,15 @@ $GLOBALS['strMoveToDirectory'] = "Verplaats afbeeldingen van de database naar ee
 $GLOBALS['strStorageExplaination'] = "	De afbeeldingen welke gebruikt worden door lokale banners worden, of in de database, of in een directory opgeslagen.
 	Indien de afbeeldingen in een directory worden opgeslagen wordt de database minder belast.";
 
+// Security
+$GLOBALS['strSecurity'] = "Beveiliging";
+$GLOBALS['strSecurityExplanation'] = "Sommige directories in het {$PRODUCT_NAME} pakket zouden niet verspreid moeten worden 
+    via je webserver, om veiligheidsredenen. Dergelijke bestanden en mappen toegankelijk laten, kan ongewenst
+    informatie onthullen en een gevaar voor de veiligheid opleveren. Er is een snelle beveiligingscontrole uitgevoerd en hieronder zijn de resultaten te vinden.";
+$GLOBALS['strSecurityOK'] = "Uw browser was niet in staat om beschermde bestanden op te halen, dat is geweldig nieuws!";
+$GLOBALS['strSecurityKO'] = "Je browser was in staat om bestanden op te halen die niet toegankelijk zouden moeten zijn. Bijvoorbeeld:";
+$GLOBALS['strSecurityReadMore'] = "Klik hier voor meer informatie over hoe u uw installatie kunt beveiligen.";
+
 // Encoding
 $GLOBALS['strEncoding'] = "Codering";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME} slaat nu alle gegevens in de database op in UTF-8 format.<br />
@@ -81,14 +90,17 @@ $GLOBALS['strConvertThese'] = "De volgende gegevens zullen worden gewijzigd als 
 // Product Updates
 $GLOBALS['strSearchingUpdates'] = "Zoeken naar nieuwere versies, een moment geduld a.u.b...";
 $GLOBALS['strAvailableUpdates'] = "Beschikbare update";
+$GLOBALS['strAlternativeUpdateOptions'] = "Als het updaten naar een nieuwere grote of kleine release niet haalbaar is, overweeg dan deze optie:";
 $GLOBALS['strDownloadZip'] = "Downloaden (.zip)";
 $GLOBALS['strDownloadGZip'] = "Downloaden (.tar.gz)";
 
-$GLOBALS['strUpdateAlert'] = "A nieuwe versie van {$PRODUCT_NAME} is beschikbaar.\n\nWilt u meer informatie \nover deze update?";
+$GLOBALS['strUpdateAlert'] = "A nieuwe versie van {$PRODUCT_NAME} is beschikbaar.
+
+Wilt u meer informatie over deze update?";
 $GLOBALS['strUpdateAlertSecurity'] = "A nieuwe versie van {$PRODUCT_NAME} is beschikbaar.
 
 Het wordt aangeraden om uw versie
- bij te werken naar de nieuwste versie omdat
+bij te werken naar de nieuwste versie omdat
 deze een of meerdere beveiligingsproblemen oplost.";
 
 $GLOBALS['strUpdateServerDown'] = "    Vanwege een onbekende reden is het momenteel niet mogelijk<br />
@@ -128,7 +140,7 @@ $GLOBALS['strBannerChannelResult'] = "Dit zijn de resultaten van de controle van
 $GLOBALS['strChannelCompiledLimitationsValid'] = "Alle gecompileerde uitleveringsregels in verzamelingen uitleveringsregels zijn geldig";
 $GLOBALS['strBannerCompiledLimitationsValid'] = "Alle gecompileerde uitleveringsregels van banners zijn geldig";
 $GLOBALS['strErrorsFound'] = "Fouten gevonden";
-$GLOBALS['strRepairCompiledLimitations'] = "Er zijn enkele inconsistenties aangetroffen (zie boven), u kunt deze herstellen met de onderstaande knop, dit zal de de gecompileerde uitleveringsregels voor alle banners en alle verzamelingen opnieuwe compileren<br />";
+$GLOBALS['strRepairCompiledLimitations'] = "Er zijn enkele inconsistenties aangetroffen (zie boven), u kunt deze herstellen met de onderstaande knop, dit zal de de gecompileerde uitleveringsregels voor alle banners en alle verzamelingen opnieuw compileren<br />";
 $GLOBALS['strRecompile'] = "Opnieuw compileren";
 $GLOBALS['strDeliveryEngineDisagreeNotice'] = "Onder bepaalde omstandigheden kunnen er verschillen zijn tussen de opgeslagen uitleveringsregels voor banners en verzamelingen, gebruik de volgende link om de uitleveringsregels in de database te valideren";
 $GLOBALS['strCheckACLs'] = "Controleer Uitleveringsregels";
@@ -147,3 +159,12 @@ $GLOBALS['strPluginsPrecis'] = "Diagnosticeren en herstellen van problemen met {
 $GLOBALS['strMenus'] = "Menu's";
 $GLOBALS['strMenusPrecis'] = "Wederopbouw van de menu-cache";
 $GLOBALS['strMenusCachedOk'] = "Menu cache is opnieuw opgebouwd";
+
+// Users
+$GLOBALS['strUserPasswords'] = "Gebruikerswachtwoorden";
+$GLOBALS['strUserPasswordsExplaination'] = "Vanaf versie 5.4 slaat {$PRODUCT_NAME} wachtwoorden in een veiliger formaat op.
+Gebruik deze tool om te controleren of er nog steeds wachtwoorden zijn opgeslagen in het oude formaat, en om geselecteerde gebruikers een e-mail te sturen waarmee ze een nieuw wachtwoord kunnen invoeren.
+De tool kan ook gebruikt worden om nieuwe gebruikers eraan te herinneren dat ze hun eerste wachtwoord moeten instellen.";
+$GLOBALS['strCheckUserPasswords'] = "Controleer gebruikerswachtwoorden";
+$GLOBALS['strUserPasswordsEverythingOK'] = "Voor geen gebruiker is een wachtwoordreset vereist, alles is OK.";
+$GLOBALS['strUserPasswordsEmailsSent'] = "De e-mails voor de gebruikers die u heeft geselecteerd zijn verzonden.";

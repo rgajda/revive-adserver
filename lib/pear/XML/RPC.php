@@ -258,16 +258,16 @@ function XML_RPC_se($parser_resource, $name, $attrs)
 {
     global $XML_RPC_xh, $XML_RPC_valid_parents;
 
-    $parser = (int) $parser_resource;
+    $parser = is_resource($parser_resource) ? (int) $parser_resource : spl_object_id($parser_resource);
 
     // if invalid xmlrpc already detected, skip all processing
-    if ($XML_RPC_xh[$parser]['isf'] >= 2) {
+    if (($XML_RPC_xh[$parser]['isf'] ?? 0) >= 2) {
         return;
     }
 
     // check for correct element nesting
     // top level element can only be of 2 types
-    if (count($XML_RPC_xh[$parser]['stack']) == 0) {
+    if (empty($XML_RPC_xh[$parser]['stack'])) {
         if ($name != 'METHODRESPONSE' && $name != 'METHODCALL') {
             $XML_RPC_xh[$parser]['isf'] = 2;
             $XML_RPC_xh[$parser]['isf_reason'] = 'missing top level xmlrpc element';
@@ -275,7 +275,7 @@ function XML_RPC_se($parser_resource, $name, $attrs)
         }
     } else {
         // not top level element: see if parent is OK
-        if (!in_array($XML_RPC_xh[$parser]['stack'][0], $XML_RPC_valid_parents[$name])) {
+        if (!in_array($XML_RPC_xh[$parser]['stack'][0], $XML_RPC_valid_parents[$name] ?? [])) {
             $name = preg_replace('/[^a-zA-Z0-9._-]/', '', $name);
             $XML_RPC_xh[$parser]['isf'] = 2;
             $XML_RPC_xh[$parser]['isf_reason'] = "xmlrpc element $name cannot be child of {$XML_RPC_xh[$parser]['stack'][0]}";
@@ -387,7 +387,7 @@ function XML_RPC_ee($parser_resource, $name)
 {
     global $XML_RPC_xh;
 
-    $parser = (int) $parser_resource;
+    $parser = is_resource($parser_resource) ? (int) $parser_resource : spl_object_id($parser_resource);
 
     if ($XML_RPC_xh[$parser]['isf'] >= 2) {
         return;
@@ -524,7 +524,7 @@ function XML_RPC_cd($parser_resource, $data)
 {
     global $XML_RPC_xh, $XML_RPC_backslash;
 
-    $parser = (int) $parser_resource;
+    $parser = is_resource($parser_resource) ? (int) $parser_resource : spl_object_id($parser_resource);
 
     // Make sure that the data content doesn't exceed the limit, in order to
     // prevent XML bomb attacks. See the following link for more information:
@@ -604,7 +604,7 @@ class XML_RPC_Base {
      *
      * @access public
      */
-    function isError($value)
+    public static function isError($value)
     {
         return is_a($value, 'PEAR_Error');
     }
@@ -842,7 +842,7 @@ class XML_RPC_Client extends XML_RPC_Base {
      *
      * @return void
      */
-    function setAutoBase64($in)
+    public static function setAutoBase64($in)
     {
         if ($in) {
             $GLOBALS['XML_RPC_auto_base64'] = true;
@@ -873,7 +873,7 @@ class XML_RPC_Client extends XML_RPC_Base {
      * @param object $msg       the XML_RPC_Message object
      * @param int    $timeout   how many seconds to wait for the request
      *
-     * @return object  an XML_RPC_Response object.  0 is returned if any
+     * @return object|int  an XML_RPC_Response object.  0 is returned if any
      *                  problems happen.
      *
      * @see XML_RPC_Message, XML_RPC_Client::XML_RPC_Client(),
@@ -1332,7 +1332,7 @@ class XML_RPC_Message extends XML_RPC_Base
      *
      * @param int $i  the index number of the parameter to obtain
      *
-     * @return object  the XML_RPC_Value object.
+     * @return XML_RPC_Value|XML_RPC_Response  the XML_RPC_Value object.
      *                  If the parameter doesn't exist, an XML_RPC_Response object.
      *
      * @since Returns XML_RPC_Response object on error since Release 1.3.0
@@ -1410,7 +1410,7 @@ class XML_RPC_Message extends XML_RPC_Base
      * @link   http://php.net/xml_parser_create
      * @since  Method available since Release 1.2.0
      */
-    function getEncoding($data)
+    public static function getEncoding($data)
     {
         global $XML_RPC_defencoding;
 
@@ -1454,7 +1454,8 @@ class XML_RPC_Message extends XML_RPC_Base
 
         $encoding = $this->getEncoding($data);
         $parser_resource = xml_parser_create($encoding);
-        $parser = (int) $parser_resource;
+
+        $parser = is_resource($parser_resource) ? (int) $parser_resource : spl_object_id($parser_resource);
 
         $XML_RPC_xh = array();
         $XML_RPC_xh[$parser] = array();
@@ -1463,6 +1464,7 @@ class XML_RPC_Message extends XML_RPC_Base
         $XML_RPC_xh[$parser]['isf'] = 0;
         $XML_RPC_xh[$parser]['ac'] = '';
         $XML_RPC_xh[$parser]['qt'] = '';
+        $XML_RPC_xh[$parser]['ha'] = '';
         $XML_RPC_xh[$parser]['stack'] = array();
         $XML_RPC_xh[$parser]['valuestack'] = array();
 
@@ -1480,8 +1482,8 @@ class XML_RPC_Message extends XML_RPC_Base
         // See if response is a 200 or a 100 then a 200, else raise error.
         // But only do this if we're using the HTTP protocol.
         if (preg_match('#^HTTP#', $data) &&
-            !preg_match('#^HTTP/[0-9\.]+ 200 #', $data) &&
-            !preg_match('#^HTTP/[0-9\.]+ 10[0-9]([A-Z ]+)?[\r\n]+HTTP/[0-9\.]+ 200#', $data))
+            !preg_match('#^HTTP/[0-9.]+ 200 #', $data) &&
+            !preg_match('#^HTTP/[0-9.]+ 10[0-9]([A-Z ]+)?[\r\n]+HTTP/[0-9.]+ 200#', $data))
         {
                 $errstr = substr($data, 0, strpos($data, "\n") - 1);
                 error_log('HTTP error, got response: ' . $errstr);
@@ -1551,7 +1553,7 @@ class XML_RPC_Message extends XML_RPC_Base
                 $r = new XML_RPC_Response($v);
             }
         }
-        $r->hdrs = preg_split("/\r?\n/D", $XML_RPC_xh[$parser]['ha'][1]);
+        $r->hdrs = preg_split("/\r?\n/D", $XML_RPC_xh[$parser]['ha']);
         return $r;
     }
 }
@@ -1785,7 +1787,7 @@ class XML_RPC_Value extends XML_RPC_Base
      */
     function structmem($m)
     {
-        return $this->me['struct'][$m];
+        return $this->me['struct'][$m] ?? null;
     }
 
     /**
@@ -1981,7 +1983,8 @@ function XML_RPC_decode($XML_RPC_val)
     } elseif ($kind == 'struct') {
         $XML_RPC_val->structreset();
         $arr = array();
-        while (list($key, $value) = $XML_RPC_val->structeach()) {
+        while ($res = $XML_RPC_val->structeach()) {
+            list($key, $value) = $res;
             $arr[$key] = XML_RPC_decode($value);
         }
         return $arr;
@@ -2035,7 +2038,7 @@ function XML_RPC_encode($php_val)
 
     case 'string':
     case 'NULL':
-        if (preg_match('#^[0-9]{8}\T{1}[0-9]{2}\:[0-9]{2}\:[0-9]{2}$#', $php_val)) {
+        if (preg_match('#^[0-9]{8}T{1}[0-9]{2}:[0-9]{2}:[0-9]{2}$#', $php_val)) {
             $XML_RPC_val->addScalar($php_val, $GLOBALS['XML_RPC_DateTime']);
         } elseif ($GLOBALS['XML_RPC_auto_base64']
                   && preg_match("#[^ -~\t\r\n]#", $php_val))

@@ -27,28 +27,30 @@ require_once LIB_PATH . '/Admin/Redirect.php';
  */
 class OA_Admin_Reports_Index
 {
-
+    /**
+     * @var int|mixed
+     */
+    public $tabindex = 1;
     /**
      * @var FieldFactory
      */
-    var $oFieldFactory;
+    public $oFieldFactory;
 
     /**
      * The constructor method.
      *
      * @return OA_Admin_Reports_Index
      */
-    function __construct()
+    public function __construct()
     {
         $this->oFieldFactory = new FieldFactory();
-        $this->tabindex = 1;
     }
 
     /**
      * A method to display all reports that the user has permissions
      * to run to the UI.
      */
-    function displayReports()
+    public function displayReports()
     {
         $aDisplayablePlugins = $this->_findDisplayableReports();
         $aGroupedPlugins = $this->_groupReportPlugins($aDisplayablePlugins);
@@ -63,9 +65,8 @@ class OA_Admin_Reports_Index
      * @param string $report_identifier
      * @param int $errorCode error code given by last report generation
      */
-    function displayReportGeneration($reportIdentifier, $errorCode = null)
+    public function displayReportGeneration($reportIdentifier, $errorCode = null)
     {
-
         $aDisplayablePlugins = $this->_findDisplayableReports();
         $oPlugin = $aDisplayablePlugins[$reportIdentifier];
         if (is_null($oPlugin)) {
@@ -84,9 +85,9 @@ class OA_Admin_Reports_Index
      * @return array An array of all the plugins that the user has
      *               access to excute, indexed by the plugin type.
      */
-    function _findDisplayableReports()
+    public function _findDisplayableReports()
     {
-        $aDisplayablePlugins = array();
+        $aDisplayablePlugins = [];
         // Get all the report plugins.
         $aPlugins = OX_Component::getComponents('reports');
         // Check the user's authorization level
@@ -110,11 +111,10 @@ class OA_Admin_Reports_Index
      *               access to excute, indexed by category, then plugin
      *               type.
      */
-    function _groupReportPlugins($aPlugins)
+    public function _groupReportPlugins($aPlugins)
     {
-        $aGroupedPlugins = array();
-        foreach ($aPlugins as $pluginType => $oPlugin)
-        {
+        $aGroupedPlugins = [];
+        foreach ($aPlugins as $pluginType => $oPlugin) {
             $aInfo = $oPlugin->info();
             $groupName = $aInfo['plugin-category-name'];
             $aGroupedPlugins[$groupName][$pluginType] = $oPlugin;
@@ -130,7 +130,7 @@ class OA_Admin_Reports_Index
      * @param array An array plugins that the user has access to excute,
      *              indexed by category, then plugin type.
      */
-    function _displayPluginList($aGroupedPlugins)
+    public function _displayPluginList($aGroupedPlugins)
     {
         // Print the table start
         echo "<table border='0' width='100%' cellpadding='0' cellspacing='0'>";
@@ -155,7 +155,7 @@ class OA_Admin_Reports_Index
      * @access private
      * @param string $pluginCategoryName The report plugin category name.
      */
-    function _printCategoryTitle($groupName)
+    public function _printCategoryTitle($groupName)
     {
         echo "<tr><td height='25' colspan='3'><b>{$groupName}</b></td></tr>
               <tr height='1'>
@@ -173,7 +173,7 @@ class OA_Admin_Reports_Index
      * @param Plugins_Reports $oPlugin A report plugin.
      * @param string $pluginType The report plugin type.
      */
-    function _printPluginSummary($oPlugin, $pluginType)
+    public function _printPluginSummary($oPlugin, $pluginType)
     {
         $aInfo = $oPlugin->info();
         echo "<tr><td height='10' colspan='3'>&nbsp;</td></tr>
@@ -193,7 +193,7 @@ class OA_Admin_Reports_Index
      * @param string $reportIdentifier The string identifying the report.
      * @param int $errorCode error code given by last report generation
      */
-    function _groupReportPluginGeneration($oPlugin, $reportIdentifier, $errorCode = null)
+    public function _groupReportPluginGeneration($oPlugin, $reportIdentifier, $errorCode = null)
     {
         $aInfo = $oPlugin->info();
         if (!empty($errorCode)) {
@@ -207,7 +207,7 @@ class OA_Admin_Reports_Index
             $this->_displayParameterListHeader();
             foreach ($aPluginInfo as $key => $aParameters) {
                 // Print the report generation parameter
-                $oField =& $this->oFieldFactory->newField($aParameters['type']);
+                $oField = $this->oFieldFactory->newField($aParameters['type']);
                 $oField->_name = $key;
                 if (!is_null($aParameters['default'])) {
                     $oField->setValue($aParameters['default']);
@@ -248,14 +248,14 @@ class OA_Admin_Reports_Index
      * @param string $desc   The report's description.
      * @param string $errorMessage The error message of last report generation
      */
-    function _displayReportIntroduction($export, $name, $desc, $errorMessage)
+    public function _displayReportIntroduction($export, $name, $desc, $errorMessage)
     {
         echo "<table border='0' width='100%' cellpadding='0' cellspacing='0'>";
         echo "<tr><td height='25' colspan='3'>";
         if ($export == 'xls') {
             echo "<img src='" . OX::assetPath() . "/images/excel.gif' align='absmiddle'>&nbsp;&nbsp;";
         }
-        echo "<b>".$name."</b></td></tr>";
+        echo "<b>" . $name . "</b></td></tr>";
         echo "<tr height='1'><td colspan='3' bgcolor='#888888'><img src='" . OX::assetPath() . "/images/break.gif' height='1' width='100%'></td></tr>";
         echo "<tr><td height='10' colspan='3'>&nbsp;</td></tr>";
         echo "<tr><td width='30'>&nbsp;</td>";
@@ -263,11 +263,11 @@ class OA_Admin_Reports_Index
         echo nl2br($desc);
         echo "</td></tr>";
         if (!empty($errorMessage)) {
-        	echo "<tr><td width='30'>&nbsp;</td>";
-	        echo "<td height='25' colspan='2'>";
-	        echo "<img src='".OX::assetPath()."/images/error.gif' width='16' height='16'>&nbsp;";
-	        echo "<font color='#AA0000'><b>{$errorMessage}</b></font>";
-	        echo "</td></tr>";
+            echo "<tr><td width='30'>&nbsp;</td>";
+            echo "<td height='25' colspan='2'>";
+            echo "<img src='" . OX::assetPath() . "/images/error.gif' width='16' height='16'>&nbsp;";
+            echo "<font color='#AA0000'><b>{$errorMessage}</b></font>";
+            echo "</td></tr>";
         }
         echo "<tr><td height='10' colspan='3'>&nbsp;</td></tr>";
     }
@@ -278,7 +278,7 @@ class OA_Admin_Reports_Index
      *
      * @access private
      */
-    function _displayReportInformationFooter()
+    public function _displayReportInformationFooter()
     {
         echo "</table>";
     }
@@ -289,7 +289,7 @@ class OA_Admin_Reports_Index
      *
      * @access private
      */
-    function _displayParameterListHeader()
+    public function _displayParameterListHeader()
     {
         echo "
         <form action='report-generate.php' method='get'>";
@@ -301,17 +301,40 @@ class OA_Admin_Reports_Index
      *
      * @param string $reportIdentifier The string identifying the report.
      */
-    function _displayParameterListFooter($reportIdentifier)
+    public function _displayParameterListFooter($reportIdentifier)
     {
         $generateTabIndex = $this->tabindex++;
+
         echo "
         <tr>
           <td height='25' colspan='3'>
             <br /><br />
             <input type='hidden' name='plugin' value='$reportIdentifier'>
-            <input type='button' value='{$GLOBALS['strBackToTheList']}' onClick='javascript:document.location.href=\"report-index.php\"' tabindex='".($this->tabindex++)."'>
+            <input type='button' value='{$GLOBALS['strBackToTheList']}' onclick='document.location.href=\"report-index.php\"' tabindex='" . ($this->tabindex++) . "'>
             &nbsp;&nbsp;
-            <input type='submit' value='{$GLOBALS['strGenerate']}' tabindex='".($generateTabIndex)."'>
+            <script>
+            function RV_generateAdvancedReport(form)
+            {
+                var data = $(form).serializeArray();
+                var formcopy = {
+                    'period_start': form.period_start.cloneNode(),
+                    'period_end': form.period_end.cloneNode(),
+                };
+
+                checkDates(formcopy);
+
+                for (i = 0; i < data.length; i++) {
+                    if (data[i].name === 'period_start') {
+                        data[i].value = formcopy.period_start.value;
+                    } else if (data[i].name === 'period_end') {
+                        data[i].value = formcopy.period_end.value;
+                    }
+                }
+
+                RV_downloadReport(form.action + '?' + \$.param(data));
+            }
+            </script>
+            <input type='button' value='{$GLOBALS['strGenerate']}' tabindex='" . ($generateTabIndex) . "' onclick='RV_generateAdvancedReport(this.form)'>
           </td>
         </tr>
         </form>";
@@ -323,7 +346,7 @@ class OA_Admin_Reports_Index
      *
      * @access private
      */
-    function _displayParameterBreak()
+    public function _displayParameterBreak()
     {
         echo "
         <tr height='10'>
@@ -331,7 +354,4 @@ class OA_Admin_Reports_Index
             <td><img src='" . OX::assetPath() . "/images/break-l.gif' height='1' width='200' vspace='6'></td>
         </tr>";
     }
-
 }
-
-?>

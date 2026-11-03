@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "Folytatás »";
 $GLOBALS['strBtnRecover'] = "Visszaállítás »";
 $GLOBALS['strBtnAgree'] = "Elfogadom »";
 $GLOBALS['strBtnRetry'] = "Újrapróbál";
-$GLOBALS['strWarningRegisterArgcArv'] = "A register_argc_argv PHP konfigurációs változót be kell kapcsolni hogy a parancssorból el lehessen végezni a karbantartást.";
+$GLOBALS['strTablesPrefix'] = "Táblanevek előtagja";
 $GLOBALS['strTablesType'] = "Tábla típusa";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Az előző újraépítési kísérlete során hiba történt";
@@ -41,6 +41,7 @@ $GLOBALS['strImagesUrlPrefix'] = "A Kép Tár URL-je";
 $GLOBALS['strImagesUrlPrefixSSL'] = "A Kép Tár URL-je (SSL)";
 
 
+$GLOBALS['strUpgrade'] = "Frissítés";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
@@ -50,7 +51,6 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "A Kép Tár URL-je (SSL)";
 $GLOBALS['strChooseSection'] = "Válasszon egyet";
 $GLOBALS['strUnableToWriteConfig'] = "A konfigurációs fájl írása sikertelen";
 $GLOBALS['strUnableToWritePrefs'] = "A beállítás adatbázisba írása sikertelen";
-$GLOBALS['strImageDirLockedDetected'] = "A kiszolgáló nem tudja írnia a megadott <b>Képek Könyvtárt</b>. <br>Addig nem tud továbblépni, amíg vagy meg nem változtatja a beállításokat vagy létre nem hozza a könyvtárat.";
 
 // Configuration Settings
 $GLOBALS['strConfigurationSettings'] = "Konfiguráció beállítása";
@@ -84,6 +84,8 @@ $GLOBALS['strCantConnectToDb'] = "Nem sikerült kapcsolódni az adatbázishoz";
 // Email Settings
 $GLOBALS['strQmailPatch'] = "A qmail folt engedélyezése";
 $GLOBALS['strEnableQmailPatch'] = "Qmail patch engedélyezése";
+
+// Security settings
 
 // Audit Trail Settings
 
@@ -119,7 +121,7 @@ $GLOBALS['strTypeWebModeFtp'] = "Külső FTP szerver";
 $GLOBALS['strTypeWebDir'] = "Helyi könyvtár";
 $GLOBALS['strTypeFTPHost'] = "FTP kiszolgáló";
 $GLOBALS['strTypeFTPDirectory'] = "Kiszolgáló könyvtár";
-$GLOBALS['strTypeFTPUsername'] = "Login név (FTP felhasználó)";
+$GLOBALS['strTypeFTPUsername'] = "Bejelentkezés";
 $GLOBALS['strTypeFTPPassword'] = "Jelszó";
 $GLOBALS['strTypeFTPPassive'] = "Passzív kapcsolat használata";
 $GLOBALS['strTypeFTPErrorDir'] = "Az FTP kiszolgáló könyvtár nem létezik";
@@ -140,15 +142,8 @@ $GLOBALS['strDeliveryFilenamesAdPopup'] = "Hirdetés popup";
 $GLOBALS['strDeliveryFilenamesAdView'] = "Hirdetés megtekintés";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPC kérés";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Helyi kérés";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Flash beágyazás (teljes URL cím is lehet)";
 $GLOBALS['strDeliveryCaching'] = "Banner kézbesítési gyorsítótár beállításai";
 $GLOBALS['strDeliveryCacheLimit'] = "A banner gyorsítótár frissítései közti idő (másodpercekben)";
-$GLOBALS['strDeliveryExecPhp'] = "PHP kódok futtatásának engedélyezése a hirdetésekben<br />(Figyelem: Biztonsági kockázat)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Harmadik féltől származó kattintás követési határolójel";
-$GLOBALS['strP3PSettings'] = "P3P adatvédelmi irányelvek";
-$GLOBALS['strUseP3P'] = "P3P irányelvek használata";
-$GLOBALS['strP3PCompactPolicy'] = "P3P tömörített irányelv";
-$GLOBALS['strP3PPolicyLocation'] = "P3P irányelvek helye";
 
 // General Settings
 
@@ -211,7 +206,7 @@ $GLOBALS['strWarnAgency'] = "Figyelmeztetés küldése az ügynökségnek ha a k
 
 // UI Settings
 $GLOBALS['strGuiSettings'] = "Felhasználói felület beállításai";
-$GLOBALS['strGeneralSettings'] = "�?ltalános beállítások";
+$GLOBALS['strGeneralSettings'] = "Általános beállítások";
 $GLOBALS['strAppName'] = "Alkalmazás neve";
 $GLOBALS['strMyHeader'] = "Fejléc fájl helye";
 $GLOBALS['strMyFooter'] = "Lábléc fájl helye";

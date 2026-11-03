@@ -24,8 +24,8 @@ require_once MAX_PATH . '/lib/OA/Permission.php';
 // Security check
 OA_Permission::enforceAccount(OA_ACCOUNT_MANAGER, OA_ACCOUNT_ADVERTISER);
 
-
-$aEntityMap = array();
+$aEntityMap = [];
+$idx = 0;
 
 if (!empty($clientid)) {
     if (!OA_Permission::hasAccessToObject('clients', $clientid)) {
@@ -39,22 +39,13 @@ if (!empty($clientid)) {
 
     foreach ($aCampaigns as $campaignId => $aCampaign) {
         $campaignName = $aCampaign['name'];
-        $aEntityMap[$campaignId] = $campaignName;
+        $aEntityMap[$campaignId] = [
+            'name' => $campaignName,
+            'idx' => $idx++,
+        ];
     }
 }
 
+MAX_header('Content-Type: application/json');
 
-
-if (count($aEntityMap)) {
-    $idx = 0;
-    while (list($k,$v) = each($aEntityMap)) {
-        $aEntityMap[$k] = $k . ': { "name": "' . addslashes($v) . '","idx":"'.($idx++).'" }';
-    }
-    
-    echo "{" . implode(', ', $aEntityMap) . "}";
-    exit;
-}
-
-echo "{ }";
-
-?>
+echo json_encode($aEntityMap, JSON_FORCE_OBJECT);

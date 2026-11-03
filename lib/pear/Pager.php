@@ -149,7 +149,7 @@ class Pager
             $msg = 'Pager constructor is deprecated.'
                   .' You must use the "Pager::factory($params)" method'
                   .' instead of "new Pager($params)"';
-            trigger_error($msg, E_USER_ERROR);
+            throw new \RuntimeException($msg);
         }
     }
 
@@ -164,7 +164,7 @@ class Pager
      * @static
      * @access public
      */
-    function &factory($options = array())
+    public static function factory($options = array())
     {
         $mode = (isset($options['mode']) ? ucfirst($options['mode']) : 'Jumping');
         $classname = 'Pager_' . $mode;
@@ -179,6 +179,11 @@ class Pager
 
         // If the class exists, return a new instance of it.
         if (class_exists($classname)) {
+            if (isset($options['perPage'])) {
+                // Overwrite superglobals, as they are used by the pager
+                $_GET['setPerPage'] = $_POST['setPerPage'] = $_REQUEST['setPerPage'] = $options['perPage'];
+            }
+
             $pager = new $classname($options);
             return $pager;
         }

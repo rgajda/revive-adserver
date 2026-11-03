@@ -29,39 +29,36 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * @var int
      */
-    var $agencyId;
+    public $agencyId;
 
     /**
      * Errors
      *
      */
-    var $unknownIdError = 'Unknown advertiserId Error';
+    public $unknownIdError = 'Unknown advertiserId Error';
 
-    /**
-     * The constructor method.
-     */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         Mock::generatePartial(
             'OA_Dll_Agency',
             'PartialMockOA_Dll_Agency_AdvertiserTest',
-            array('checkPermissions')
+            ['checkPermissions'],
         );
         parent::__construct();
         Mock::generatePartial(
             'OA_Dll_Advertiser',
             'PartialMockOA_Dll_Advertiser_AdvertiserTest',
-            array('checkPermissions', 'getDefaultAgencyId')
+            ['checkPermissions', 'getDefaultAgencyId'],
         );
     }
 
-    function setUp()
+    public function setUp()
     {
         $this->agencyId = DataGenerator::generateOne('agency');
     }
 
-    function tearDown()
+    public function tearDown()
     {
         DataGenerator::cleanUp();
     }
@@ -69,45 +66,55 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * A method to test Add, Modify and Delete.
      */
-    function testAddModifyDelete()
+    public function testAddModifyDelete()
     {
         $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_AdvertiserTest($this);
 
         $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $this->agencyId);
         $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
-        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 7);
+        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 10);
 
 
         $oAdvertiserInfo = new OA_DLL_AdvertiserInfo();
 
         $oAdvertiserInfo->advertiserName = 'test Advertiser';
-        $oAdvertiserInfo->agencyId       = $this->agencyId;
+        $oAdvertiserInfo->agencyId = $this->agencyId;
 
         // Add
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         $this->assertTrue($oAdvertiserInfo->accountId);
 
         // Modify
         $oAdvertiserInfo->advertiserName = 'modified Advertiser';
 
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         // Delete
-        $this->assertTrue($dllAdvertiserPartialMock->delete($oAdvertiserInfo->advertiserId),
-            $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->delete($oAdvertiserInfo->advertiserId),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         // Modify not existing id
-        $this->assertTrue((!$dllAdvertiserPartialMock->modify($oAdvertiserInfo) &&
+        $this->assertTrue(
+            (!$dllAdvertiserPartialMock->modify($oAdvertiserInfo) &&
                           $dllAdvertiserPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         // Delete not existing id
-        $this->assertTrue((!$dllAdvertiserPartialMock->delete($oAdvertiserInfo->advertiserId) &&
+        $this->assertTrue(
+            (!$dllAdvertiserPartialMock->delete($oAdvertiserInfo->advertiserId) &&
                            $dllAdvertiserPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         $dllAdvertiserPartialMock->tally();
     }
@@ -116,68 +123,90 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * A method to test get and getList method.
      */
-    function testGetAndGetList()
+    public function testGetAndGetList()
     {
         $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_AdvertiserTest($this);
-        $dllAgencyPartialMock     = new PartialMockOA_Dll_Agency_AdvertiserTest($this);
+        $dllAgencyPartialMock = new PartialMockOA_Dll_Agency_AdvertiserTest($this);
 
         $dllAgencyPartialMock->setReturnValue('checkPermissions', true);
         $dllAgencyPartialMock->expectCallCount('checkPermissions', 1);
 
         $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
-        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 8);
+        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 10);
 
-        $oAgencyInfo             = new OA_Dll_AgencyInfo();
+        $oAgencyInfo = new OA_Dll_AgencyInfo();
         $oAgencyInfo->agencyName = 'agency name';
-        $oAgencyInfo->password   = 'password';
-        $this->assertTrue($dllAgencyPartialMock->modify($oAgencyInfo),
-                          $dllAgencyPartialMock->getLastError());
+        $oAgencyInfo->password = 'password';
+        $this->assertTrue(
+            $dllAgencyPartialMock->modify($oAgencyInfo),
+            $dllAgencyPartialMock->getLastError(),
+        );
 
         $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $oAgencyInfo->agencyId);
 
-        $oAdvertiserInfo1                 = new OA_Dll_AdvertiserInfo();
-        $oAdvertiserInfo1->agencyId       = $oAgencyInfo->agencyId;
+        $oAdvertiserInfo1 = new OA_Dll_AdvertiserInfo();
+        $oAdvertiserInfo1->agencyId = $oAgencyInfo->agencyId;
         $oAdvertiserInfo1->advertiserName = 'test name 1';
-        $oAdvertiserInfo1->contactName    = 'contact';
-        $oAdvertiserInfo1->emailAddress   = 'name@domain.com';
+        $oAdvertiserInfo1->contactName = 'contact';
+        $oAdvertiserInfo1->emailAddress = 'name@domain.com';
 
-        $oAdvertiserInfo2                 = new OA_Dll_AdvertiserInfo();
-        $oAdvertiserInfo2->agencyId       = $oAgencyInfo->agencyId;
+        $oAdvertiserInfo2 = new OA_Dll_AdvertiserInfo();
+        $oAdvertiserInfo2->agencyId = $oAgencyInfo->agencyId;
         $oAdvertiserInfo2->advertiserName = 'test name 2';
         // Add
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo1),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo1),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo2),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo2),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
         $this->assertTrue($oAdvertiserInfo1->accountId);
         $this->assertTrue($oAdvertiserInfo2->accountId);
 
         $oAdvertiserInfo1Get = null;
         $oAdvertiserInfo2Get = null;
         // Get
-        $this->assertTrue($dllAdvertiserPartialMock->getAdvertiser($oAdvertiserInfo1->advertiserId,
-                                                                   $oAdvertiserInfo1Get),
-                          $dllAdvertiserPartialMock->getLastError());
-        $this->assertTrue($dllAdvertiserPartialMock->getAdvertiser($oAdvertiserInfo2->advertiserId,
-                                                                   $oAdvertiserInfo2Get),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->getAdvertiser(
+                $oAdvertiserInfo1->advertiserId,
+                $oAdvertiserInfo1Get,
+            ),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->getAdvertiser(
+                $oAdvertiserInfo2->advertiserId,
+                $oAdvertiserInfo2Get,
+            ),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         // Check field value
         $this->assertFieldEqual($oAdvertiserInfo1, $oAdvertiserInfo1Get, 'advertiserName');
         $this->assertFieldEqual($oAdvertiserInfo1, $oAdvertiserInfo1Get, 'contactName');
         $this->assertFieldEqual($oAdvertiserInfo1, $oAdvertiserInfo1Get, 'emailAddress');
-        $this->assertNull($oAdvertiserInfo1Get->password,
-                          'Field \'password\' must be null');
+        $this->assertFalse(
+            isset($oAdvertiserInfo1Get->password),
+            'Field \'password\' must be null',
+        );
         $this->assertFieldEqual($oAdvertiserInfo2, $oAdvertiserInfo2Get, 'advertiserName');
 
         // Get List
-        $aAdvertiserList = array();
-        $this->assertTrue($dllAdvertiserPartialMock->getAdvertiserListByAgencyId($oAgencyInfo->agencyId,
-                                                                                 $aAdvertiserList),
-                          $dllAdvertiserPartialMock->getLastError());
-        $this->assertEqual(count($aAdvertiserList) == 2,
-                           '2 records should be returned');
+        $aAdvertiserList = [];
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->getAdvertiserListByAgencyId(
+                $oAgencyInfo->agencyId,
+                $aAdvertiserList,
+            ),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
+        $this->assertEqual(
+            count($aAdvertiserList) == 2,
+            '2 records should be returned',
+        );
         $oAdvertiserInfo1Get = $aAdvertiserList[0];
         $oAdvertiserInfo2Get = $aAdvertiserList[1];
         if ($oAdvertiserInfo1->advertiserId == $oAdvertiserInfo2Get->advertiserId) {
@@ -192,14 +221,20 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
 
 
         // Delete
-        $this->assertTrue($dllAdvertiserPartialMock->delete($oAdvertiserInfo1->advertiserId),
-            $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->delete($oAdvertiserInfo1->advertiserId),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         // Get not existing id
-        $this->assertTrue((!$dllAdvertiserPartialMock->getAdvertiser($oAdvertiserInfo1->advertiserId,
-                                                                     $oAdvertiserInfo1Get) &&
+        $this->assertTrue(
+            (!$dllAdvertiserPartialMock->getAdvertiser(
+                $oAdvertiserInfo1->advertiserId,
+                $oAdvertiserInfo1Get,
+            ) &&
                           $dllAdvertiserPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         $dllAdvertiserPartialMock->tally();
     }
@@ -211,28 +246,34 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
      *
      * @param string $methodName  Method name in Dll
      */
-    function _testStatistics($methodName)
+    public function _testStatistics($methodName)
     {
         $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_AdvertiserTest($this);
 
         $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $this->agencyId);
         $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
-        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 6);
+        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 7);
 
         $oAdvertiserInfo = new OA_DLL_AdvertiserInfo();
 
         $oAdvertiserInfo->advertiserName = 'test Advertiser';
-        $oAdvertiserInfo->agencyId       = $this->agencyId;
+        $oAdvertiserInfo->agencyId = $this->agencyId;
 
         // Add
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         // Get no data
         $rsAdvertiserStatistics = null;
         $this->assertTrue($dllAdvertiserPartialMock->$methodName(
-            $oAdvertiserInfo->advertiserId, new Date('2001-12-01'), new Date('2007-09-19'), false,
-            $rsAdvertiserStatistics), $dllAdvertiserPartialMock->getLastError());
+            $oAdvertiserInfo->advertiserId,
+            new Date('2001-12-01'),
+            new Date('2007-09-19'),
+            false,
+            $rsAdvertiserStatistics,
+        ), $dllAdvertiserPartialMock->getLastError());
 
         $this->assertTrue(isset($rsAdvertiserStatistics));
         if (is_array($rsAdvertiserStatistics)) {
@@ -243,23 +284,37 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
 
         // Test for wrong date order
         $rsAdvertiserStatistics = null;
-        $this->assertTrue((!$dllAdvertiserPartialMock->$methodName(
-                $oAdvertiserInfo->advertiserId, new Date('2007-09-19'),  new Date('2001-12-01'), false,
-                $rsAdvertiserStatistics) &&
+        $this->assertTrue(
+            (!$dllAdvertiserPartialMock->$methodName(
+                $oAdvertiserInfo->advertiserId,
+                new Date('2007-09-19'),
+                new Date('2001-12-01'),
+                false,
+                $rsAdvertiserStatistics,
+            ) &&
             $dllAdvertiserPartialMock->getLastError() == $this->wrongDateError),
-            $this->_getMethodShouldReturnError($this->wrongDateError));
+            $this->_getMethodShouldReturnError($this->wrongDateError),
+        );
 
         // Delete
-        $this->assertTrue($dllAdvertiserPartialMock->delete($oAdvertiserInfo->advertiserId),
-            $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->delete($oAdvertiserInfo->advertiserId),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         // Test statistics for not existing id
         $rsAdvertiserStatistics = null;
-        $this->assertTrue((!$dllAdvertiserPartialMock->$methodName(
-                $oAdvertiserInfo->advertiserId, new Date('2001-12-01'),  new Date('2007-09-19'), false,
-                $rsAdvertiserStatistics) &&
+        $this->assertTrue(
+            (!$dllAdvertiserPartialMock->$methodName(
+                $oAdvertiserInfo->advertiserId,
+                new Date('2001-12-01'),
+                new Date('2007-09-19'),
+                false,
+                $rsAdvertiserStatistics,
+            ) &&
             $dllAdvertiserPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         $dllAdvertiserPartialMock->tally();
     }
@@ -267,15 +322,23 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * A method to test getAdvertiserDailyStatistics.
      */
-    function testDailyStatistics()
+    public function testDailyStatistics()
     {
         $this->_testStatistics('getAdvertiserDailyStatistics');
     }
 
     /**
+     * A method to test getAdvertiserHourlyStatistics.
+     */
+    public function testHourlyStatistics()
+    {
+        $this->_testStatistics('getAdvertiserHourlyStatistics');
+    }
+
+    /**
      * A method to test getAdvertiserCampaignStatistics.
      */
-    function testCampaignStatistics()
+    public function testCampaignStatistics()
     {
         $this->_testStatistics('getAdvertiserCampaignStatistics');
     }
@@ -283,7 +346,7 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * A method to test getAdvertiserBannerStatistics.
      */
-    function testBannerStatistics()
+    public function testBannerStatistics()
     {
         $this->_testStatistics('getAdvertiserBannerStatistics');
     }
@@ -291,7 +354,7 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * A method to test getAdvertiserPublisherStatistics.
      */
-    function testPublisherStatistics()
+    public function testPublisherStatistics()
     {
         $this->_testStatistics('getAdvertiserPublisherStatistics');
     }
@@ -299,12 +362,8 @@ class OA_Dll_AdvertiserTest extends DllUnitTestCase
     /**
      * A method to test getAdvertiserZoneStatistics.
      */
-    function testZoneStatistics()
+    public function testZoneStatistics()
     {
         $this->_testStatistics('getAdvertiserZoneStatistics');
     }
-
-
 }
-
-?>

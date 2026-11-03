@@ -13,6 +13,8 @@
 require_once MAX_PATH . '/etc/changes/migration_tables_core_609.php';
 require_once MAX_PATH . '/etc/changes/tests/unit/MigrationTest.php';
 
+TestEnv::recreateDatabaseAsLatin1OnMysql();
+
 /**
  * Test for migration class #609
  *
@@ -21,24 +23,26 @@ require_once MAX_PATH . '/etc/changes/tests/unit/MigrationTest.php';
  */
 class Migration_609Test extends MigrationTest
 {
-    var $aTables = array(
-        'tblAppVar'    => 'application_variable',
-        'tblAccounts'  => 'accounts',
-        'tblAgency'    => 'agency',
-        'tblClients'   => 'clients',
+    public $aTables = [
+        'tblAppVar' => 'application_variable',
+        'tblAccounts' => 'accounts',
+        'tblAgency' => 'agency',
+        'tblClients' => 'clients',
         'tblCampaigns' => 'campaigns',
-        'tblPrefs'     => 'preferences',
-        'tblAccPrefs'  => 'account_preference_assoc',
-    );
+        'tblPrefs' => 'preferences',
+        'tblAccPrefs' => 'account_preference_assoc',
+    ];
 
 
-    function testMigrateActivateExpire()
+    public function testMigrateActivateExpire()
     {
         $prefix = $this->getPrefix();
         $oDbh = $this->oDbh;
 
+        $aTblConf = $GLOBALS['_MAX']['CONF']['table'];
+
         foreach ($this->aTables as $k => $v) {
-            $$k = $oDbh->quoteIdentifier($prefix.($aConf[$v] ? $aConf[$v] : $v), true);
+            $$k = $oDbh->quoteIdentifier($prefix . ($aTblConf[$v] ?? $v), true);
         }
 
         $this->initDatabase(608, array_values($this->aTables));
@@ -87,18 +91,14 @@ class Migration_609Test extends MigrationTest
         $this->upgradeToVersion(609);
 
         $aCampaigns = $this->oDbh->getAssoc("SELECT campaignid, activate_time, expire_time FROM {$tblCampaigns} ORDER BY campaignid");
-        $aExpected = array(
-            1 => array('activate_time' => null,                     'expire_time' => null),
-            2 => array('activate_time' => '2009-02-01 05:00:00',    'expire_time' => null),
-            3 => array('activate_time' => null,                     'expire_time' => '2009-07-02 03:59:59'),
-            4 => array('activate_time' => '2009-01-31 23:00:00',    'expire_time' => null),
-            5 => array('activate_time' => null,                     'expire_time' => '2009-07-01 21:59:59'),
-            6 => array('activate_time' => '2009-01-31 15:00:00',    'expire_time' => '2009-07-01 14:59:59'),
-        );
+        $aExpected = [
+            1 => ['activate_time' => null,                     'expire_time' => null],
+            2 => ['activate_time' => '2009-02-01 05:00:00',    'expire_time' => null],
+            3 => ['activate_time' => null,                     'expire_time' => '2009-07-02 03:59:59'],
+            4 => ['activate_time' => '2009-01-31 23:00:00',    'expire_time' => null],
+            5 => ['activate_time' => null,                     'expire_time' => '2009-07-01 21:59:59'],
+            6 => ['activate_time' => '2009-01-31 15:00:00',    'expire_time' => '2009-07-01 14:59:59'],
+        ];
         $this->assertEqual($aCampaigns, $aExpected);
-
     }
-
 }
-
-?>

@@ -20,7 +20,6 @@ $GLOBALS['strBtnContinue'] = "Continue »";
 $GLOBALS['strBtnRecover'] = "Recover »";
 $GLOBALS['strBtnAgree'] = "I Agree »";
 $GLOBALS['strBtnRetry'] = "Retry";
-$GLOBALS['strWarningRegisterArgcArv'] = "The PHP configuration variable register_argc_argv needs to be turned on to run maintenance from the command line.";
 $GLOBALS['strTablesPrefix'] = "Table names prefix";
 $GLOBALS['strTablesType'] = "Table type";
 
@@ -60,7 +59,7 @@ $GLOBALS['strEditConfigPossible'] = "It is possible to edit all settings because
     If you want to secure your system, you need to lock the configuration file for this installation.";
 $GLOBALS['strUnableToWriteConfig'] = "Unable to write changes to the config file";
 $GLOBALS['strUnableToWritePrefs'] = "Unable to commit preferences to the database";
-$GLOBALS['strImageDirLockedDetected'] = "The supplied <b>Images Folder</b> is not writeable by the server. <br>You can't proceed until you either change permissions of the folder or create the folder.";
+$GLOBALS['strImageDirLockedDetected'] = "The supplied Images Folder is not writeable by the server. You can't proceed until you either change permissions of the folder or create the folder.";
 
 // Configuration Settings
 $GLOBALS['strConfigurationSettings'] = "Configuration settings";
@@ -79,6 +78,7 @@ $GLOBALS['strEnableDashboard'] = "Enable dashboard";
 $GLOBALS['strEnableDashboardSyncNotice'] = "Please enable <a href='account-settings-update.php'>check for updates</a> to use the dashboard.";
 $GLOBALS['strTimezone'] = "Timezone";
 $GLOBALS['strEnableAutoMaintenance'] = "Automatically perform maintenance during delivery if scheduled maintenance is not set up";
+$GLOBALS['strInvalidLanguage'] = "Invalid language";
 
 // Database Settings
 $GLOBALS['strDatabaseSettings'] = "Database Settings";
@@ -108,6 +108,14 @@ $GLOBALS['strQmailPatch'] = "qmail patch";
 $GLOBALS['strEnableQmailPatch'] = "Enable qmail patch";
 $GLOBALS['strEmailHeader'] = "Email headers";
 $GLOBALS['strEmailLog'] = "Email log";
+$GLOBALS['strMailerPlugin'] = "Selected Mailer plugin";
+
+// Security settings
+$GLOBALS['strSecurityAndDebug'] = "Security and Debug Settings";
+$GLOBALS['strSecuritySettings'] = "Security Settings";
+$GLOBALS['strSecurityPasswordMinLength'] = "Password minimum length";
+$GLOBALS['strSecurityBadLoginPath'] = "Log file for bad logins";
+$GLOBALS['strSecurityAllowLinkingExistingUsers'] = "Allow managers to link existing users (not safe on shared instances)";
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Audit Trail Settings";
@@ -165,6 +173,7 @@ $GLOBALS['strTypeFTPErrorUpload'] = "Could not upload file to the FTP Server, ch
 $GLOBALS['strTypeFTPErrorHost'] = "The FTP Host is not correct";
 $GLOBALS['strDeliveryFilenames'] = "Delivery File Names";
 $GLOBALS['strDeliveryFilenamesAdClick'] = "Ad Click";
+$GLOBALS['strDeliveryFilenamesSignedAdClick'] = "Signed Ad Click";
 $GLOBALS['strDeliveryFilenamesAdConversionVars'] = "Ad Conversion Variables";
 $GLOBALS['strDeliveryFilenamesAdContent'] = "Ad Content";
 $GLOBALS['strDeliveryFilenamesAdConversion'] = "Ad Conversion";
@@ -179,22 +188,29 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Ad View";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPC Invocation";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Local Invocation";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Front Controller";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Flash Include (Can be a full URL)";
 $GLOBALS['strDeliveryFilenamesSinglePageCall'] = "Single Page Call";
 $GLOBALS['strDeliveryFilenamesSinglePageCallJS'] = "Single Page Call (JavaScript)";
+$GLOBALS['strDeliveryFilenamesAsyncJS'] = "Async JavaScript (source file)";
+$GLOBALS['strDeliveryFilenamesAsyncPHP'] = "Async JavaScript";
+$GLOBALS['strDeliveryFilenamesAsyncSPC'] = "Async JavaScript Single Page Call";
 $GLOBALS['strDeliveryCaching'] = "Banner Delivery Cache Settings";
 $GLOBALS['strDeliveryCacheLimit'] = "Time Between Banner Cache Updates (seconds)";
 $GLOBALS['strDeliveryCacheStore'] = "Banner Delivery Cache Store Type";
 $GLOBALS['strDeliveryAcls'] = "Evaluate banner delivery rules during delivery";
 $GLOBALS['strDeliveryAclsDirectSelection'] = "Evaluate banner delivery rules for direct selected ads";
 $GLOBALS['strDeliveryObfuscate'] = "Obfuscate delivery rule set when delivering ads";
-$GLOBALS['strDeliveryExecPhp'] = "Allow PHP code in ads to be executed<br />(Warning: Security risk)";
-$GLOBALS['strDeliveryCtDelimiter'] = "3rd Party Click Tracking Delimiter";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "Global default Banner Image URL";
-$GLOBALS['strP3PSettings'] = "P3P Privacy Policies";
-$GLOBALS['strUseP3P'] = "Use P3P Policies";
-$GLOBALS['strP3PCompactPolicy'] = "P3P Compact Policy";
-$GLOBALS['strP3PPolicyLocation'] = "P3P Policy Location";
+$GLOBALS['strDeliveryPreconnect'] = "Ask browsers to pre-connect to the image URL (if different from the delivery URL, HTTPS-only feature)";
+$GLOBALS['strDeliveryClickUrlValidity'] = "Validity of custom destination URL redirects in {clickurl} macros (seconds). Enter 0 to disallow redirects";
+$GLOBALS['strDeliveryRelAttribute'] = "Default rel attribute for &lt;a href&gt; HTML tags";
+$GLOBALS['strGlobalDefaultBannerInvalidZone'] = "Global default HTML Banner for non-existing zones";
+$GLOBALS['strGlobalDefaultBannerSuspendedAccount'] = "Global default HTML Banner for suspended accounts";
+$GLOBALS['strGlobalDefaultBannerInactiveAccount'] = "Global default HTML Banner for inactive accounts";
+$GLOBALS['strPrivacySettings'] = "Privacy Settings";
+$GLOBALS['strDisableViewerId'] = "Disable unique Viewer Id cookie";
+$GLOBALS['strAnonymiseIp'] = "Anonymise viewer IP addresses";
+$GLOBALS['strDisableDeliveryCookies'] = 'Disable delivery cookies';
+$GLOBALS['strBannerFileSettings'] = 'General banner file settings';
+$GLOBALS['strMaxBannerFilesize'] = 'Maximum banner file size (bytes, 0 means unlimited)';
 
 // General Settings
 $GLOBALS['generalSettings'] = "Global General System Settings";
@@ -293,6 +309,8 @@ $GLOBALS['strGuiHeaderBackgroundColor'] = "Color of the header background";
 $GLOBALS['strGuiActiveTabColor'] = "Color of the active tab";
 $GLOBALS['strGuiHeaderTextColor'] = "Color of the text in the header";
 $GLOBALS['strGuiSupportLink'] = "Custom URL for 'Support' link in header";
+$GLOBALS['strAdminCookieDomain'] = "Custom cookie domain for the User Interface";
+$GLOBALS['strGuiLoaderDelay'] = "Display loading animation when the next screen takes longer than X milliseconds to load (use -1 to disable)";
 $GLOBALS['strGzipContentCompression'] = "Use GZIP Content Compression";
 
 // Regenerate Platfor Hash script

@@ -20,21 +20,18 @@ require_once 'DB/DataObject.php';
  */
 class OA_Dal
 {
-    static $batchInsertPath;
+    public static $batchInsertPath;
 
     /**
      * A local instance of the OA_DB created database handler.
      *
      * @var MDB2_Driver_Common
      */
-    var $oDbh;
+    public $oDbh;
 
-    /**
-     * The constructor method.
-     */
-    function __construct()
+    public function __construct()
     {
-        $this->oDbh =& $this->_getDbh();
+        $this->oDbh = $this->_getDbh();
     }
 
     /**
@@ -44,10 +41,10 @@ class OA_Dal
      * This private method allows the database handler to be
      * mocked during unit tests.
      *
-     * @return MDB2_Driver_Common An MDB2 connection resource, or PEAR_Error
+     * @return MDB2_Driver_Common|PEAR_Error An MDB2 connection resource, or PEAR_Error
      *                            on failure to connect.
      */
-    function &_getDbh()
+    public function _getDbh()
     {
         return OA_DB::singleton();
     }
@@ -56,14 +53,13 @@ class OA_Dal
      * A factory method to obtain the appropriate DB_DataObject for a given
      * table name.
      *
-     * @static
      * @param  string $table The name of the table for which a DB_DataObject is required.
-     * @return DB_DataObjectCommon The appropriate DB_DataObjectCommon implementaion,
+     * @return DB_DataObjectCommon|false The appropriate DB_DataObjectCommon implementaion,
      *                             or false on error.
      */
-    function factoryDO($table)
+    public static function factoryDO($table)
     {
-        OA_Dal::_setupDataObjectOptions();
+        self::_setupDataObjectOptions();
         $do = DB_DataObject::factory($table);
         if (is_a($do, 'DB_DataObjectCommon')) {
             $do->init();
@@ -72,22 +68,17 @@ class OA_Dal
         return false;
     }
 
-    function checkIfDoExists($table)
+    public static function checkIfDoExists($table)
     {
-        OA_Dal::_setupDataObjectOptions();
+        self::_setupDataObjectOptions();
         global $_DB_DATAOBJECT;
-        if (!is_array($_DB_DATAOBJECT['CONFIG']['class_location']))
-        {
+        if (!is_array($_DB_DATAOBJECT['CONFIG']['class_location'])) {
             $location = $_DB_DATAOBJECT['CONFIG']['class_location'];
             $fileExists = DB_DataObject::findTableFile($location, $table);
-        }
-        else
-        {
-            foreach ($_DB_DATAOBJECT['CONFIG']['class_location'] as $k => $location)
-            {
+        } else {
+            foreach ($_DB_DATAOBJECT['CONFIG']['class_location'] as $k => $location) {
                 $fileExists = DB_DataObject::findTableFile($location, $table);
-                if ($fileExists)
-                {
+                if ($fileExists) {
                     break;
                 }
             }
@@ -114,12 +105,12 @@ class OA_Dal
      * @param string $k     Either the column name, if $v is supplied, otherwise the
      *                      value of the table's primary key.
      * @param string $v     An optional value when $k is a column name of the table.
-     * @return DB_DataObjectCommon The appropriate DB_DataObjectCommon implementaion,
+     * @return DB_DataObjectCommon|false The appropriate DB_DataObjectCommon implementaion,
      *                             or false on error.
      */
-    function staticGetDO($table, $k, $v = null)
+    public static function staticGetDO($table, $k, $v = null)
     {
-        OA_DAL::_setupDataObjectOptions();
+        self::_setupDataObjectOptions();
         $do = OA_Dal::factoryDO($table);
         if (PEAR::isError($do) || !$do) {
             return false;
@@ -142,9 +133,9 @@ class OA_Dal
      * @param int $newId    The id to be assigned as the id of the row copied (optional)
      * @return mixed        Returns the restults returned from the duplicate method
      */
-    function staticDuplicate($table, $origId, $newId = null)
+    public static function staticDuplicate($table, $origId, $newId = null)
     {
-        OA_DAL::_setupDataObjectOptions();
+        self::_setupDataObjectOptions();
         $do = OA_Dal::factoryDO($table);
         if (PEAR::isError($do)) {
             return false;
@@ -165,7 +156,7 @@ class OA_Dal
      * @return MAX_Dal_Common The appropriate MAX_Dal_Common implementaion,
      *                        or false on error.
      */
-    function factoryDAL($table)
+    public static function factoryDAL($table)
     {
         include_once MAX_PATH . '/lib/max/Dal/Common.php';
         return MAX_Dal_Common::factory($table);
@@ -176,7 +167,7 @@ class OA_Dal
      *
      * @return string  Table prefix
      */
-    function getTablePrefix()
+    public static function getTablePrefix()
     {
         return $GLOBALS['_MAX']['CONF']['table']['prefix'];
     }
@@ -185,19 +176,16 @@ class OA_Dal
      * Clear the DataObject options cache
      *
      */
-    function cleanCache()
+    public static function cleanCache()
     {
-        OA_Dal::_setupDataObjectOptions(false);
+        self::_setupDataObjectOptions(false);
     }
 
     /**
      * Set up the required DB_DataObject options.
      * this method will add one location for all data-aware plugins
-     *
-     * @static
-     * @access private
      */
-    function _setupDataObjectOptions($fromCache = true)
+    private static function _setupDataObjectOptions($fromCache = true)
     {
         static $needsSetup;
         if (isset($needsSetup) && $fromCache) {
@@ -210,52 +198,30 @@ class OA_Dal
         // Set DB_DataObject options
 
         // core dataobjects and schema
-        $pathDataObjectsCore   = MAX_PATH . '/lib/max/Dal/DataObjects';
-        $aIniLocations[0] = $pathDataObjectsCore.'/db_schema.ini';
-        $aLnkLocations[0] = $pathDataObjectsCore.'/db_schema.links.ini';
+        $pathDataObjectsCore = MAX_PATH . '/lib/max/Dal/DataObjects';
+        $aIniLocations[0] = $pathDataObjectsCore . '/db_schema.ini';
+        $aLnkLocations[0] = $pathDataObjectsCore . '/db_schema.links.ini';
         $aDboLocations[0] = $pathDataObjectsCore;
 
         // plugin dataobjects and schemas
         $pathDataObjectsPlugin = MAX_PATH . $aConf['pluginPaths']['var'] . 'DataObjects';
-        $aIniLocations[1] = $pathDataObjectsPlugin.'/db_schema.ini';
-        $aLnkLocations[1] = $pathDataObjectsPlugin.'/db_schema.links.ini';
+        $aIniLocations[1] = $pathDataObjectsPlugin . '/db_schema.ini';
+        $aLnkLocations[1] = $pathDataObjectsPlugin . '/db_schema.links.ini';
         $aDboLocations[1] = $pathDataObjectsPlugin;
 
         $dbname = $GLOBALS['_MAX']['CONF']['database']['name'];
-        $options =& PEAR::getStaticProperty('DB_DataObject', 'options');
-        $options = array(
-            'database'              => OA_DB::getDsn(),
-            'ini_'.$dbname          => $aIniLocations,
-            'links_'.$dbname        => $aLnkLocations,
-            'schema_location'       => $pathDataObjectsCore, // only used by generator?
-            'class_location'        => $aDboLocations,
-            'require_prefix'        => $pathDataObjectsCore . '/', // only used by generator?
-            'class_prefix'          => 'DataObjects_',
-            'debug'                 => 0,
-            'production'            => 0,
-        );
-    }
-
-    function _setupDataObjectOptionsOLD()
-    {
-        static $needsSetup;
-        if (isset($needsSetup)) {
-            return;
-        }
-        $needsSetup = false;
-
-        // Set DB_DataObject options
-        $MAX_ENT_DIR = MAX_PATH . '/lib/max/Dal/DataObjects';
-        $options =& PEAR::getStaticProperty('DB_DataObject', 'options');
-        $options = array(
-            'database'              => OA_DB::getDsn(),
-            'schema_location'       => $MAX_ENT_DIR,
-            'class_location'        => $MAX_ENT_DIR,
-            'require_prefix'        => $MAX_ENT_DIR . '/',
-            'class_prefix'          => 'DataObjects_',
-            'debug'                 => 0,
-            'production'            => 0,
-        );
+        $options = &PEAR::getStaticProperty('DB_DataObject', 'options');
+        $options = [
+            'database' => OA_DB::getDsn(),
+            'ini_' . $dbname => $aIniLocations,
+            'links_' . $dbname => $aLnkLocations,
+            'schema_location' => $pathDataObjectsCore, // only used by generator?
+            'class_location' => $aDboLocations,
+            'require_prefix' => $pathDataObjectsCore . '/', // only used by generator?
+            'class_prefix' => 'DataObjects_',
+            'debug' => 0,
+            'production' => 0,
+        ];
     }
 
     /**
@@ -268,22 +234,20 @@ class OA_Dal
      * @return string The SQL code to prepend to a SELECT statement to
      *                create the temporary table.
      */
-    function createTemporaryTableFromSelect($table)
+    public static function createTemporaryTableFromSelect($table)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         if ($oDbh->dsn['phptype'] == 'pgsql') {
-            $sql = "
+            return "
                 CREATE TEMPORARY TABLE
                     $table
                 AS";
-        } else {
-            $sql = "
+        }
+        return "
                 CREATE TEMPORARY TABLE
                     $table
                 ENGINE={$aConf['table']['type']}";
-        }
-        return $sql;
     }
 
     /**
@@ -302,9 +266,9 @@ class OA_Dal
      * @param string $type     The INTERVAL length. For example, "DAY".
      * @return string The SQL code required to obtain the INTERVAL value.
      */
-    function quoteInterval($interval, $type)
+    public static function quoteInterval($interval, $type)
     {
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         if ($oDbh->dsn['phptype'] == 'pgsql') {
             return "($interval || ' $type')::interval";
         }
@@ -317,7 +281,7 @@ class OA_Dal
      * @static
      * @param string $sqlDate
      */
-    function isValidDate($sqlDate)
+    public static function isValidDate($sqlDate)
     {
         $dbh = OA_DB::singleton();
         return !empty($sqlDate) && preg_match('#^\d\d\d\d-\d\d-\d\d$#D', $sqlDate);
@@ -330,7 +294,7 @@ class OA_Dal
      * @static
      * @param string $sqlDate
      */
-    function isNullDate($sqlDate)
+    public static function isNullDate($sqlDate)
     {
         return !OA_Dal::isValidDate($sqlDate);
     }
@@ -345,11 +309,11 @@ class OA_Dal
      * @param array  $aValues   The array of data to be inserted
      * @param bool $replace Should the data be UPDATEd when the primary key or unique key is already present in the table?
      *
-     * @return int   The number of rows inserted or PEAR_Error on failure
+     * @return int|PEAR_Error   The number of rows inserted or PEAR_Error on failure
      */
-    function batchInsert($tableName, $aFields, $aValues, $replace = false, $primaryKey = array())
+    public static function batchInsert($tableName, $aFields, $aValues, $replace = false, $primaryKey = [])
     {
-        if(!is_array($aFields) || !is_array($aValues)) {
+        if (!is_array($aFields) || !is_array($aValues)) {
             return MAX::raiseError('$aFields and $aValues must be arrays', PEAR_ERROR_RETURN);
         }
 
@@ -359,7 +323,7 @@ class OA_Dal
         $qTableName = $oDbh->quoteIdentifier($tableName);
 
         // Quote fields list
-        $fieldList = '('.join(',', array_map(array($oDbh, 'quoteIdentifier'), $aFields)).')';
+        $fieldList = '(' . implode(',', array_map([$oDbh, 'quoteIdentifier'], $aFields)) . ')';
 
         // Database custom stuff
         if ($oDbh->dbsyntax == 'mysql' || $oDbh->dbsyntax == 'mysqli') {
@@ -376,38 +340,32 @@ class OA_Dal
         return $result;
     }
 
-    private function _batchInsertMySQL($qTableName, $fieldList, $aValues, $replace)
+    private static function _batchInsertMySQL($qTableName, $fieldList, $aValues, $replace)
     {
         $oDbh = OA_DB::singleton();
 
         // File path defaults to var/cache
-        if (!isset(self::$batchInsertPath)) {
-            self::$batchInsertPath = MAX_PATH.'/var/cache';
-        }
+        self::$batchInsertPath ??= MAX_PATH . '/var/cache';
 
         // Create file path using hostname and table name
-        $filePath = self::$batchInsertPath . '/' . OX_getHostName() . '-batch-'.$qTableName.'.csv';
+        $filePath = self::$batchInsertPath . '/' . OX_getHostName() . '-batch-' . $qTableName . '.csv';
         if (DIRECTORY_SEPARATOR == '\\') {
             // On windows, MySQL expects slashes as directory separators
             $filePath = str_replace('\\', '/', $filePath);
         }
-        if($replace) {
-            $replace = ' REPLACE ';
-        } else {
-            $replace = '';
-        }
+        $replace = $replace ? ' REPLACE ' : '';
         // Set up CSV delimiters, quotes, etc
         $delim = "\t";
         $quote = '"';
-        $eol   = "\n";
-        $null  = 'NULL';
+        $eol = "\n";
+        $null = 'NULL';
 
         // Disable error handler
         RV::disableErrorHandling();
 
         $fp = fopen($filePath, 'wb');
         if (!$fp) {
-            return MAX::raiseError('Error creating the tmp file '.$filePath.' containing the batch INSERTs.', PEAR_ERROR_RETURN);
+            return MAX::raiseError('Error creating the tmp file ' . $filePath . ' containing the batch INSERTs.', PEAR_ERROR_RETURN);
         }
 
         // ensure that when maintenance is run in crontab, as root eg.
@@ -417,21 +375,21 @@ class OA_Dal
         foreach ($aValues as $aRow) {
             // Stringify row
             $row = '';
-            foreach($aRow as $value) {
-                if(!isset($value) || is_null($value) || $value === false) {
-                    $row .= $null.$delim;
+            foreach ($aRow as $value) {
+                if (!isset($value) || is_null($value) || $value === false) {
+                    $row .= $null . $delim;
                 } else {
-                    $row .= $quote.$value.$quote.$delim;
+                    $row .= $quote . $value . $quote . $delim;
                 }
             }
             // Replace delim with eol
-            $row[strlen($row)-1] = $eol;
+            $row[strlen($row) - 1] = $eol;
             // Append
             $ret = fwrite($fp, $row);
             if (!$ret) {
                 fclose($fp);
                 unlink($filePath);
-                return MAX::raiseError('Error writing to the tmp file '.$filePath.' containing the batch INSERTs.', PEAR_ERROR_RETURN);
+                return MAX::raiseError('Error writing to the tmp file ' . $filePath . ' containing the batch INSERTs.', PEAR_ERROR_RETURN);
             }
         }
         fclose($fp);
@@ -442,16 +400,21 @@ class OA_Dal
             INTO TABLE
                 $qTableName
             FIELDS TERMINATED BY
-                ".$oDbh->quote($delim)."
+                " . $oDbh->quote($delim) . "
             ENCLOSED BY
-                ".$oDbh->quote($quote)."
+                " . $oDbh->quote($quote) . "
             ESCAPED BY
                 ''
             LINES TERMINATED BY
-                ".$oDbh->quote($eol)."
+                " . $oDbh->quote($eol) . "
         	$fieldList
         ";
+
+        self::enableLoadDataInfile($oDbh, true);
+
         $result = $oDbh->exec($query);
+
+        self::enableLoadDataInfile($oDbh, false);
 
         @unlink($filePath);
 
@@ -472,13 +435,13 @@ class OA_Dal
      * @param bool $replace Should the primary key be replaced when already present?
      * @return int   The number of rows inserted or PEAR_Error on failure
      */
-    private function _batchInsertPgSQL($qTableName, $fieldList, $aValues, $replace, $primaryKey)
+    private static function _batchInsertPgSQL($qTableName, $fieldList, $aValues, $replace, $primaryKey)
     {
         $oDbh = OA_DB::singleton();
 
         $delim = "\t";
-        $eol   = "\n";
-        $null  = '\\N';
+        $eol = "\n";
+        $null = '\\N';
 
         // Disable error handler
         RV::disableErrorHandling();
@@ -487,13 +450,13 @@ class OA_Dal
         foreach ($aValues as $aRow) {
             // because Postgresql doesn't have the REPLACE keyword,
             // we manually delete the rows with the primary key first
-            if($replace) {
+            if ($replace) {
                 $where = '';
-                foreach($primaryKey as $fieldName) {
-                    $where .= $fieldName .' = \''.$aRow[$fieldName] . '\'  AND ';
+                foreach ($primaryKey as $fieldName) {
+                    $where .= $fieldName . ' = \'' . $aRow[$fieldName] . '\'  AND ';
                 }
                 $where = substr($where, 0, strlen($where) - 5);
-                $oDbh->query('DELETE FROM '. $qTableName. ' WHERE '. $where);
+                $oDbh->query('DELETE FROM ' . $qTableName . ' WHERE ' . $where);
             }
         }
         $pg = $oDbh->getConnection();
@@ -509,23 +472,23 @@ class OA_Dal
         foreach ($aValues as $aRow) {
             // Stringify row
             $row = '';
-            foreach($aRow as $value) {
-                if(!isset($value) || $value === false) {
-                    $row .= $null.$delim;
+            foreach ($aRow as $value) {
+                if (!isset($value) || $value === false) {
+                    $row .= $null . $delim;
                 } else {
-                    $row .= $value.$delim;
+                    $row .= $value . $delim;
                 }
             }
             // Replace delim with eol
-            $row[strlen($row)-1] = $eol;
+            $row[strlen($row) - 1] = $eol;
             // Send line
             $ret = pg_put_line($pg, $row);
             if (!$ret) {
-                return MAX::raiseError('Error COPY-ing data: '.pg_errormessage($pg), PEAR_ERROR_RETURN);
+                return MAX::raiseError('Error COPY-ing data: ' . pg_last_error($pg), PEAR_ERROR_RETURN);
             }
         }
-        $result = pg_put_line($pg, '\.'.$eol) && pg_end_copy($pg);
-        $result = $result ? count($aValues) : new PEAR_Error('Error at the end of the COPY: '.pg_errormessage($pg));
+        $result = pg_put_line($pg, '\.' . $eol) && pg_end_copy($pg);
+        $result = $result ? count($aValues) : new PEAR_Error('Error at the end of the COPY: ' . pg_last_error($pg));
 
         // Enable error handler again
         RV::enableErrorHandling();
@@ -533,9 +496,9 @@ class OA_Dal
         return $result;
     }
 
-    function batchInsertPlain($tableName, $aFields, $aValues)
+    public static function batchInsertPlain($tableName, $aFields, $aValues)
     {
-        if(!is_array($aFields) || !is_array($aValues)) {
+        if (!is_array($aFields) || !is_array($aValues)) {
             return MAX::raiseError('$aFields and $aData must be arrays', PEAR_ERROR_RETURN);
         }
 
@@ -545,10 +508,10 @@ class OA_Dal
         $tableName = $oDbh->quoteIdentifier($tableName);
 
         // Quote fields list
-        $fieldList = '('.join(',', array_map(array($oDbh, 'quoteIdentifier'), $aFields)).')';
+        $fieldList = '(' . implode(',', array_map([$oDbh, 'quoteIdentifier'], $aFields)) . ')';
 
-        foreach($aValues as $aRow) {
-            $values = implode(', ', array_map(array($oDbh, 'quote'), $aRow));
+        foreach ($aValues as $aRow) {
+            $values = implode(', ', array_map([$oDbh, 'quote'], $aRow));
             $query = "INSERT INTO $tableName $fieldList VALUES ($values)";
             $result = $oDbh->exec($query);
             if (PEAR::isError($result)) {
@@ -559,6 +522,18 @@ class OA_Dal
         return count($aValues);
     }
 
-}
+    /**
+     * Enable or disable LOAD DATA INFILE on MYSQL.
+     *
+     * @param MDB2_Driver_Common $oDbh
+     * @param bool $enabled
+     */
+    private static function enableLoadDataInfile(MDB2_Driver_Common $oDbh, bool $enabled)
+    {
+        if ('mysqli' !== $oDbh->dbsyntax) {
+            return;
+        }
 
-?>
+        mysqli_options($oDbh->getConnection(), MYSQLI_OPT_LOCAL_INFILE, $enabled);
+    }
+}

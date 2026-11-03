@@ -17,17 +17,25 @@
 
 **DO NOT DOWNLOAD AS A ZIP FILE FROM GITHUB**
 
-Download the latest version from: http://www.revive-adserver.com/download/
+Download the latest version from: https://www.revive-adserver.com/download/
 
 Revive Adserver as available from github as a zip file is not suitable for installation on a server. It contains a number of files that are for development only, and are removed during the release packaging process.
 
-Please ONLY download Revive Adserver as a release package from the Revive Adserver website at http://www.revive-adserver.com/.
+Please ONLY download Revive Adserver as a release package from the Revive Adserver website at https://www.revive-adserver.com/.
+
+
+
+# Hosted edition
+
+If you'd like to use the Revive Adserver software without having to download, install, configure, and maintain it yourself, there is also a Hosted edition.
+
+You can find out more about the Hosted edition, and subscribe at https://www.revive-adserver.net/.
 
 
 
 # License
 
-Revive Adserver is copyright; please see the COPYRIGHT file.
+Revive Adserver is copyrighted; please see the COPYRIGHT file.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -45,5 +53,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ------------------------------------------------------------------------
 
-This product includes GeoLite data created by MaxMind, available from the 
-http://www.maxmind.com/ website.
+This product uses GeoLite2 data created by MaxMind, available from the 
+https://www.maxmind.com/ website. See also:
+https://www.revive-adserver.com/blog/new-geotargeting-plugin-in-revive-adserver-v5-an-overview/

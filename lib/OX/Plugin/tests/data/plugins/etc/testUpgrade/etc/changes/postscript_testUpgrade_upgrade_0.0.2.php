@@ -14,17 +14,8 @@ $className = 'OA_testUpgradePostscript';
 
 class OA_testUpgradePostscript
 {
-
-    function __construct()
-    {
-
-    }
-
-    function execute($aParams)
+    public function execute($aParams)
     {
         return true;
     }
-
 }
-
-?>

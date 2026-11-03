@@ -20,7 +20,6 @@ require_once OX_PATH . '/lib/pear/PEAR.php';
  */
 class OX
 {
-
     /**
      * A method to construct URLs for static assets, such as images, CSS and
      * JavaScript files, based on OpenX installation and configuration details.
@@ -29,25 +28,20 @@ class OX
      * @return string       The URL to the asset. If asset was not provided,
      * 		                the path does not contain a trailing slash.
      */
-    function assetPath($asset = null)
+    public static function assetPath($asset = null)
     {
         global $installing;
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $assetsVersion = $aConf['webpath']['adminAssetsVersion'];
+        $assetsVersion = $aConf['webpath']['adminAssetsVersion'] ?? '';
         $prefix = $installing ? '' : MAX::constructURL(MAX_URL_ADMIN, '');
-    	$pathWithSuffix = $prefix . "assets";
-        if (strlen($assetsVersion))
-        {
-        	$pathWithSuffix .= "/" . $assetsVersion;
+        $pathWithSuffix = $prefix . "assets";
+        if (strlen($assetsVersion)) {
+            $pathWithSuffix .= "/" . $assetsVersion;
         }
-    	if ($asset != null)
-    	{
-    		return $pathWithSuffix . "/" . $asset;
-    	}
-    	else
-    	{
-	    	return $pathWithSuffix;
-    	}
+        if ($asset != null) {
+            return $pathWithSuffix . "/" . $asset;
+        }
+        return $pathWithSuffix;
     }
 
     /**
@@ -57,12 +51,15 @@ class OX
      * @param string $path
      */
 
-    function realPathRelative($path) {
-        $path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
-        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
-        $absolutes = array();
+    public static function realPathRelative($path)
+    {
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), strlen(...));
+        $absolutes = [];
         foreach ($parts as $part) {
-            if ('.' == $part) continue;
+            if ('.' == $part) {
+                continue;
+            }
             if ('..' == $part) {
                 array_pop($absolutes);
             } else {
@@ -71,7 +68,4 @@ class OX
         }
         return implode(DIRECTORY_SEPARATOR, $absolutes);
     }
-
 }
-
-?>

@@ -29,7 +29,6 @@ require_once MAX_PATH . '/lib/wact/db/db.inc.php';
  */
 class OX_Extension_DeliveryLog_AggregateBucketProcessingStrategyPgsql implements OX_Extension_DeliveryLog_BucketProcessingStrategy
 {
-
     /**
      * Process an aggregate-type bucket.  This is MySQL specific.
      *
@@ -39,38 +38,62 @@ class OX_Extension_DeliveryLog_AggregateBucketProcessingStrategyPgsql implements
     public function processBucket($oBucket, $oEnd)
     {
         $sTableName = $oBucket->getBucketTableName();
-        $oMainDbh =& OA_DB_Distributed::singleton();
+        $oMainDbh = OA_DB_Distributed::singleton();
 
         if (PEAR::isError($oMainDbh)) {
             MAX::raiseError($oMainDbh, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
         }
 
-        OA::debug('  - Processing the ' . $sTableName . ' table for data with operation interval start equal to or before ' . $oEnd->format('%Y-%m-%d %H:%M:%S') . ' ' . $oEnd->tz->getShortName() , PEAR_LOG_INFO);
+        OA::debug('  - Processing the ' . $sTableName . ' table for data with operation interval start equal to or before ' . $oEnd->format('%Y-%m-%d %H:%M:%S') . ' ' . $oEnd->tz->getShortName(), PEAR_LOG_INFO);
 
         // Select all rows with interval_start <= previous OI start.
-        $rsData =& $this->getBucketTableContent($sTableName, $oEnd);
+        $rsData = $this->getBucketTableContent($sTableName, $oEnd);
         $rowCount = $rsData->getRowCount();
 
-        OA::debug('  - '.$rsData->getRowCount().' records found', PEAR_LOG_DEBUG);
+        OA::debug('  - ' . $rsData->getRowCount() . ' records found', PEAR_LOG_DEBUG);
 
         if ($rowCount) {
-            // We can't do bulk inserts with ON DUPLICATE.
-            $aExecQueries = array();
-            while ($rsData->fetch()) {
-                // Get first row
-                $aRow = $rsData->toArray();
-               // Insert or update
-                $aExecQueries[] = "SELECT bucket_update_{$sTableName}(".
-                    join(',', array_map(array(&$oMainDbh, 'quote'), $aRow)).
-                    ")";
-            }
+            $packetSize = 16777216; // 16 MB hardcoded (there's no max limit)
 
-            if (count($aExecQueries)) {
-                foreach ($aExecQueries as $execQuery) {
-                    $result = $oMainDbh->exec($execQuery);
-                    if (PEAR::isError($result)) {
-                        MAX::raiseError($result, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+            $i = 0;
+            while ($rsData->fetch()) {
+                $aRow = $rsData->toArray();
+                $sRow = '(' . implode(',', array_map($oMainDbh->quote(...), $aRow)) . ')';
+
+                if (!$i) {
+                    $sInsert = "INSERT INTO {$sTableName} AS i (" . implode(',', array_map($oMainDbh->quoteIdentifier(...), array_keys($aRow))) . ") VALUES ";
+                    $sConflict = " ON CONFLICT (" .
+                        implode(', ', array_map($oMainDbh->quoteIdentifier(...), array_diff(array_keys($aRow), ['count']))) .
+                        ") DO UPDATE SET count = i.count + EXCLUDED.count";
+                    ;
+                    $query = '';
+                    $aExecQueries = [];
+                }
+
+                if (!$query) {
+                    $query = $sInsert . $sRow;
+                    // Leave 4 bytes headroom for max_allowed_packet
+                } elseif (strlen($query) + strlen($sRow) + strlen($sConflict) + 4 < $packetSize) {
+                    $query .= ',' . $sRow;
+                } else {
+                    $aExecQueries[] = $query;
+                    $query = $sInsert . $sRow;
+                }
+
+                if (++$i >= $rowCount || strlen($query) >= $packetSize) {
+                    $aExecQueries[] = $query;
+                    $query = '';
+                }
+
+                if ($aExecQueries !== []) {
+                    foreach ($aExecQueries as $execQuery) {
+                        $result = $oMainDbh->exec($execQuery . $sConflict);
+                        if (PEAR::isError($result)) {
+                            MAX::raiseError($result, MAX_ERROR_DBFAILURE, PEAR_ERROR_DIE);
+                        }
                     }
+
+                    $aExecQueries = [];
                 }
             }
         }
@@ -112,7 +135,7 @@ class OX_Extension_DeliveryLog_AggregateBucketProcessingStrategyPgsql implements
      *
      * @param string $sTableName The bucket table to process
      * @param Date $oEnd A PEAR_Date instance, ending interval_start to process.
-     * @return MySqlRecordSet A recordset of the results
+     * @return RecordSet A recordset of the results
      */
     private function getBucketTableContent($sTableName, $oEnd)
     {
@@ -129,5 +152,3 @@ class OX_Extension_DeliveryLog_AggregateBucketProcessingStrategyPgsql implements
         return $rsDataRaw;
     }
 }
-
-?>

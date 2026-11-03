@@ -34,7 +34,8 @@ class OA_Maintenance_Regenerate
      * @param Date $oEndDate
      * @return boolean
      */
-    function checkDates($oStartDate, $oEndDate) {
+    public function checkDates($oStartDate, $oEndDate)
+    {
         $aConf = $GLOBALS['_MAX']['CONF'];
         $operationInterval = $aConf['maintenance']['operation_interval'];
         if ($operationInterval <= 60) {
@@ -67,13 +68,13 @@ class OA_Maintenance_Regenerate
         } else {
             // Must ensure that only one operation interval is being summarised
             $operationIntervalID =
-                OX_OperationInterval::convertDaySpanToOperationIntervalID($oStartDate, $oEndDate, $operationInterval);
+                OX_OperationInterval::convertDateRangeToOperationIntervalID($oStartDate, $oEndDate, $operationInterval);
             if (is_bool($operationIntervalID) && !$operationIntervalID) {
                 return false;
             }
             // Now check that the start and end dates match the start and end
             // of the operation interval
-            list($oOperationIntervalStart, $oOperationIntervalEnd) =
+            [$oOperationIntervalStart, $oOperationIntervalEnd] =
                 OX_OperationInterval::convertDateToOperationIntervalStartAndEndDates($oStartDate, $operationInterval);
             if (!$oStartDate->equals($oOperationIntervalStart)) {
                 return false;
@@ -85,23 +86,24 @@ class OA_Maintenance_Regenerate
         return true;
     }
 
-   /**
-    * Clears intermediate abd summary statistics in selected date range from tables:
-    *  - data_intermediate_ad_connection
-    *  - data_intermediate_ad_variable_value
-    *  - data_intermediate_ad
-    *  - data_summary_ad_hourly
-    *  - data_summary_ad_zone_assoc
-    *
-    * @static
-    * @param Date $oStartDate
-    * @param Date $oEndDate
-    */
-    function clearIntermediateAndSummaryTables($oStartDate, $oEndDate) {
+    /**
+     * Clears intermediate abd summary statistics in selected date range from tables:
+     *  - data_intermediate_ad_connection
+     *  - data_intermediate_ad_variable_value
+     *  - data_intermediate_ad
+     *  - data_summary_ad_hourly
+     *  - data_summary_ad_zone_assoc
+     *
+     * @static
+     * @param Date $oStartDate
+     * @param Date $oEndDate
+     */
+    public static function clearIntermediateAndSummaryTables($oStartDate, $oEndDate)
+    {
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         // Create a Data Access Layer object
-        $oDbh = &OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
 
         // Find the connections (if any) in the data_intermediate_ad_connection table
         $query = "
@@ -161,4 +163,3 @@ class OA_Maintenance_Regenerate
         $rows = $oDbh->exec($query);
     }
 }
-?>

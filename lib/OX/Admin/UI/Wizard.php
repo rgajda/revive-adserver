@@ -72,7 +72,7 @@ class OX_Admin_UI_Wizard
      */
     public function __construct($id, $aOptions = null, $oStorage = null)
     {
-        $this->id  = "OX_UI_Install_Wizard-".$id;
+        $this->id = "OX_UI_Install_Wizard-" . $id;
         if (isset($aOptions['steps'])) {
             if (!is_array($aOptions['steps']) || empty($aOptions['steps'])) {
                 throw new Exception('Please provide an array of steps');
@@ -81,15 +81,13 @@ class OX_Admin_UI_Wizard
             $this->setSteps($aOptions['steps']);
             if (isset($aOptions['current'])) {
                 $this->setCurrentStep($aOptions['current']);
-            }
-            else {
+            } else {
                 $this->setCurrentStep($this->aStepIds[0]);
             }
 
             if (isset($aOptions['stepsMetadata'])) {
                 $this->aMetadata = $aOptions['stepsMetadata'];
             }
-
         }
         if (empty($oStorage)) {
             $oStorage = new OX_Admin_UI_SessionStorage();
@@ -135,7 +133,7 @@ class OX_Admin_UI_Wizard
     public function setCurrentStep($stepId)
     {
         if (!in_array($stepId, $this->aStepIds)) {
-            throw new Exception('Unable to set current step. Unknown step: '.$stepId);
+            throw new Exception('Unable to set current step. Unknown step: ' . $stepId);
         }
         $this->currentStepId = $stepId;
     }
@@ -154,15 +152,15 @@ class OX_Admin_UI_Wizard
 
     public function getFirstStep()
     {
-        return !empty($this->aStepIds) ? $this->aStepIds[0] : null;
+        return empty($this->aStepIds) ? null : $this->aStepIds[0];
     }
 
 
     public function getLastStep()
     {
-        return !empty($this->aStepIds)
-            ? $this->aStepIds[count($this->aStepIds) - 1]
-            : null;
+        return empty($this->aStepIds)
+            ? null
+            : $this->aStepIds[count($this->aStepIds) - 1];
     }
 
 
@@ -194,14 +192,6 @@ class OX_Admin_UI_Wizard
     }
 
 
-    public function getStepName($stepId = null)
-    {
-        $stepId = empty($stepId) ? $this->currentStepId : $stepId;
-
-        return $this->aStepNames[$stepId];
-    }
-
-
     public function getStepData($stepId = null)
     {
         $stepId = empty($stepId) ? $this->currentStepId : $stepId;
@@ -220,7 +210,7 @@ class OX_Admin_UI_Wizard
         $storage = $this->getWizardData();
 
         $aStepData = $storage['stepData'];
-        $aStepData = !empty($aStepData) ? $aStepData : array();
+        $aStepData = empty($aStepData) ? [] : $aStepData;
         $aStepData[$stepId] = $aData;
         $storage['stepData'] = $aStepData;
 
@@ -238,7 +228,7 @@ class OX_Admin_UI_Wizard
     {
         $stepId = empty($stepId) ? $this->currentStepId : $stepId;
 
-        return isset($this->aMetadata[$stepId]) ? $this->aMetadata[$stepId] : null;
+        return $this->aMetadata[$stepId] ?? null;
     }
 
 
@@ -266,8 +256,7 @@ class OX_Admin_UI_Wizard
         $stepId = empty($stepId) ? $this->currentStepId : $stepId;
         $storage = $this->getWizardData();
 
-        $aCompleted = $storage['completedSteps'];
-        $aCompleted = !empty($aCompleted) ? $aCompleted : array();
+        $aCompleted = $storage['completedSteps'] ?? [];
         $aCompleted[$stepId] = true;
         $storage['completedSteps'] = $aCompleted;
 
@@ -284,16 +273,15 @@ class OX_Admin_UI_Wizard
      * Wizard itself does not ensure continuity of the completed steps, ie. does
      * not check if previous steps have been marked as completed already.
      *
-     * @param unknown_type $stepId
-     * @return unknown
+     * @param int $stepId
+     * @return bool
      */
     public function isStepCompleted($stepId = null)
     {
         $stepId = empty($stepId) ? $this->currentStepId : $stepId;
         $storage = $this->getWizardData();
-        $aCompleted = $storage['completedSteps'];
 
-        return !empty($aCompleted) && $aCompleted[$stepId] === true;
+        return !empty($storage['completedSteps']) && $storage['completedSteps'][$stepId] === true;
     }
 
 
@@ -313,7 +301,7 @@ class OX_Admin_UI_Wizard
         $stepId = empty($this->currentStepId) ? $this->currentStepId : $this->getLastStep();
 
         $lastCompleted = null;
-        while($stepId != null) {
+        while ($stepId != null) {
             $completed = $this->isStepCompleted($stepId);
             if ($completed) {
                 $lastCompleted = $stepId;
@@ -371,7 +359,7 @@ class OX_Admin_UI_Wizard
         $oStorage = $this->getStorage();
         $wizardData = $oStorage->get($this->id);
         if (empty($wizardData)) {
-            $wizardData = array();
+            $wizardData = [];
             $this->setWizardData($wizardData);
         }
 
@@ -392,7 +380,4 @@ class OX_Admin_UI_Wizard
     {
         return $this->oStorage;
     }
-
 }
-
-?>

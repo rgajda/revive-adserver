@@ -18,12 +18,12 @@ $GLOBALS['strAdministrator'] = "Adminisztrátor";
 // Audit
 $GLOBALS['strDeleted'] = "Töröl";
 $GLOBALS['strUpdated'] = "frissítve";
-$GLOBALS['strDelete'] = "Töröl";
+$GLOBALS['strDelete'] = "Törlés";
 $GLOBALS['strFilters'] = "Szűrők";
 $GLOBALS['strAdvertiser'] = "Hirdető";
 $GLOBALS['strPublisher'] = "Weboldal";
 $GLOBALS['strCampaign'] = "Kampány";
-$GLOBALS['strZone'] = "Zónák";
+$GLOBALS['strZone'] = "Zóna";
 $GLOBALS['strType'] = "Típus";
 $GLOBALS['strAction'] = "Művelet";
 $GLOBALS['strParameter'] = "Paraméter";
@@ -32,6 +32,6 @@ $GLOBALS['strCollectedAllEvents'] = "Összes esemény";
 $GLOBALS['strClear'] = "Töröl";
 
 if (!isset($GLOBALS['strUserlog'])) {
-    $GLOBALS['strUserlog'] = array();
+    $GLOBALS['strUserlog'] = [];
 }
 $GLOBALS['strUserlog'][phpAds_actionActivationMailed] = "Adatbázis automatikus tisztítása";

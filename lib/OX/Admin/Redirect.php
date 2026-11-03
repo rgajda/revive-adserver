@@ -24,7 +24,6 @@ require_once OX_PATH . '/lib/OX.php';
  */
 class OX_Admin_Redirect
 {
-
     /**
      * A method to perform redirects. Only suitable for use once OpenX is installed,
      * as it requires the OpenX configuration file to be correctly set up.
@@ -36,7 +35,7 @@ class OX_Admin_Redirect
      * @param boolean $redirectTopLevel    Flag to know if the redirection should be to the top
      *                                     level, even it not a manual account switch.
      */
-    function redirect($adminPage = 'index.php', $manualAccountSwitch = false, $redirectTopLevel = false)
+    public static function redirect($adminPage = 'index.php', $manualAccountSwitch = false, $redirectTopLevel = false)
     {
         if ($manualAccountSwitch || $redirectTopLevel) {
             // Get the page where the user was in when switched account
@@ -64,21 +63,4 @@ class OX_Admin_Redirect
 
         exit;
     }
-
-    function redirectIfNecessary($adminPage)
-    {
-        $oDesiredUrl = new MAX_Url();
-        $oCurrentUrl = new MAX_Url();
-
-        $full_desired_url_string = MAX::constructURL(MAX_URL_ADMIN, $adminPage);
-        $oDesiredUrl->useValuesFromString($full_desired_url_string);
-        $oCurrentUrl->useValuesFromServerVariableArray($_SERVER);
-        if ($oDesiredUrl->equals($oCurrentUrl)) {
-            return;
-        }
-        $this->redirect($adminPage);
-    }
-
 }
-
-?>

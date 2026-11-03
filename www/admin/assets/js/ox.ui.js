@@ -449,7 +449,7 @@ function initCampaignForm(formId)
      $("#" + formId).submit(function() {
              formUnFormat(this.impressions);
              formUnFormat(this.clicks);
-             formUnFormat(this.conversions);
+             "conversions" in this && formUnFormat(this.conversions);
 
              return campaignFormPriorityCheck(this)
                  &&  campaignFormDatesRangeCheck(this);
@@ -888,10 +888,11 @@ function getCampaignType()
 
 function campaignFormDatesRangeCheck(form)
 {
-    var activeDate;
-    var expireDate;
+    var activateDate = null;
+    var expireDate = null;
     var activation_enabled = isDateSetActive('start', form);
     var expiry_enabled = isDateSetActive('end', form);
+    var el;
     // No sense in comparing inactive values
     if  (activation_enabled) {
         activateDate = newDateFromNamedFields(document, form, 'start');
@@ -913,6 +914,17 @@ function campaignFormDatesRangeCheck(form)
             return false;
         }
     }
+
+    if  (activateDate) {
+        el = getNamedElement(document, 'start');
+        el.value = Date.parseDate(el.value, '%d %B %Y').print('%Y-%m-%d');;
+    }
+
+    if  (expireDate) {
+        el = getNamedElement(document, 'end');
+        el.value = Date.parseDate(el.value, '%d %B %Y').print('%Y-%m-%d');;
+    }
+
     return true;
 }
 
@@ -1043,10 +1055,59 @@ function formUnFormat(field)
   $.fn.selectFile = function() {
     return this.each(function() {
         $form = $(this);
-
-
-
     });
   };
 })(jQuery);
 
+jQuery(document).ready(function () {
+    var $i = $("input.zxcvbn-check"),
+        $c = $("<div id='zxcvbn-container'><div id='zxcvbn-display'></div><span id='zxcvbn-text'>&nbsp;</span></div>");
+
+    if (!$i.length) {
+        return;
+    }
+
+    if (typeof zxcvbn !== 'function') {
+        console.error('Please load zxcvbn.js');
+
+        return;
+    }
+
+    var resize = function () {
+        $c.width($i.get(0).offsetWidth);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    $c.appendTo($i.parent());
+
+    if (window.rvZxcvbn.minLength) {
+        $i.attr('placeholder', window.rvZxcvbn.strPasswordMinLength);
+    }
+
+    $i.keyup(function () {
+        var
+            colours = ['#b51700', '#e85a04', '#e19604', '#247dbd', '#7fb364'],
+            passwd = $(this).val(),
+            result = zxcvbn(passwd),
+            $text = $("#zxcvbn-text"),
+            $display = $("#zxcvbn-display");
+
+        $display
+            .css("width", passwd.length ? (20 * (1 + result.score)) + "%" : 0)
+            .css("background-color", colours[result.score])
+        ;
+
+        if (passwd.length < window.rvZxcvbn.minLength) {
+            $text.html(passwd.length ? window.rvZxcvbn.strPasswordTooShort : '&nbsp;');
+            $display .css("width", 0);
+        } else {
+            $text.html(window.rvZxcvbn.strPasswordScore[result.score]);
+            $display
+                .css("width", (20 * (1 + result.score)) + "%")
+                .css("background-color", colours[result.score])
+            ;
+        }
+    });
+});

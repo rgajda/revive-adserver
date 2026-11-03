@@ -56,7 +56,6 @@ $GLOBALS['strEditConfigNotPossible'] = " این امکان پذیر است که 
 $GLOBALS['strEditConfigPossible'] = " این امکان پذیر است که تمام تنظیمات را ویرایش کنید بدلیل اینکه فایل پیکربندی قفل نیست ، اما این ممکن است به مشکل امنیتی منجر شود . اگر می خواهید سیستم خود را امن کنید ، نیازمند است فایل پیکر بندی را برای نصب قف کنید.";
 $GLOBALS['strUnableToWriteConfig'] = "امکان نوشتن تغییرات روی فایل تنظیم نیست";
 $GLOBALS['strUnableToWritePrefs'] = "امکان تغییر ظواهر در پایگاه داده نیست";
-$GLOBALS['strImageDirLockedDetected'] = "فولدر عکس داده شده قابل نوشتن از طریق سرور نیست. <br> شما نمی توانید ادامه دهید مگر اینکه دسترسی فولدر را تغییر داده یا فولدر جدیدی بسازید.";
 
 // Configuration Settings
 $GLOBALS['strConfigurationSettings'] = "تنظیمات پیکربندی";
@@ -104,6 +103,8 @@ $GLOBALS['strQmailPatch'] = "پچ کیومیل";
 $GLOBALS['strEnableQmailPatch'] = "فعال سازی پچ کیومیل";
 $GLOBALS['strEmailHeader'] = "هدر های ایمیل";
 $GLOBALS['strEmailLog'] = "ثبت ایمیل";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "تنظیمات حسابرسی نوین";
@@ -153,7 +154,7 @@ $GLOBALS['strTypeWebDir'] = "دایرکتوری محلی";
 $GLOBALS['strTypeFTPHost'] = "میزبان ftp";
 $GLOBALS['strTypeFTPDirectory'] = "دایرکتوری میزبان";
 $GLOBALS['strTypeFTPUsername'] = "ورود";
-$GLOBALS['strTypeFTPPassword'] = "پسورد";
+$GLOBALS['strTypeFTPPassword'] = "رمز ";
 $GLOBALS['strTypeFTPPassive'] = "استفاده از passive ftp";
 $GLOBALS['strTypeFTPErrorDir'] = "دایرکتوری میزبان ftp موجود نمی باشد";
 $GLOBALS['strTypeFTPErrorConnect'] = "وصل شدن به سرور ftp امکان پذیر نمی باشد ، یوزر یا پسورد اشتباه است";
@@ -176,21 +177,11 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "نمایش تبلیغ";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPC فراخوانی";
 $GLOBALS['strDeliveryFilenamesLocal'] = "فراخوانی محلی";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "کنترل کننده ی جلویی";
-$GLOBALS['strDeliveryFilenamesFlash'] = "شامل فلش(می تواند url کامل باشد)";
 $GLOBALS['strDeliveryFilenamesSinglePageCall'] = "فراخوانی یک صفحه";
 $GLOBALS['strDeliveryFilenamesSinglePageCallJS'] = "فراخوانی یک صفحه (JavaScript)";
 $GLOBALS['strDeliveryCaching'] = "تنظیمات کش تحویل بنر";
 $GLOBALS['strDeliveryCacheLimit'] = "زمان بین بروزرسانی کش بنر(ثانیه)";
 $GLOBALS['strDeliveryCacheStore'] = "نوع ذخیره سازی کش تویل بنر";
-$GLOBALS['strDeliveryExecPhp'] = "اجازه داده به کد php برای اجرا
-
-(اخطار : ریسک امنیتی)";
-$GLOBALS['strDeliveryCtDelimiter'] = "حزب سوم ، کلیک روی حائل پیگیری";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "url عکس بنر اولیه جهانی";
-$GLOBALS['strP3PSettings'] = "P3P سیاست حفظ حریم خصوصی";
-$GLOBALS['strUseP3P'] = "استفاده از P3P سیاست";
-$GLOBALS['strP3PCompactPolicy'] = "P3P سیاست جمع و جور";
-$GLOBALS['strP3PPolicyLocation'] = "P3P سیاست محل سکونت";
 
 // General Settings
 $GLOBALS['generalSettings'] = "تنظیمات سیستم عمومی جهانی";
@@ -200,7 +191,7 @@ $GLOBALS['defaultLanguage'] = "زبان اولیه ی سیستمe
 
 // Geotargeting Settings
 $GLOBALS['strGeotargetingSettings'] = "Geotargeting سیستم";
-$GLOBALS['strGeotargeting'] = "Geotargeting تنظیمات";
+$GLOBALS['strGeotargeting'] = "Geotargeting سیستم";
 $GLOBALS['strGeotargetingType'] = "Geotargeting نوع مدل";
 
 // Interface Settings
@@ -214,7 +205,7 @@ $GLOBALS['strHideInactive'] = "پنهان کردن اعضای غیر فعال ا
 $GLOBALS['strGUIShowMatchingBanners'] = "نمایش بنر های مچ شده در صفحه های لینک شده بنر";
 $GLOBALS['strGUIShowParentCampaigns'] = "نمایش کمپین های پدر در صفحات بنر لینک شده";
 $GLOBALS['strShowEntityId'] = "نمایش شناسایی کننده ی وجودیت";
-$GLOBALS['strStatisticsDefaults'] = "استاتیک ها";
+$GLOBALS['strStatisticsDefaults'] = "آمار";
 $GLOBALS['strBeginOfWeek'] = "شروع هفته";
 $GLOBALS['strPercentageDecimals'] = "اعشار درصد ها";
 $GLOBALS['strWeightDefaults'] = "وزن اولیه";
@@ -270,7 +261,7 @@ $GLOBALS['strWarnAgency'] = "ارسال ارور به اکانت هر وقت ک�
 
 // UI Settings
 $GLOBALS['strGuiSettings'] = "تنظیمات رابط کاربری";
-$GLOBALS['strGeneralSettings'] = "تنظیمات کلی";
+$GLOBALS['strGeneralSettings'] = "تنظیمات عمومی";
 $GLOBALS['strAppName'] = "نام برنامه";
 $GLOBALS['strMyHeader'] = "محل فایل هدر";
 $GLOBALS['strMyFooter'] = "محل فایل فوتر";

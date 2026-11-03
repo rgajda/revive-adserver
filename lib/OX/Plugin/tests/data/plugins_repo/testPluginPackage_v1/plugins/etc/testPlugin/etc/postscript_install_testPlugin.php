@@ -15,16 +15,10 @@ $className = 'postscript_install_testPlugin';
 
 class postscript_install_testPlugin
 {
-
-    function __construct()
-    {
-
-    }
-
-    function execute($aParams=array())
+    public function execute($aParams = [])
     {
         $oManager = new OX_Plugin_ComponentGroupManager();
-        $oManager->_logMessage('testPluginPackage 0.0.1 : '. get_class($this));
+        $oManager->_logMessage('testPluginPackage 0.0.1 : ' . get_class($this));
         return true;
     }
 }

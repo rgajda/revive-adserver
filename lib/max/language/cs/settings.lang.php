@@ -15,12 +15,11 @@ $GLOBALS['strInstall'] = "Instalace";
 $GLOBALS['strDatabaseSettings'] = "Nastavení databáze";
 $GLOBALS['strAdminAccount'] = "Účet správce systému";
 $GLOBALS['strAdvancedSettings'] = "Rozsirena nastaveni databaze";
-$GLOBALS['strWarning'] = "Upozornění";
+$GLOBALS['strWarning'] = "Varování";
 $GLOBALS['strBtnContinue'] = "Pokračovat»";
 $GLOBALS['strBtnRecover'] = "Obnovit»";
 $GLOBALS['strBtnAgree'] = "Souhlasím»";
 $GLOBALS['strBtnRetry'] = "Opakovat";
-$GLOBALS['strWarningRegisterArgcArv'] = "Konfigurace PHP proměnné register_argc_argv musí být zapnuta pro spuštění údržby z příkazového řádku.";
 $GLOBALS['strTablesPrefix'] = "Prefix názvů tabulek";
 $GLOBALS['strTablesType'] = "Typ tabulky";
 
@@ -78,6 +77,8 @@ $GLOBALS['strEnableQmailPatch'] = "Zapnout qmail patch";
 $GLOBALS['strEmailHeader'] = "Záhlaví e-mailů";
 $GLOBALS['strEmailLog'] = "E-Mail log";
 
+// Security settings
+
 // Audit Trail Settings
 
 // Debug Logging Settings
@@ -99,10 +100,6 @@ $GLOBALS['strTypeFTPPassword'] = "Heslo";
 $GLOBALS['strTypeFTPErrorDir'] = "Adresář serveru neexistuje";
 $GLOBALS['strTypeFTPErrorConnect'] = "Nemohu se přihlásit k FTP serveru. Uživatelské jméno a heslo nejsou správné";
 $GLOBALS['strTypeFTPErrorHost'] = "Jméno FTP server není správné";
-$GLOBALS['strP3PSettings'] = "Pravidla soukromí P3P";
-$GLOBALS['strUseP3P'] = "Použít P3P pravidla";
-$GLOBALS['strP3PCompactPolicy'] = "Kompaktní P3P pravidlo";
-$GLOBALS['strP3PPolicyLocation'] = "Umístění P3P pravidla";
 
 // General Settings
 
@@ -151,7 +148,7 @@ $GLOBALS['strWarnAgency'] = "Poslat upozornění partnerovi kdykoliv je kampaň 
 
 // UI Settings
 $GLOBALS['strGuiSettings'] = "Nastavení uživatelského rozhraní";
-$GLOBALS['strGeneralSettings'] = "Základní nastavení";
+$GLOBALS['strGeneralSettings'] = "Obecná nastavení";
 $GLOBALS['strAppName'] = "Název aplikace";
 $GLOBALS['strMyHeader'] = "Umístění souboru hlavičky";
 $GLOBALS['strMyFooter'] = "Umístění souboru patičky";

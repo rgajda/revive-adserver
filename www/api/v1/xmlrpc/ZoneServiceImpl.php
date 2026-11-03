@@ -31,13 +31,13 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @var OA_Dll_Zone $_dllZone
      */
-    var $_dllZone;
+    public $_dllZone;
 
     /**
      *
      * The ZoneServiceImpl method is the constructor for the ZoneServiceImpl class.
      */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->_dllZone = new OA_Dll_Zone();
@@ -53,14 +53,13 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function _validateResult($result)
+    public function _validateResult($result)
     {
         if ($result) {
             return true;
-        } else {
-            $this->raiseError($this->_dllZone->getLastError());
-            return false;
         }
+        $this->raiseError($this->_dllZone->getLastError());
+        return false;
     }
 
     /**
@@ -76,17 +75,12 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function addZone($sessionId, &$oZone)
+    public function addZone($sessionId, &$oZone)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult($this->_dllZone->modify($oZone));
-
-        } else {
-
-            return false;
         }
-
+        return false;
     }
 
     /**
@@ -103,25 +97,16 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function modifyZone($sessionId, &$oZone)
+    public function modifyZone($sessionId, &$oZone)
     {
         if ($this->verifySession($sessionId)) {
-
             if (isset($oZone->zoneId)) {
-
                 return $this->_validateResult($this->_dllZone->modify($oZone));
-
-            } else {
-
-                $this->raiseError("Field 'zoneId' in structure does not exists");
-                return false;
             }
-
-        } else {
-
+            $this->raiseError("Field 'zoneId' in structure does not exists");
             return false;
         }
-
+        return false;
     }
 
     /**
@@ -135,16 +120,12 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function deleteZone($sessionId, $zoneId)
+    public function deleteZone($sessionId, $zoneId)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult($this->_dllZone->delete($zoneId));
-
-        } else {
-
-            return false;
         }
+        return false;
     }
 
     /**
@@ -161,17 +142,20 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getZoneDailyStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
+    public function getZoneDailyStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllZone->getZoneDailyStatistics(
-                    $zoneId, $oStartDate, $oEndDate, false, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $zoneId,
+                    $oStartDate,
+                    $oEndDate,
+                    false,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -188,17 +172,20 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getZoneAdvertiserStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
+    public function getZoneAdvertiserStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllZone->getZoneAdvertiserStatistics(
-                    $zoneId, $oStartDate, $oEndDate, false, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $zoneId,
+                    $oStartDate,
+                    $oEndDate,
+                    false,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -215,17 +202,20 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getZoneCampaignStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
+    public function getZoneCampaignStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllZone->getZoneCampaignStatistics(
-                    $zoneId, $oStartDate, $oEndDate, false, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $zoneId,
+                    $oStartDate,
+                    $oEndDate,
+                    false,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -242,17 +232,20 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getZoneBannerStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
+    public function getZoneBannerStatistics($sessionId, $zoneId, $oStartDate, $oEndDate, &$rsStatisticsData)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
                 $this->_dllZone->getZoneBannerStatistics(
-                    $zoneId, $oStartDate, $oEndDate, false, $rsStatisticsData));
-        } else {
-
-            return false;
+                    $zoneId,
+                    $oStartDate,
+                    $oEndDate,
+                    false,
+                    $rsStatisticsData,
+                ),
+            );
         }
+        return false;
     }
 
     /**
@@ -266,16 +259,14 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getZone($sessionId, $zoneId, &$oZone)
+    public function getZone($sessionId, $zoneId, &$oZone)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
-                $this->_dllZone->getZone($zoneId, $oZone));
-        } else {
-
-            return false;
+                $this->_dllZone->getZone($zoneId, $oZone),
+            );
         }
+        return false;
     }
 
     /**
@@ -290,56 +281,52 @@ class ZoneServiceImpl extends BaseServiceImpl
      *
      * @return boolean
      */
-    function getZoneListByPublisherId($sessionId, $publisherId, &$aZoneList)
+    public function getZoneListByPublisherId($sessionId, $publisherId, &$aZoneList)
     {
         if ($this->verifySession($sessionId)) {
-
             return $this->_validateResult(
-                $this->_dllZone->getZoneListByPublisherId($publisherId,
-                                                    $aZoneList));
-        } else {
-
-            return false;
+                $this->_dllZone->getZoneListByPublisherId(
+                    $publisherId,
+                    $aZoneList,
+                ),
+            );
         }
+        return false;
     }
 
-    function linkBanner($sessionId, $zoneId, $bannerId)
+    public function linkBanner($sessionId, $zoneId, $bannerId)
     {
         if ($this->verifySession($sessionId)) {
             return $this->_validateResult($this->_dllZone->linkBanner($zoneId, $bannerId));
-        } else {
-            return false;
         }
+        return false;
     }
 
-    function linkCampaign($sessionId, $zoneId, $campaignId)
+    public function linkCampaign($sessionId, $zoneId, $campaignId)
     {
         if ($this->verifySession($sessionId)) {
             return $this->_validateResult($this->_dllZone->linkCampaign($zoneId, $campaignId));
-        } else {
-            return false;
         }
+        return false;
     }
 
-    function unlinkBanner($sessionId, $zoneId, $bannerId)
+    public function unlinkBanner($sessionId, $zoneId, $bannerId)
     {
         if ($this->verifySession($sessionId)) {
             return $this->_validateResult($this->_dllZone->unlinkBanner($zoneId, $bannerId));
-        } else {
-            return false;
         }
+        return false;
     }
 
-    function unlinkCampaign($sessionId, $zoneId, $campaignId)
+    public function unlinkCampaign($sessionId, $zoneId, $campaignId)
     {
         if ($this->verifySession($sessionId)) {
             return $this->_validateResult($this->_dllZone->unlinkCampaign($zoneId, $campaignId));
-        } else {
-            return false;
         }
+        return false;
     }
 
-    function generateTags($sessionId, $zoneId, $codeType, $aParams, &$generatedTag)
+    public function generateTags($sessionId, $zoneId, $codeType, $aParams, &$generatedTag)
     {
         if ($this->verifySession($sessionId)) {
             $result = $this->_dllZone->generateTags($zoneId, $codeType, $aParams);
@@ -351,8 +338,4 @@ class ZoneServiceImpl extends BaseServiceImpl
 
         return false;
     }
-
 }
-
-
-?>

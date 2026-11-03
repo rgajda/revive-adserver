@@ -58,6 +58,7 @@ $GLOBALS['strCustom'] = "Įprastas";
 $GLOBALS['strDefault'] = "Pagrindinis";
 $GLOBALS['strUnlimited'] = "Neribotas";
 $GLOBALS['strUntitled'] = "Be pavadinimo";
+$GLOBALS['strAll'] = "Visi";
 $GLOBALS['strAverage'] = "Vidurkis";
 $GLOBALS['strOverall'] = "Iš viso";
 $GLOBALS['strTotal'] = "Viso";
@@ -112,7 +113,6 @@ $GLOBALS['strLinkUser_Key'] = "Susieti <u>v</u>artotojus";
 $GLOBALS['strNewUserWillBeCreated'] = "Naujas vartotojas sukurtas";
 $GLOBALS['strUserAccountUpdated'] = "Atnaujinta vartotojo sąskaita";
 $GLOBALS['strUserNotLinkedWithAccount'] = "Toks vartotojas nesusietas su sąskaita";
-$GLOBALS['strCantDeleteOneAdminUser'] = "Jūs negalite ištrinti vartotojo. Bent vienas vartotojas turi būti susietas su administratoriaus sąskaita";
 $GLOBALS['strLinkUserHelpUser'] = "Vartotojo vardas";
 $GLOBALS['strLinkUserHelpEmail'] = "El. pašto adresas";
 
@@ -134,10 +134,8 @@ $GLOBALS['strPasswordRepeat'] = "Pakartokite slaptažodį";
 $GLOBALS['strAccessDenied'] = "Priėjimas uždraustas";
 $GLOBALS['strUsernameOrPasswordWrong'] = "Vartotojo vardas ir slaptažodis neteisingai įvesti. Prašome bandyti iš naujo. ";
 $GLOBALS['strPasswordWrong'] = "Jūsų slaptažodis neteisingas. ";
-$GLOBALS['strNotAdmin'] = "Jūsų sąskaita neturi visų reikiamų leidimų šiai savybei naudoti, Jūs galite prisijungti į kitą sąskaitą norėdami ją panaudoti. Spauskite <a href='logout.php'>čia</a> norėdami prisijungti prie kitos sąskaitos.";
 $GLOBALS['strDuplicateClientName'] = "Vartotojo vardas, kurį pateikėte jau egzistuoja, prašome naudoti kitokį vartotojo vardą. ";
 $GLOBALS['strInvalidPassword'] = "Naujasis slaptažodis, kurį pateikėte jau egzistuoja, prašome naudoti kitokį slaptažodį. ";
-$GLOBALS['strInvalidEmail'] = "El. paštas neteisingai suformatuotas, prašome įvesti teisingą el. pašto adresą.";
 $GLOBALS['strNotSamePasswords'] = "Du slaptažodžiai, kuriuos įvedėte nėra vienodi";
 $GLOBALS['strRepeatPassword'] = "Pakartokite slaptažodį";
 
@@ -176,12 +174,25 @@ $GLOBALS['strDayOfWeek'] = "Savaitės diena";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
+$GLOBALS['strDayFullNames'][0] = 'Sekmadienis';
+$GLOBALS['strDayFullNames'][1] = 'Pirmadienis';
+$GLOBALS['strDayFullNames'][2] = 'Antradienis';
+$GLOBALS['strDayFullNames'][3] = 'Trečiadienis';
+$GLOBALS['strDayFullNames'][4] = 'Ketvirtadienis';
+$GLOBALS['strDayFullNames'][5] = 'Penktadienis';
+$GLOBALS['strDayFullNames'][6] = 'Šeštadienis';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
+$GLOBALS['strDayShortCuts'][0] = 'Sekm.';
+$GLOBALS['strDayShortCuts'][1] = 'Pirm.';
+$GLOBALS['strDayShortCuts'][2] = 'Antr.';
+$GLOBALS['strDayShortCuts'][3] = 'Treč.';
+$GLOBALS['strDayShortCuts'][4] = 'Ketv.';
+$GLOBALS['strDayShortCuts'][5] = 'Penkt.';
 
 $GLOBALS['strHour'] = "Valanda";
 $GLOBALS['strSeconds'] = "Sekundės";
@@ -209,7 +220,6 @@ $GLOBALS['strSendDeactivationWarning'] = "Siųsti el. pranešimą, kai kampanija
 $GLOBALS['strAllowClientModifyBanner'] = "Leisti šiam vartotojui keisti savo pačio banerius";
 $GLOBALS['strAllowClientDisableBanner'] = "Leisti šiam vartotojui išjungti savo pačio banerius";
 $GLOBALS['strAllowClientActivateBanner'] = "Leisti šiam vartotojui aktyvuoti savo pačio banerius";
-$GLOBALS['strAllowCreateAccounts'] = "Leisti šiam vartotojui kurti naujas sąskaitas";
 $GLOBALS['strAdvertiserLimitation'] = "Rodyti tik banerį ";
 
 // Campaign
@@ -251,6 +261,20 @@ $GLOBALS['strClicksBooked'] = "Užsakyti paspaudimai";
 $GLOBALS['strConversionsBooked'] = "Užsakyti konvertavimai";
 $GLOBALS['strAnonymous'] = "Slėpti šios kampanijos internetinius puslapius ir reklamos skleidėjus.";
 $GLOBALS['strTargetPerDay'] = "per dieną.";
+$GLOBALS['strCampaignWarningRemnantNoWeight'] = "Šiai kompanijai nustatyta žema pirmenybė
+bet nustatytas svoris lygus arba jis nebuvo
+nustatytas iš viso. Tai priverčia kampanija būti
+ išformuotair jos baneriai nebus pristatyti
+tol kol jos svoris bus nustatytas kaip tinkamas dydis.
+
+Ar esate tikri, kad norite tęsti?";
+$GLOBALS['strCampaignWarningNoTarget'] = "Šiai kampanijai parinktas aukšto lygio prioritetas,
+tačiau tikslus spaudinių skaičius nėra nurodytas.
+Tai priverčia kampaniją būti deaktyvuotai ir
+jos baneriai nebus pristatyti tol, kol tinkamas
+spaudinių skaičius nebus parinktas.
+
+Ar esate įsitikines, kad norite tęsti?";
 $GLOBALS['strCampaignStatusPending'] = "Laukiantis";
 $GLOBALS['strCampaignStatusInactive'] = "Aktyvus";
 $GLOBALS['strCampaignStatusRunning'] = "Procesas";
@@ -283,6 +307,7 @@ $GLOBALS['strConversionWindow'] = "Konvertavimo langas";
 $GLOBALS['strUniqueWindow'] = "Unikalus langas";
 $GLOBALS['strClick'] = "Paspaudimas";
 $GLOBALS['strView'] = "Vaizdas";
+$GLOBALS['strImpression'] = "Įspūdis";
 $GLOBALS['strLinkCampaignsByDefault'] = "Sujungti naujai sukurtas kampanijas";
 
 // Banners (General)
@@ -329,26 +354,23 @@ $GLOBALS['strStatusText'] = "Teksto statusas";
 $GLOBALS['strBannerWeight'] = "Banerio svoris";
 $GLOBALS['strAdserverTypeGeneric'] = "Bendras HTML baneris";
 $GLOBALS['strGenericOutputAdServer'] = "Bendras";
-$GLOBALS['strSwfTransparency'] = "Leisti skaidrų foną";
 
 // Banner (advanced)
-
-// Banner (swf)
-$GLOBALS['strCheckSWF'] = "Ieškoti sunkiai u-koduotų internetinių puslapių Flash failo viduje";
-$GLOBALS['strConvertSWFLinks'] = "Pakeisti Flash saitus";
-$GLOBALS['strHardcodedLinks'] = "Sunkiai užkoduoti saitai";
-$GLOBALS['strCompressSWF'] = "Suspausti SWF failą, tam kad būtų pagreitintas atsiuntimas (Flash 6 player reikalaujamas)";
-$GLOBALS['strOverwriteSource'] = "Perrašyti šaltinio parametrus";
 
 // Display Delviery Rules
 $GLOBALS['strEqualTo'] = "yra lygus";
 $GLOBALS['strDifferentFrom'] = "skiriasi nuo";
+$GLOBALS['strLaterThan'] = "paskesnis už";
+$GLOBALS['strLaterThanOrEqual'] = "paskesnis už arba lygus";
+$GLOBALS['strEarlierThan'] = "anksčiau nei";
+$GLOBALS['strEarlierThanOrEqual'] = "anksčiau nei arba lygiai su";
 $GLOBALS['strGreaterThan'] = "didesnis už";
 $GLOBALS['strLessThan'] = "mažesnis už";
 $GLOBALS['strAND'] = "IR";                          // logical operator
 $GLOBALS['strOR'] = "AR";                         // logical operator
 $GLOBALS['strOnlyDisplayWhen'] = "Šį banerį rodyti tik";
 $GLOBALS['strWeekDays'] = "Savaitės dienos";
+$GLOBALS['strTime'] = "Laikas";
 $GLOBALS['strSource'] = "Pirminis";
 
 $GLOBALS['strDeliveryCappingReset'] = "Perstatyti vaizdo skaitiklius po:";
@@ -356,17 +378,17 @@ $GLOBALS['strDeliveryCappingTotal'] = "viso";
 $GLOBALS['strDeliveryCappingSession'] = "per sesiją";
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 $GLOBALS['strCappingBanner']['limit'] = "Sumažinti banerių rodymų dydį iki: ";
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 $GLOBALS['strCappingCampaign']['limit'] = "Sumažinti kampanijų rodymų dydį iki:";
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 $GLOBALS['strCappingZone']['limit'] = "Sumažinti zonų rodymų dydį iki:";
 
@@ -459,8 +481,15 @@ $GLOBALS['strSelectAd'] = "Pasirinkite banerį";
 $GLOBALS['strSelectPublisher'] = "Pasirinkite internetinį puslapį";
 $GLOBALS['strSelectZone'] = "Pasirinkite zoną";
 $GLOBALS['strStatusPending'] = "Laukiantis";
+$GLOBALS['strStatusApproved'] = "Patvirtintas";
+$GLOBALS['strStatusDisapproved'] = "Atmestas";
 $GLOBALS['strStatusDuplicate'] = "Kopijuoti";
+$GLOBALS['strStatusOnHold'] = "Laukiama";
+$GLOBALS['strStatusIgnore'] = "Ignoruoti";
 $GLOBALS['strConnectionType'] = "Tipas";
+$GLOBALS['strConnTypeSale'] = "Parduoti";
+$GLOBALS['strConnTypeLead'] = "Vadovauti";
+$GLOBALS['strConnTypeSignUp'] = "Prisijungti";
 $GLOBALS['strShortcutEditStatuses'] = "Redaguoti statusus";
 $GLOBALS['strShortcutShowStatuses'] = "Rodyti statusus";
 
@@ -485,7 +514,10 @@ $GLOBALS['strNoExpiration'] = "Nėra galiojimo pasibaigimo nustatytos datos";
 $GLOBALS['strCampaignStop'] = "Kampanijos pavadinimas";
 
 // Reports
+$GLOBALS['strStartDate'] = "Pradžios data";
+$GLOBALS['strEndDate'] = "Pasibaigimo data";
 $GLOBALS['strPeriod'] = "Periodas";
+$GLOBALS['strWorksheets'] = "Darbalaukiai";
 
 // Admin_UI_Fields
 $GLOBALS['strAllAdvertisers'] = "Visi reklamuotojai";
@@ -512,7 +544,6 @@ $GLOBALS['strBackToTheList'] = "Grįžti į ataskaitų sąrašą";
 $GLOBALS['strCharset'] = "Ženklų nustatymus";
 $GLOBALS['strAutoDetect'] = "Auto radimas";
 
-
 // Errors
 $GLOBALS['strNoMatchesFound'] = "Jokių atitikmenų nerasta";
 $GLOBALS['strErrorOccurred'] = "Atsirado klaida";
@@ -524,8 +555,8 @@ $GLOBALS['strErrorLinkingBanner'] = "Neįmanoma ssieti šį banerį su šia zona
 $GLOBALS['strUnableToLinkBanner'] = "Negalima susieti šio banerio:";
 $GLOBALS['strUnableToChangeZone'] = "Neįmanoma patvirtinti šių pasikeitimų, nes:";
 $GLOBALS['strDatesConflict'] = "datos prieštarauja su:";
+$GLOBALS['strEmailNoDates'] = "Elektroninio pašto zonos privalo turėti pradžią ir pabaigą";
 $GLOBALS['strWarningInaccurateStats'] = "Kai kurios iš šių statistikų buvo prijungtos  prie ne ne-UTC laiko zonos, ir gali būti rodomos neteisingu laiko zonos laiku. ";
-$GLOBALS['strWarningInaccurateReadMore'] = "Skaitykite daugiau apie tai";
 $GLOBALS['strWarningInaccurateReport'] = "Dalis  šios ataskaitos statistikos buvo priregistruoti į ne-UTC laiko zoną, ir gali būti rodoma neteisingoje laiko zonoje ";
 
 //Validation
@@ -533,10 +564,15 @@ $GLOBALS['strWarningInaccurateReport'] = "Dalis  šios ataskaitos statistikos bu
 // Email
 $GLOBALS['strSirMadam'] = "Pone/Madam";
 $GLOBALS['strMailSubject'] = "Reklamos skleidėjo ataskaita";
+$GLOBALS['strMailHeader'] = "Brangus {contact},";
 $GLOBALS['strMailBannerStats'] = "Žemiau rasite banerio statistiką, skirtą {klientvardas}: ";
 $GLOBALS['strMailBannerActivatedSubject'] = "Kampanija aktyvuota";
 $GLOBALS['strMailBannerDeactivatedSubject'] = "Kampanija deaktyvuota";
+$GLOBALS['strMailBannerActivated'] = "Jūsų kampanija, rodoma žemiau, buvo aktyvuota, nes
+atėjo kampanijos aktyvavimo data.";
 $GLOBALS['strMailBannerDeactivated'] = "Jūsų kampanija, rodoma žemiau, buvo deaktyvuota, nes";
+$GLOBALS['strMailFooter'] = "Pagarbiai,
+   {administartoriauspilnasvardas}";
 $GLOBALS['strClientDeactivated'] = "Ši kampanija šiuo metu neaktyvi, nes";
 $GLOBALS['strBeforeActivate'] = "aktyvacijos data dar neatėjo";
 $GLOBALS['strAfterExpire'] = "atėjo galiojimo pasibaigimo data";
@@ -555,6 +591,8 @@ $GLOBALS['strYourCampaign'] = "Jūsų kampanija";
 $GLOBALS['strTheCampiaignBelongingTo'] = "Kampanija priklauso";
 $GLOBALS['strImpendingCampaignExpiryDateBody'] = "{klientovardas} rodomas žemiau baigiasi {data}.";
 $GLOBALS['strImpendingCampaignExpiryImpsBody'] = "{klientovardas} rodomas žemiau turi spaudos limitą, kurios dydis yra {limitodydis}.";
+$GLOBALS['strImpendingCampaignExpiryBody'] = "Kaip pasekmė, kampanijai bus automatiškai apriboti tam tikri veiksmai, ir
+kampanijos baneriai taip pat bus apriboti: ";
 
 // Priority
 $GLOBALS['strPriority'] = "Pirmenybė";
@@ -621,6 +659,7 @@ $GLOBALS['strNoAgencies'] = "Nerasta jokių zonų";
 $GLOBALS['strConfirmDeleteAgency'] = "Ar tikrai norite ištrinti šią zoną";
 $GLOBALS['strInactiveAgenciesHidden'] = "neaktyvios zonos palsėptos";
 $GLOBALS['strSwitchAccount'] = "Perjungti į šią sąskaitą";
+$GLOBALS['strAgencyStatusInactive'] = "Aktyvus";
 
 // Channels
 $GLOBALS['strChannelToWebsite'] = "Visi internetiniai puslapiai";
@@ -648,15 +687,18 @@ $GLOBALS['strTrackerTypeCustom'] = "Įprastas JS kodas";
 $GLOBALS['strVariableCode'] = "Javascript sekimo kodas";
 
 // Password recovery
-$GLOBALS['strForgotPassword'] = "Pamiršote savo slaptažodį?";
-$GLOBALS['strPasswordRecovery'] = "Slaptažodžio gražinimas";
 $GLOBALS['strEmailRequired'] = "Privaloma užpildyti elektroninį lauką";
-$GLOBALS['strPwdRecWrongId'] = "Neteisingas ID ";
-$GLOBALS['strPwdRecEnterEmail'] = "Įveskite savo elektroninio pašto adresą žemiau";
 $GLOBALS['strPwdRecEnterPassword'] = "Įveskite savo slaptažodį žemiau";
-$GLOBALS['strPwdRecResetLink'] = "Slaptažodžio pakeitimo nuoroda";
-$GLOBALS['strPwdRecEmailPwdRecovery'] = "%s slaptažodžio grąžinimas";
 $GLOBALS['strProceed'] = "Tęskite >";
+
+// Password recovery - Default
+
+
+// Password recovery - Welcome email
+
+// Password recovery - Hash update
+
+// Password reset warning
 
 // Audit
 $GLOBALS['strAdditionalItems'] = "Pridėti papildomų punktų";
@@ -677,6 +719,7 @@ $GLOBALS['strCampaignSetUp'] = "Nustatyti kampaniją šiandien";
 $GLOBALS['strCampaignNoRecordsAdmin'] = "<li> Nėra jokių įrašų atvaizduoti kampanijos veiklą.</li>";
 
 $GLOBALS['strCampaignNoDataTimeSpan'] = "Per laiko tarpą, kurį pasirinkote jokia kampanija neprasidėjo ir nesibaigė";
+$GLOBALS['strCampaignAuditNotActivated'] = "<li>Jei norite peržiūrėti kampanijas, kurios prasidėjo arba kurios jau baigėsi, pagal tam tikrą laiką intervalą, kurį nustatėte, Audit trail turi būti aktyvuotas</li>	        <li>Jūs matote šį pranešimą, nes dar neaktyvavote patikrinimo keliol</li>";
 $GLOBALS['strCampaignAuditTrailSetup'] = "Aktyvuokite Audit Trail norėdami pradėti peržiūrėti kampanijas";
 
 
@@ -692,6 +735,21 @@ $GLOBALS['strCampaignAuditTrailSetup'] = "Aktyvuokite Audit Trail norėdami prad
 
 
 // Report error messages
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

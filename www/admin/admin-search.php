@@ -26,17 +26,15 @@ OA_Permission::enforceAccount(OA_ACCOUNT_MANAGER);
 
 
 // Check Searchselection
-if (!isset($client) || ($client != 't'))        $client = false;
-if (!isset($campaign) || ($campaign != 't'))    $campaign = false;
-if (!isset($banner) || ($banner != 't'))        $banner = false;
-if (!isset($zone) || ($zone != 't'))            $zone = false;
-if (!isset($affiliate) || ($affiliate != 't'))  $affiliate = false;
+$client = 't' === ($client ?? 'f');
+$campaign = 't' === ($campaign ?? 'f');
+$banner = 't' === ($banner ?? 'f');
+$zone = 't' === ($zone ?? 'f');
+$affiliate = 't' === ($affiliate ?? 'f');
+$compact = 't' === ($compact ?? 'f');
+$keyword ??= '';
 
-
-if ($client == false &&    $campaign == false &&
-    $banner == false &&    $zone == false &&
-    $affiliate == false)
-{
+if ($client === false && $campaign === false && $banner === false && $zone === false && $affiliate === false) {
     $client = true;
     $campaign = true;
     $banner = true;
@@ -44,51 +42,46 @@ if ($client == false &&    $campaign == false &&
     $affiliate = true;
 }
 
-if (!isset($compact)) {
-    $compact = false;
-}
-
-if (!isset($keyword)) {
-    $keyword = '';
-}
-
 OA_Dal::factoryDO('Campaigns');
 OA_Dal::factoryDO('Clients');
 
 // Send header with charset info
-header ("Content-Type: text/html".(isset($phpAds_CharSet) && $phpAds_CharSet != "" ? "; charset=".$phpAds_CharSet : ""));
+header("Content-Type: text/html" . (isset($phpAds_CharSet) && $phpAds_CharSet != "" ? "; charset=" . $phpAds_CharSet : ""));
 
 $agencyId = OA_Permission::getAgencyId();
 
-$aZones = $aAffiliates = $aClients = $aBanners = $aCampaigns = array();
+$aZones = $aAffiliates = $aClients = $aBanners = $aCampaigns = [];
 
-if ($client != false) {
+if ($client) {
     $dalClients = OA_Dal::factoryDAL('clients');
     $rsClients = $dalClients->getClientByKeyword($keyword, $agencyId);
     $rsClients->find();
 
     while ($rsClients->fetch()) {
         $aClient = $rsClients->toArray();
-        $aClient['clientname'] = phpAds_breakString ($aClient['clientname'], '30');
-        $aClient['campaigns'] = array();
+        $aClient['clientname'] = phpAds_breakString($aClient['clientname'], '30');
+        $aClient['campaigns'] = [];
 
         if (!$compact) {
             $dalCampaigns = OA_Dal::factoryDAL('campaigns');
             $aClientCampaigns = $dalCampaigns->getClientCampaigns($aClient['clientid']);
 
             foreach ($aClientCampaigns as $campaignId => $aCampaign) {
-                $aCampaign['campaignname'] = phpAds_breakString ($aCampaign['campaignname'], '30');
+                $aCampaign['campaignname'] = phpAds_breakString($aCampaign['campaignname'], '30');
                 $aCampaign['campaignid'] = $campaignId;
-                $aCampaign['banners'] = array();
+                $aCampaign['banners'] = [];
                 $dalBanners = OA_Dal::factoryDAL('banners');
                 $aCampaignBanners = $dalBanners->getAllBannersUnderCampaign($campaignId, '', '');
                 foreach ($aCampaignBanners as $aBanner) {
-
                     $aBanner['name'] = $GLOBALS['strUntitled'];
-                    if (!empty($aBanner['alt'])) $aBanner['name'] = $aBanner['alt'];
-                    if (!empty($aBanner['description'])) $aBanner['name'] = $aBanner['description'];
+                    if (!empty($aBanner['alt'])) {
+                        $aBanner['name'] = $aBanner['alt'];
+                    }
+                    if (!empty($aBanner['description'])) {
+                        $aBanner['name'] = $aBanner['description'];
+                    }
 
-                    $aBanner['name'] = phpAds_breakString ($aBanner['name'], '30');
+                    $aBanner['name'] = phpAds_breakString($aBanner['name'], '30');
                     $aCampaign['banners'][] = $aBanner;
                 }
                 $aClient['campaigns'][] = $aCampaign;
@@ -98,23 +91,27 @@ if ($client != false) {
     }
 }
 
-if ($campaign != false) {
+if ($campaign) {
     $dalCampaigns = OA_Dal::factoryDAL('campaigns');
     $rsCampaigns = $dalCampaigns->getCampaignAndClientByKeyword($keyword, $agencyId);
     $rsCampaigns->find();
     while ($rsCampaigns->fetch()) {
         $aCampaign = $rsCampaigns->toArray();
-        $aCampaign['campaignname'] = phpAds_breakString ($aCampaign['campaignname'], '30');
-        $aCampaign['banners'] = array();
+        $aCampaign['campaignname'] = phpAds_breakString($aCampaign['campaignname'], '30');
+        $aCampaign['banners'] = [];
 
         if (!$compact) {
             $dalBanners = OA_Dal::factoryDAL('banners');
             $aCampaignBanners = $dalBanners->getAllBannersUnderCampaign($aCampaign['campaignid'], '', '');
             foreach ($aCampaignBanners as $aBanner) {
                 $aBanner['name'] = $GLOBALS['strUntitled'];
-                if (!empty($aBanner['alt'])) $aBanner['name'] = $aBanner['alt'];
-                if (!empty($aBanner['description'])) $aBanner['name'] = $aBanner['description'];
-                $aBanner['name'] = phpAds_breakString ($aBanner['name'], '30');
+                if (!empty($aBanner['alt'])) {
+                    $aBanner['name'] = $aBanner['alt'];
+                }
+                if (!empty($aBanner['description'])) {
+                    $aBanner['name'] = $aBanner['description'];
+                }
+                $aBanner['name'] = phpAds_breakString($aBanner['name'], '30');
 
                 $aCampaign['banners'][] = $aBanner;
             }
@@ -124,7 +121,7 @@ if ($campaign != false) {
 }
 
 
-if ($banner != false) {
+if ($banner) {
     $dalBanners = OA_Dal::factoryDAL('banners');
     $rsBanners = $dalBanners->getBannerByKeyword($keyword, $agencyId);
     $rsBanners->reset();
@@ -132,22 +129,26 @@ if ($banner != false) {
         $aBanner = $rsBanners->toArray();
 
         $aBanner['name'] = $GLOBALS['strUntitled'];
-        if (isset($aBanner['alt']) && $aBanner['alt']) $aBanner['name'] = $aBanner['alt'];
-        if (isset($aBanner['description']) && $aBanner['description']) $aBanner['name'] = $aBanner['description'];
-        $aBanner['name'] = phpAds_breakString ($aBanner['name'], '30');
+        if (isset($aBanner['alt']) && $aBanner['alt']) {
+            $aBanner['name'] = $aBanner['alt'];
+        }
+        if (isset($aBanner['description']) && $aBanner['description']) {
+            $aBanner['name'] = $aBanner['description'];
+        }
+        $aBanner['name'] = phpAds_breakString($aBanner['name'], '30');
 
         $aBanners[] = $aBanner;
     }
 }
 
-if ($affiliate != false) {
+if ($affiliate) {
     $dalAffiliates = OA_Dal::factoryDAL('affiliates');
     $rsAffiliates = $dalAffiliates->getAffiliateByKeyword($keyword, $agencyId);
     $rsAffiliates->reset();
 
     while ($rsAffiliates->fetch()) {
         $aAffiliate = $rsAffiliates->toArray();
-        $aAffiliate['name'] = phpAds_breakString ($aAffiliate['name'], '30');
+        $aAffiliate['name'] = phpAds_breakString($aAffiliate['name'], '30');
 
         if (!$compact) {
             $doZones = OA_Dal::factoryDO('zones');
@@ -156,7 +157,7 @@ if ($affiliate != false) {
 
             while ($doZones->fetch()) {
                 $aZone = $doZones->toArray();
-                $aZone['zonename'] = phpAds_breakString ($aZone['zonename'], '30');
+                $aZone['zonename'] = phpAds_breakString($aZone['zonename'], '30');
 
                 $aAffiliate['zones'][] = $aZone;
             }
@@ -166,13 +167,13 @@ if ($affiliate != false) {
     }
 }
 
-if ($zone != false) {
+if ($zone) {
     $dalZones = OA_Dal::factoryDAL('zones');
     $rsZones = $dalZones->getZoneByKeyword($keyword, $agencyId);
     $rsZones->find();
     while ($rsZones->fetch()) {
         $aZone = $rsZones->toArray();
-        $aZone['zonename'] = phpAds_breakString ($aZone['zonename'], '30');
+        $aZone['zonename'] = phpAds_breakString($aZone['zonename'], '30');
 
         $aZones[] = $aZone;
     }
@@ -199,11 +200,8 @@ $oTpl->assign('aBanners', $aBanners);
 $oTpl->assign('aAffiliates', $aAffiliates);
 $oTpl->assign('aZones', $aZones);
 
-
 $oUI = new OA_Admin_UI_Search();
 
-$oUI->showHeader($keyword);
+$oUI->showSearchHeader($oTpl);
 $oTpl->display();
 $oUI->showFooter();
-
-?>

@@ -15,14 +15,9 @@ $className = 'OA_UpgradePrescript_2_0_11';
 
 class OA_UpgradePrescript_2_0_11
 {
-    var $oUpgrade;
+    public $oUpgrade;
 
-    function __construct()
-    {
-
-    }
-
-    function execute($aParams)
+    public function execute($aParams)
     {
         $this->oUpgrade = $aParams[0];
 
@@ -38,9 +33,9 @@ class OA_UpgradePrescript_2_0_11
 
             $result = $this->oUpgrade->oDbh->exec("ALTER TABLE {$prefix}images ALTER t_stamp TYPE timestamp");
 
-            $result = $this->oUpgrade->oDbh->exec("DROP INDEX ".OA_phpAdsNew::phpPgAdsPrefixedIndex('banners_clientid_idx', $prefix));
-            $result = $this->oUpgrade->oDbh->exec("DROP INDEX ".OA_phpAdsNew::phpPgAdsPrefixedIndex('clients_parent_idx', $prefix));
-            $result = $this->oUpgrade->oDbh->exec("DROP INDEX ".OA_phpAdsNew::phpPgAdsPrefixedIndex('zones_affiliateid_idx', $prefix));
+            $result = $this->oUpgrade->oDbh->exec("DROP INDEX " . OA_phpAdsNew::phpPgAdsPrefixedIndex('banners_clientid_idx', $prefix));
+            $result = $this->oUpgrade->oDbh->exec("DROP INDEX " . OA_phpAdsNew::phpPgAdsPrefixedIndex('clients_parent_idx', $prefix));
+            $result = $this->oUpgrade->oDbh->exec("DROP INDEX " . OA_phpAdsNew::phpPgAdsPrefixedIndex('zones_affiliateid_idx', $prefix));
 
             $aForeignKeys = $this->oUpgrade->oDbh->getAssoc("
                 SELECT
@@ -61,7 +56,7 @@ class OA_UpgradePrescript_2_0_11
                 $result = $this->oUpgrade->oDbh->exec("ALTER TABLE {$table} DROP CONSTRAINT {$fkey}");
             }
 
-            $aIndexes = array(
+            $aIndexes = [
                 OA_phpAdsNew::phpPgAdsPrefixedIndex('acls_bannerid_idx', $prefix) => 'acls_bannerid',
                 OA_phpAdsNew::phpPgAdsPrefixedIndex('acls_bannerid_executionorder_udx', $prefix) => 'acls_bannerid_executionorder',
                 OA_phpAdsNew::phpPgAdsPrefixedIndex('acls_bannerid_idx', $prefix) => 'acls_bannerid',
@@ -73,14 +68,14 @@ class OA_UpgradePrescript_2_0_11
                 OA_phpAdsNew::phpPgAdsPrefixedIndex('adviews_bid_date_idx', $prefix) => 'adviews_bannerid_date',
                 OA_phpAdsNew::phpPgAdsPrefixedIndex('adviews_date_idx', $prefix) => 'adviews_date',
                 OA_phpAdsNew::phpPgAdsPrefixedIndex('adviews_zoneid_idx', $prefix) => 'adviews_zoneid',
-                OA_phpAdsNew::phpPgAdsPrefixedIndex('zones_zonename_zoneid_idx', $prefix) => 'zones_zonenameid'
-            );
+                OA_phpAdsNew::phpPgAdsPrefixedIndex('zones_zonename_zoneid_idx', $prefix) => 'zones_zonenameid',
+            ];
 
             foreach ($aIndexes as $oldIndex => $newIndex) {
                 $result = $this->oUpgrade->oDbh->exec("ALTER INDEX {$oldIndex} RENAME TO {$prefix}{$newIndex}");
             }
 
-            $aFunctions = array(
+            $aFunctions = [
                 'unix_timestamp(timestamptz)',
                 'from_unixtime(int4)',
                 'to_days(timestamptz)',
@@ -90,8 +85,8 @@ class OA_UpgradePrescript_2_0_11
                 'week(timestamptz)',
                 'hour(timestamptz)',
                 'date_format(timestamptz, text)',
-                'if(bool, varchar, varchar)'
-            );
+                'if(bool, varchar, varchar)',
+            ];
 
             foreach ($aFunctions as $function) {
                 $result = $this->oUpgrade->oDbh->exec("DROP FUNCTION {$function}");
@@ -103,5 +98,3 @@ class OA_UpgradePrescript_2_0_11
         return true;
     }
 }
-
-?>

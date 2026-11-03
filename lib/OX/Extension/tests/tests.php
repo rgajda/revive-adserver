@@ -10,7 +10,7 @@
 +---------------------------------------------------------------------------+
 */
 
-require_once LIB_PATH.'/Plugin/Component.php';
+require_once LIB_PATH . '/Plugin/Component.php';
 
 /**
  * this is a pretend extension fallback class
@@ -18,9 +18,4 @@ require_once LIB_PATH.'/Plugin/Component.php';
  *
  */
 
-class Plugins_tests extends OX_Component
-{
-
-}
-
-?>
+class Plugins_tests extends OX_Component {}

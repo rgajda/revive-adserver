@@ -12,7 +12,7 @@
 
 // Set translation strings
 $GLOBALS['strDeliveryEngine'] = "Dostarczanie";
-$GLOBALS['strMaintenance'] = "Utrzymanie";
+$GLOBALS['strMaintenance'] = "Konserwacja";
 
 // Audit
 $GLOBALS['strDeleted'] = "usunięto";
@@ -36,6 +36,6 @@ $GLOBALS['strCollectedAllEvents'] = "Wszystkie wyniki";
 $GLOBALS['strClear'] = "Wyczyść";
 
 if (!isset($GLOBALS['strUserlog'])) {
-    $GLOBALS['strUserlog'] = array();
+    $GLOBALS['strUserlog'] = [];
 }
 $GLOBALS['strUserlog'][phpAds_actionActivationMailed] = "Informacja o aktywacji kampanii {id} została wysłana e-mailem";

@@ -20,7 +20,6 @@ $GLOBALS['strBtnContinue'] = "Ga verder »";
 $GLOBALS['strBtnRecover'] = "Herstellen »";
 $GLOBALS['strBtnAgree'] = "Ik ga akkoord »";
 $GLOBALS['strBtnRetry'] = "Probeer opnieuw";
-$GLOBALS['strWarningRegisterArgcArv'] = "De PHP configuratie variabele register_argc_argv moet worden ingeschakeld om onderhoud vanaf de opdrachtregel uit te kunnen voeren.";
 $GLOBALS['strTablesPrefix'] = "Tabelnaam voorvoegsel";
 $GLOBALS['strTablesType'] = "Tabeltype";
 
@@ -58,7 +57,7 @@ $GLOBALS['strEditConfigNotPossible'] = "Het is niet mogelijk om alle instellinge
 $GLOBALS['strEditConfigPossible'] = "Het is mogelijk om alle instellingen te bewerken omdat het configuratiebestand niet isvergrendeld, wat tot beveiligingsproblemen zou kunnen. Indien u uw systeem wilt beveiligen, moet u het configurattiebestand van deze installatie vergrendelen.";
 $GLOBALS['strUnableToWriteConfig'] = "Wegschrijven van wijzigingen in de config file was niet mogelijk";
 $GLOBALS['strUnableToWritePrefs'] = "Wegschrijven van voorkeursinstellingen in de database was niet mogelijk";
-$GLOBALS['strImageDirLockedDetected'] = "De ingevoerde <b>Images Folder</b> is niet beschrijfbaar door de server. <br>U kunt niet verder gaan tot u ofwel de permissies van de folder heeft aangepast, of de betreffende folder heeft aangemaakt.";
+$GLOBALS['strImageDirLockedDetected'] = "De ingevoerde Images Folder is niet beschrijfbaar door de server. U kunt niet verder gaan tot u ofwel de permissies van de folder heeft aangepast, of de betreffende folder heeft aangemaakt.";
 
 // Configuration Settings
 $GLOBALS['strConfigurationSettings'] = "Configuratie-instellingen";
@@ -77,6 +76,7 @@ $GLOBALS['strEnableDashboard'] = "Inschakelen van dashboard";
 $GLOBALS['strEnableDashboardSyncNotice'] = "Schakel <a href='account-settings-update.php'>controleren op updates</a> in om het dashboard te gebruiken.";
 $GLOBALS['strTimezone'] = "Tijdzone";
 $GLOBALS['strEnableAutoMaintenance'] = "Automatisch het onderhoudsproces uitvoeren tijdens uitlevering van banners als gepland onderhoud niet is ingesteld";
+$GLOBALS['strInvalidLanguage'] = "Ongeldige taal";
 
 // Database Settings
 $GLOBALS['strDatabaseSettings'] = "Database instellingen";
@@ -106,6 +106,14 @@ $GLOBALS['strQmailPatch'] = "Pas headers aan voor qmail";
 $GLOBALS['strEnableQmailPatch'] = "Inschakelen van qmail patch";
 $GLOBALS['strEmailHeader'] = "Email headers";
 $GLOBALS['strEmailLog'] = "E-mail log";
+$GLOBALS['strMailerPlugin'] = "Geselecteerde Mailer plugin";
+
+// Security settings
+$GLOBALS['strSecurityAndDebug'] = "Beveiliging en Debug Instellingen";
+$GLOBALS['strSecuritySettings'] = "Beveiligingsinstellingen";
+$GLOBALS['strSecurityPasswordMinLength'] = "Minimale wachtwoord lengte";
+$GLOBALS['strSecurityBadLoginPath'] = "Logbestand voor foute logins";
+$GLOBALS['strSecurityAllowLinkingExistingUsers'] = "Beheerders toestaan bestaande gebruikers te koppelen (niet veilig op gedeelde instanties)";
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Audit Trail Instellingen";
@@ -153,7 +161,7 @@ $GLOBALS['strTypeWebModeFtp'] = "Externe FTP-Server";
 $GLOBALS['strTypeWebDir'] = "Lokale map";
 $GLOBALS['strTypeFTPHost'] = "FTP server";
 $GLOBALS['strTypeFTPDirectory'] = "Server map";
-$GLOBALS['strTypeFTPUsername'] = "Gebruikersnaam";
+$GLOBALS['strTypeFTPUsername'] = "Inloggen";
 $GLOBALS['strTypeFTPPassword'] = "Wachtwoord";
 $GLOBALS['strTypeFTPPassive'] = "Passieve FTP gebruiken";
 $GLOBALS['strTypeFTPErrorDir'] = "De server map bestaat niet";
@@ -163,6 +171,7 @@ $GLOBALS['strTypeFTPErrorUpload'] = "Uploaden van het bestand naar de FTP server
 $GLOBALS['strTypeFTPErrorHost'] = "De hostname van de FTP server is niet correct";
 $GLOBALS['strDeliveryFilenames'] = "Delivery Bestandsnamen";
 $GLOBALS['strDeliveryFilenamesAdClick'] = "Ad Click";
+$GLOBALS['strDeliveryFilenamesSignedAdClick'] = "Gesigneerde advertentie klik";
 $GLOBALS['strDeliveryFilenamesAdConversionVars'] = "Advertentie conversie variabelen";
 $GLOBALS['strDeliveryFilenamesAdContent'] = "Ad Content";
 $GLOBALS['strDeliveryFilenamesAdConversion'] = "Advertentie conversie";
@@ -177,22 +186,29 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Ad View";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPC Invocation";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Local Invocation";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Front Controller";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Flash Include (kan een volledige URL zijn)";
 $GLOBALS['strDeliveryFilenamesSinglePageCall'] = "Single Page Call";
 $GLOBALS['strDeliveryFilenamesSinglePageCallJS'] = "Single Page Call (JavaScript)";
+$GLOBALS['strDeliveryFilenamesAsyncJS'] = "Async JavaScript (bronbestand)";
+$GLOBALS['strDeliveryFilenamesAsyncPHP'] = "Async JavaScript";
+$GLOBALS['strDeliveryFilenamesAsyncSPC'] = "Async JavaScript Enkelvoudige Pagina-aanroep";
 $GLOBALS['strDeliveryCaching'] = "Instellingen voor de buffering van uitlevering van banners";
 $GLOBALS['strDeliveryCacheLimit'] = "Tijd tussen Banner Cache Updates (seconden)";
 $GLOBALS['strDeliveryCacheStore'] = "Banner Delivery Cache Store Type";
 $GLOBALS['strDeliveryAcls'] = "Evalueer uitleveringsregels van banners tijdens uitlevering";
 $GLOBALS['strDeliveryAclsDirectSelection'] = "Evalueer uitleveringsregels voor banners voor direct geselecteerde banners";
 $GLOBALS['strDeliveryObfuscate'] = "Verberg verzameling uitleveringsregels bij het aflevering van banners";
-$GLOBALS['strDeliveryExecPhp'] = "Sta toe dat PHP code in banners wordt uitgevoerd<br />(waarschuwing: veiligheidsrisico)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Scheidingsteken voor derde partij Click Tracking";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "Algemene standaard banner afbeeldings-URL";
-$GLOBALS['strP3PSettings'] = "P3P-privacybeleid";
-$GLOBALS['strUseP3P'] = "Gebruik P3P Policies";
-$GLOBALS['strP3PCompactPolicy'] = "P3P Compacte Policy";
-$GLOBALS['strP3PPolicyLocation'] = "P3P Policy Locatie";
+$GLOBALS['strDeliveryPreconnect'] = "Vraag browsers om vooraf verbinding te maken met de URL van de afbeelding (indien anders dan de uitleverings-URL, alleen HTTPS-functie)";
+$GLOBALS['strDeliveryClickUrlValidity'] = "Geldigheid van aangepaste bestemming URL-doorverwijzingen in {clickurl} macro's (seconden). Voer 0 in om doorverwijzingen niet toe te staan";
+$GLOBALS['strDeliveryRelAttribute'] = "Standaard rel attribuut voor &lt;a href&gt; HTML tags";
+$GLOBALS['strGlobalDefaultBannerInvalidZone'] = "Algemene standaard HTML Banner voor niet-bestaande zones";
+$GLOBALS['strGlobalDefaultBannerSuspendedAccount'] = "Algemene standaard HTML Banner voor opgeschorte accounts";
+$GLOBALS['strGlobalDefaultBannerInactiveAccount'] = "Globale standaard HTML Banner voor niet-actieve accounts";
+$GLOBALS['strPrivacySettings'] = "Privacyinstellingen";
+$GLOBALS['strDisableViewerId'] = "Unieke Viewer Id cookie uitschakelen";
+$GLOBALS['strAnonymiseIp'] = "Anonimiseren viewer IP-adressen";
+$GLOBALS['strDisableDeliveryCookies'] = 'Leveringscookies uitschakelen';
+$GLOBALS['strBannerFileSettings'] = 'Algemene instellingen banner-bestanden';
+$GLOBALS['strMaxBannerFilesize'] = 'Maximale banner bestandsgrootte (bytes, 0 betekent ongelimiteerd)';
 
 // General Settings
 $GLOBALS['generalSettings'] = "Globale algemene systeeminstellingen";
@@ -275,7 +291,7 @@ $GLOBALS['strWarnAgency'] = "Stuur een waarschuwing naar de beheerder wanneer er
 
 // UI Settings
 $GLOBALS['strGuiSettings'] = "Gebruikersinterface instellingen";
-$GLOBALS['strGeneralSettings'] = "Algemene instellingen";
+$GLOBALS['strGeneralSettings'] = "Algemene Instellingen";
 $GLOBALS['strAppName'] = "Applicatienaam";
 $GLOBALS['strMyHeader'] = "Header bestandslocatie";
 $GLOBALS['strMyFooter'] = "Footer Bestandslocatie";
@@ -291,6 +307,8 @@ $GLOBALS['strGuiHeaderBackgroundColor'] = "Kleur van de header achtergrond";
 $GLOBALS['strGuiActiveTabColor'] = "Kleur van een actieve tab";
 $GLOBALS['strGuiHeaderTextColor'] = "Kleur van headertekst";
 $GLOBALS['strGuiSupportLink'] = "Aangepaste URL voor 'Support' link in de koptekst";
+$GLOBALS['strAdminCookieDomain'] = "Aangepast cookie-domein voor de gebruikersinterface";
+$GLOBALS['strGuiLoaderDelay'] = "Toon een Loading animatie als het langer dan X milliseconden duurt om het volgende scherm te laden (gebruik -1 om uit te schakelen)";
 $GLOBALS['strGzipContentCompression'] = "Gebruik GZIP content compression";
 
 // Regenerate Platfor Hash script

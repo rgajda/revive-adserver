@@ -32,7 +32,7 @@ $session['prefs']['inventory_entities'][OA_Permission::getEntityId()]['clientid'
 phpAds_SessionDataStore();
 
 // Initialize trackerAppend class
-$trackerAppend = new Max_Admin_Inventory_TrackerAppend();
+$trackerAppend = new MAX_Admin_Inventory_TrackerAppend();
 
 /*-------------------------------------------------------*/
 /* Process submitted form                                */
@@ -52,12 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 /* HTML framework                                        */
 /*-------------------------------------------------------*/
 $doClients = OA_Dal::factoryDO('clients');
-$doClients->whereAdd('clientid <>'.$trackerid);
+$doClients->whereAdd('clientid <>' . $trackerid);
 if (OA_Permission::isAccount(OA_ACCOUNT_MANAGER)) {
     $doClients->agencyid = OA_Permission::getAgencyId();
 }
 $doClients->find();
-$aOtherAdvertisers = array();
+$aOtherAdvertisers = [];
 while ($doClients->fetch() && $row = $doClients->toArray()) {
     $aOtherAdvertisers[] = $row;
 }
@@ -77,5 +77,3 @@ $session['prefs']['tracker-variables.php']['trackerid'] = $trackerid;
 phpAds_SessionDataStore();
 
 phpAds_PageFooter();
-
-?>

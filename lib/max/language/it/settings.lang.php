@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "Continua »";
 $GLOBALS['strBtnRecover'] = "Recupera »";
 $GLOBALS['strBtnAgree'] = "Acconsento »";
 $GLOBALS['strBtnRetry'] = "Riprova";
-$GLOBALS['strWarningRegisterArgcArv'] = "La variabile di configurazione del PHP register_argc_argv deve essere attiva per eseguire la manutenzione da linea di comando.";
+$GLOBALS['strTablesPrefix'] = "Prefisso delle tabelle";
 $GLOBALS['strTablesType'] = "Tipo di tabelle";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Il tuo precedente tentativo di aggiornamento ha generato un errore";
@@ -28,8 +28,9 @@ $GLOBALS['strRecoveryRequired'] = "Durante il tuo precedente tentativo di aggior
 
 $GLOBALS['strProductUpToDateTitle'] = "{$PRODUCT_NAME} è aggiornato";
 $GLOBALS['strOaUpToDate'] = "Il database e i file della tua installazione di {$PRODUCT_NAME} sono già aggiornati all'ultima versione e non è quindi al momento necessario procedere ad alcun aggiornamento. Premi Continua per raggiungere il pannello di amministrazione di OpenX.";
-$GLOBALS['strOaUpToDateCantRemove'] = "Attenzione: il file UPGRADE è ancora presente all'interno della cartella var. Non è possibile cancellare questo file automaticamente per mancanza dei permessi necessari. Si prega di rimuovere il file manualmente.";
+$GLOBALS['strOaUpToDateCantRemove'] = "Attenzione: il file UPGRADE è ancora presente all'interno della cartella 'var'. Non è possibile cancellare questo file automaticamente per mancanza dei permessi necessari. Si prega di rimuovere il file manualmente.";
 $GLOBALS['strErrorWritePermissions'] = "E' stato riscontrato un errore nei permessi dei file che deve essere corretto prima procedere.<br />Per correggere l'errore su un sistema Linux, prova a digitare i seguenti comandi:";
+$GLOBALS['strErrorFixPermissionsRCommand'] = "<i>chmod -R a+w %s</i>";
 $GLOBALS['strNotWriteable'] = "NON scrivibile";
 $GLOBALS['strDirNotWriteableError'] = "La directory deve essere scrivibile";
 
@@ -44,19 +45,24 @@ $GLOBALS['strImagesUrlPrefix'] = "URL memorizzazione immagini";
 $GLOBALS['strImagesUrlPrefixSSL'] = "URL memorizzazione immagini (SSL)";
 
 
+$GLOBALS['strUpgrade'] = "Aggiornamento";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
 /* ------------------------------------------------------- */
 
 // Global
-$GLOBALS['strChooseSection'] = "Scegli la sezione";
+$GLOBALS['strChooseSection'] = "Scegli sezione";
+$GLOBALS['strEditConfigNotPossible'] = "Non è possibile modificare tutte le impostazioni perché il file di configurazione è bloccato per motivi di sicurezza.
+    Se si desidera apportare modifiche, potrebbe essere necessario sbloccare prima il file di configurazione per questa installazione.";
+$GLOBALS['strEditConfigPossible'] = "È possibile modificare tutte le impostazioni perché il file di configurazione non è bloccato, ma questo potrebbe portare a problemi di sicurezza.
+    Se si desidera proteggere il sistema, è necessario bloccare il file di configurazione per questa installazione.";
 $GLOBALS['strUnableToWriteConfig'] = "Impossibile salvare le modifiche nel file di configurazione";
 $GLOBALS['strUnableToWritePrefs'] = "Impossibile salvare le preferenze nel database";
-$GLOBALS['strImageDirLockedDetected'] = "IL server non può scrivere nella <b>Cartelle delle Immagini</b>. <br>Non è possibile procedere fino a che i permessi della cartella non sono cambiati o la cartelle non è stata creata.";
+$GLOBALS['strImageDirLockedDetected'] = "Il server non può scrivere nella Cartella delle Immagini. Non è possibile procedere fino a che i permessi della cartella non sono cambiati o la cartelle non è stata creata.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Configurazione impostazioni";
+$GLOBALS['strConfigurationSettings'] = "Impostazioni di configurazione";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Amministratore  Nome utente";
@@ -71,7 +77,8 @@ $GLOBALS['strUserlogEmail'] = "Registra tutte le email in uscita";
 $GLOBALS['strEnableDashboard'] = "Abilita dashboard";
 $GLOBALS['strEnableDashboardSyncNotice'] = "Per favore abilita <a href='account-settings-update.php'>Controllo aggiornamenti</a> se vuoi usare la bacheca.";
 $GLOBALS['strTimezone'] = "Fuso orario";
-$GLOBALS['strEnableAutoMaintenance'] = "Esegue automaticamente la manutenzione durante la consegna se la manutenzione progeammata non è impostata.";
+$GLOBALS['strEnableAutoMaintenance'] = "Esegue automaticamente la manutenzione durante la consegna se la manutenzione programmata non è impostata.";
+$GLOBALS['strInvalidLanguage'] = "Lingua non valida";
 
 // Database Settings
 $GLOBALS['strDatabaseSettings'] = "Impostazioni database";
@@ -96,14 +103,24 @@ $GLOBALS['strEmailAddresses'] = "Indirizzo del mittente";
 $GLOBALS['strEmailFromName'] = "Nome del mittente";
 $GLOBALS['strEmailFromAddress'] = "Indirizzo del mittente";
 $GLOBALS['strEmailFromCompany'] = "Azienda del mittente";
+$GLOBALS['strUseManagerDetails'] = 'Utilizzare il contatto dell\'account proprietario, l\'email e il nome invece del nome, indirizzo email e azienda sopra riportati quando si inviano messaggi di posta elettronica agli account dell\'inserzionista o del sito web.';
 $GLOBALS['strQmailPatch'] = "Abilita patch per qmail";
 $GLOBALS['strEnableQmailPatch'] = "Abilita patch qmail";
 $GLOBALS['strEmailHeader'] = "Intestazione email";
 $GLOBALS['strEmailLog'] = "Log email";
+$GLOBALS['strMailerPlugin'] = "Plugin Mailer da utilizzare";
+
+// Security settings
+$GLOBALS['strSecurityAndDebug'] = "Impostazioni di sicurezza e debug";
+$GLOBALS['strSecuritySettings'] = "Impostazioni di sicurezza";
+$GLOBALS['strSecurityPasswordMinLength'] = "Lunghezza minima della password";
+$GLOBALS['strSecurityBadLoginPath'] = "File di log per accessi errati";
+$GLOBALS['strSecurityAllowLinkingExistingUsers'] = "Consenti ai manager di collegare utenti esistenti (non sicuro sulle istanze condivise)";
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Impostazioni Audit Trail";
 $GLOBALS['strEnableAudit'] = "Abilita Audit Trail";
+$GLOBALS['strEnableAuditForZoneLinking'] = "Abilita Audit Trail per lo schermo Zone Linking (introduce enormi penalità di prestazioni quando si collegano grandi quantità di zone)";
 
 // Debug Logging Settings
 $GLOBALS['strDebug'] = "Impostazioni Log di Debug";
@@ -131,6 +148,7 @@ $GLOBALS['strDebugPassword'] = "mCal, password server SQL";
 $GLOBALS['strProductionSystem'] = "Sistema di produzione";
 
 // Delivery Settings
+$GLOBALS['strWebPath'] = "Percorsi Di Accesso Server {$PRODUCT_NAME}";
 $GLOBALS['strWebPathSimple'] = "Percorso Web";
 $GLOBALS['strDeliveryPath'] = "Percorso di consegna";
 $GLOBALS['strImagePath'] = "Percorso immagini";
@@ -155,6 +173,7 @@ $GLOBALS['strTypeFTPErrorUpload'] = "Impossibile caricare i files sul server FTP
 $GLOBALS['strTypeFTPErrorHost'] = "L'hostname del server FTP non è corretto";
 $GLOBALS['strDeliveryFilenames'] = "Nomi dei file di consegna";
 $GLOBALS['strDeliveryFilenamesAdClick'] = "Click Inserzione";
+$GLOBALS['strDeliveryFilenamesSignedAdClick'] = "Clic Annuncio Firmato";
 $GLOBALS['strDeliveryFilenamesAdConversionVars'] = "Variabili di Conversione Inserzioni";
 $GLOBALS['strDeliveryFilenamesAdContent'] = "Contenuto Inserzione";
 $GLOBALS['strDeliveryFilenamesAdConversion'] = "Conversione Inserzione";
@@ -169,19 +188,29 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Vista Inserzione";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "Invocazione XML RPC";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Invocazione Locale";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Controllo Front";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Inclusione Flash (può essere un URL assoluto)";
 $GLOBALS['strDeliveryFilenamesSinglePageCall'] = "Single Page Call";
 $GLOBALS['strDeliveryFilenamesSinglePageCallJS'] = "Single Page Call (JavaScript)";
+$GLOBALS['strDeliveryFilenamesAsyncJS'] = "Async JavaScript (file sorgente)";
+$GLOBALS['strDeliveryFilenamesAsyncPHP'] = "Async JavaScript";
+$GLOBALS['strDeliveryFilenamesAsyncSPC'] = "Async JavaScript Single Page Call";
 $GLOBALS['strDeliveryCaching'] = "Impostazioni cache per la consegna dei banner";
 $GLOBALS['strDeliveryCacheLimit'] = "Intervallo di tempo fra due aggiornamenti della cache (in secondi)";
 $GLOBALS['strDeliveryCacheStore'] = "Tipo di cache per la consegna dei banner";
-$GLOBALS['strDeliveryExecPhp'] = "Permetti di eseguire codice PHP all'interno delle inserzioni<br />(Attenzione: Potrebbe introdurre rischi di sicurezza)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Delimitatore tracciamento click di terze parti";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "URL dell'immagine banner predefinito globale";
-$GLOBALS['strP3PSettings'] = "Impostazioni Privacy P3P";
-$GLOBALS['strUseP3P'] = "Utilizza le policy P3P";
-$GLOBALS['strP3PCompactPolicy'] = "Versione compatta della policy P3P";
-$GLOBALS['strP3PPolicyLocation'] = "Indirizzo della policy P3P completa";
+$GLOBALS['strDeliveryAcls'] = "Valuta le regole di consegna banner durante la consegna";
+$GLOBALS['strDeliveryAclsDirectSelection'] = "Valuta le regole di consegna banner per gli annunci selezionati direttamente";
+$GLOBALS['strDeliveryObfuscate'] = "Regola di consegna offuscata impostata quando consegna annunci";
+$GLOBALS['strDeliveryPreconnect'] = "Richiedi ai browser di pre-connettersi all'URL delle immagini (se diverso dall'URL di consegna, solo con HTTPS)";
+$GLOBALS['strDeliveryClickUrlValidity'] = "Validità delle destinazioni personalizzate nelle macro {clickurl} (in secondi). Inserire 0 per disattivare la funzionalità.";
+$GLOBALS['strDeliveryRelAttribute'] = "Attributo rel predefinito per i tag &lt;a href&gt; HTML";
+$GLOBALS['strGlobalDefaultBannerInvalidZone'] = "Banner HTML predefinito globale per zone non esistenti";
+$GLOBALS['strGlobalDefaultBannerSuspendedAccount'] = "Banner HTML predefinito globale per gli account sospesi";
+$GLOBALS['strGlobalDefaultBannerInactiveAccount'] = "Banner HTML predefinito globale per gli account inattivi";
+$GLOBALS['strPrivacySettings'] = "Impostazioni Privacy";
+$GLOBALS['strDisableViewerId'] = "Disabilita cookie Id visualizzatore univoco";
+$GLOBALS['strAnonymiseIp'] = "Anonymise viewer indirizzi IP";
+$GLOBALS['strDisableDeliveryCookies'] = 'Disattiva cookie durante la consegna banner';
+$GLOBALS['strBannerFileSettings'] = 'Impostazioni generali dei banner';
+$GLOBALS['strMaxBannerFilesize'] = 'Dimensione massima del file banner (in byte, 0 per dimensioni illimitate)';
 
 // General Settings
 $GLOBALS['generalSettings'] = "Impostazioni di sistema generale globale";
@@ -192,6 +221,7 @@ $GLOBALS['defaultLanguage'] = "Lingua di sistema predefinita<br />(Ogni utente p
 $GLOBALS['strGeotargetingSettings'] = "Targeting geografico";
 $GLOBALS['strGeotargeting'] = "Targeting geografico";
 $GLOBALS['strGeotargetingType'] = "Tipo di Modulo Targeting Geografico";
+$GLOBALS['strGeoShowUnavailable'] = "Mostra le regole di consegna geotargeting anche se i dati GeoIP non sono disponibili";
 
 // Interface Settings
 $GLOBALS['strInventory'] = "Inventario";
@@ -200,6 +230,7 @@ $GLOBALS['strShowBannerInfo'] = "Mostra informazioni aggiuntive nella pagina <i>
 $GLOBALS['strShowCampaignPreview'] = "Mostra anteprima dei banner nella pagina <i>Banner</i>";
 $GLOBALS['strShowBannerHTML'] = "Mostra il banner invece del codice HTML nell'anteprima dei banner HTML";
 $GLOBALS['strShowBannerPreview'] = "Mostra anteprima nella parte superiore delle pagine relative ai banner";
+$GLOBALS['strUseWyswygHtmlEditorByDefault'] = "Usa l'editor HTML WYSIWYG per impostazione predefinita quando crei o modifichi banner HTML";
 $GLOBALS['strHideInactive'] = "Nascondi inattivi";
 $GLOBALS['strGUIShowMatchingBanners'] = "Mostra banner corrispondenti nella pagina <i>Banner collegati</i>";
 $GLOBALS['strGUIShowParentCampaigns'] = "Mostra campagne nella pagina <i>Banner collegati</i>";
@@ -245,11 +276,14 @@ $GLOBALS['strInactivatedCampaigns'] = "Lista delle campagne che sono state disat
 $GLOBALS['strMaintenanceSettings'] = "Impostazioni di manutenzione";
 $GLOBALS['strConversionTracking'] = "Impostazioni del monitoraggio conversioni";
 $GLOBALS['strEnableConversionTracking'] = "Abilita il monitoraggio conversioni";
+$GLOBALS['strBlockInactiveBanners'] = "Non contare le impressioni pubblicitarie, fare clic o reindirizzare l'utente all'URL di destinazione se il visualizzatore fa clic su un banner inattivo";
 $GLOBALS['strBlockAdClicks'] = "Non conteggiare il click se il visitatore ha cliccato la stessa inserzione nella stessa zona entro il tempo specificato (in secondi)";
 $GLOBALS['strMaintenanceOI'] = "Intervallo delle operazioni di manutenzione (in minuti)";
 $GLOBALS['strPrioritySettings'] = "Impostazioni Priorità";
 $GLOBALS['strPriorityInstantUpdate'] = "Aggiorna immediatamente le priorità a seguito di un cambiamento effettuato da interfaccia grafica";
 $GLOBALS['strPriorityIntentionalOverdelivery'] = "Prova intenzionalmente a consegnare più del dovuto (over-delivery) le campagne a contratto";
+$GLOBALS['strDefaultImpConvWindow'] = "Finestra Predefinita Di Conversione Ad Impressione (Secondi)";
+$GLOBALS['strDefaultCliConvWindow'] = "Finestra Predefinita Di Conversione Ad Click (Secondi)";
 $GLOBALS['strAdminEmailHeaders'] = "Aggiungi i seguenti header ad ogni e-mail inviata da {$PRODUCT_NAME}";
 $GLOBALS['strWarnLimit'] = "Invia un avviso quando il numero di impressioni rimaste sono inferiori a";
 $GLOBALS['strWarnLimitDays'] = "Invia un messaggio di avviso quando i giorni rimasti sono inferiori al numero specificato";
@@ -275,12 +309,16 @@ $GLOBALS['strGuiHeaderBackgroundColor'] = "Colore di sfondo dell'intestazione";
 $GLOBALS['strGuiActiveTabColor'] = "Colore del tab attivo";
 $GLOBALS['strGuiHeaderTextColor'] = "Colore del testo nell'intestazione";
 $GLOBALS['strGuiSupportLink'] = "URL personalizzato per il link di Supporto in alto";
+$GLOBALS['strAdminCookieDomain'] = "Dominio dei cookie dell'interfaccia utente";
+$GLOBALS['strGuiLoaderDelay'] = "Visualizza l'animazione di caricamento quando la schermata successiva richiede più di X millisecondi per caricare (usa -1 per disabilitare)";
 $GLOBALS['strGzipContentCompression'] = "Utilizza la compressione GZIP per i contenuti";
 
 // Regenerate Platfor Hash script
+$GLOBALS['strPlatformHashRegenerate'] = "Piattaforma Hash Rigenera";
 $GLOBALS['strNewPlatformHash'] = "La nuova piattaforma Hash è:";
 $GLOBALS['strPlatformHashInsertingError'] = "Errore nell'inserimento della Piattaforma Hash nel database";
 
 // Plugin Settings
 $GLOBALS['strPluginSettings'] = "Impostazioni del plugin";
 $GLOBALS['strEnableNewPlugins'] = "Attiva i plugin appena installati";
+$GLOBALS['strUseMergedFunctions'] = "Usa il file delle funzioni di consegna unito";

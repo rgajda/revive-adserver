@@ -11,7 +11,7 @@
 */
 
 /**
- * A model describing a page header. Allows to specify title, title icon class, 
+ * A model describing a page header. Allows to specify title, title icon class,
  * include breadcrumbs if any.
  */
 class OA_Admin_UI_Model_PageHeaderModel
@@ -22,46 +22,46 @@ class OA_Admin_UI_Model_PageHeaderModel
      * @var string
      */
     private $title;
-    
+
     /**
      * CSS class indicating icon which will be displayed next to title. If none
-     * specified icon will be read from navigation entry. 
+     * specified icon will be read from navigation entry.
      * I none specified no icon is used and page title is aligned with content.
      *
      * @var string
      */
     private $iconClass;
-    
+
     /**
-     * Indicates whether page is 
+     * Indicates whether page is
      * - default - icon and class read from nav structure
-     * - list - icon is read from nav, title uses last breadcrumb segment eg. 
+     * - list - icon is read from nav, title uses last breadcrumb segment eg.
      *      'Campaigns of Coca Cola', 'Banners in Coca Cola Summer Campaign'
      * - edit - add entity name after page title
-     * - new - add parent entity name after title - 'Add new campaign for advertiser Coca Cola' 
+     * - new - add parent entity name after title - 'Add new campaign for advertiser Coca Cola'
      *
      * @var string
      */
     private $pageType;
-    
-    
+
+
     /**
      * You can add entity name which will be displayed after page title. This
-     * is most likely used by edit pages and list pages (where entity name 
-     * inlcudes accordingly: edited entity name, or entity whose sub items are shown 
+     * is most likely used by edit pages and list pages (where entity name
+     * inlcudes accordingly: edited entity name, or entity whose sub items are shown
      *
      * @var string
      */
     private $entityName;
-    
+
     /**
      * Enter description here...
      *
      * @var array of OA_Admin_UI_Model_EntityBreadcrumbSegment elements
      */
     private $aEntityBreadcrumbs;
-    
-    
+
+
     /**
      * If eg. adding new item, we can add additional info - what is added where.
      * This indicates the "where" type
@@ -69,34 +69,34 @@ class OA_Admin_UI_Model_PageHeaderModel
      * @var string
      */
     private $newTargetTitle;
-    
+
     /**
      * If eg. adding new item, we can add additional info - what is added where.
      * This inicates the "where" name.
-     *      
+     *
      * @var string
      */
     private $newTargetName;
-    
+
     /**
      * If eg. adding new item, we can add additional info - what is added where.
      * This inicates the link to "where". Eg. Adding campaign to 'Advertiser X'
      * Link will point to 'Advertiser X' edit page
      */
     private $newTargetLink;
-    
+
     /**
      * Indicates whether any of the breadcrumb segments includes entity list.
      *
      * @var boolean
      */
     private $hasEntityList;
-    
+
     /**
      * A header constructor
      *
      */
-    public function __construct($title = null, $iconClass = null, $pageType = 'default', $aBreadcrumbs = null)
+    public function __construct($title = null, $iconClass = null, $pageType = 'default', $aBreadcrumbs = [])
     {
         $this->title = $title;
         $this->iconClass = $iconClass;
@@ -104,7 +104,7 @@ class OA_Admin_UI_Model_PageHeaderModel
         $this->aEntityBreadcrumbs = $aBreadcrumbs;
         $this->hasEntityList == false;
     }
-    
+
     /**
      * @return string
      */
@@ -112,7 +112,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->entityName;
     }
-    
+
     /**
      * @return string
      */
@@ -120,7 +120,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->pageType;
     }
-    
+
     /**
      * @param string $entityName
      */
@@ -128,7 +128,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->entityName = $entityName;
     }
-    
+
     /**
      * @param string $pageType
      */
@@ -136,8 +136,8 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->pageType = $pageType;
     }
-    
-    
+
+
     /**
      * @return string
      */
@@ -145,7 +145,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->iconClass;
     }
-    
+
     /**
      * @return string
      */
@@ -153,7 +153,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->title;
     }
-    
+
     /**
      * @param string $iconClass
      */
@@ -161,7 +161,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->iconClass = $iconClass;
     }
-    
+
     /**
      * @param string $title
      */
@@ -169,7 +169,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->title = $title;
     }
-    
+
     /**
      * @return string
      */
@@ -177,7 +177,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->newTargetName;
     }
-    
+
     /**
      * @return string
      */
@@ -185,16 +185,16 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->newTargetTitle;
     }
-    
-    
+
+
     /**
      * @return string
      */
     public function getNewTargetLink()
     {
         return $this->newTargetLink;
-    }    
-    
+    }
+
     /**
      * @param string $newTargetName
      */
@@ -202,7 +202,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->newTargetName = $newTargetName;
     }
-    
+
     /**
      * @param string $newTargetTitle
      */
@@ -210,23 +210,23 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->newTargetTitle = $newTargetTitle;
     }
-    
+
     /**
      * @param string $newTargetLink
      */
     public function setNewTargetLink($newTargetLink)
     {
         $this->newTargetLink = $newTargetLink;
-    }    
-    
-    
+    }
+
+
     /**
      * Indicates whether model is empty. Model is considered empty if no title is given
      *
      */
     public function isEmpty()
     {
-       return empty($this->title);
+        return empty($this->title);
     }
 
     /**
@@ -236,7 +236,7 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->aEntityBreadcrumbs;
     }
-    
+
     /**
      * @param array $aEntityBreadcrumbs
      */
@@ -244,8 +244,8 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->aEntityBreadcrumbs = $aEntityBreadcrumbs;
     }
-    
-    
+
+
     /**
      * @return boolean
      */
@@ -253,8 +253,8 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         return $this->hasEntityList;
     }
-    
-    
+
+
     /**
      * @param boolean $hasEntityList
      */
@@ -262,8 +262,8 @@ class OA_Admin_UI_Model_PageHeaderModel
     {
         $this->hasEntityList = $hasEntityList;
     }
-        
-    
+
+
     /**
      * Adds entity breadcrumb segment
      *
@@ -272,12 +272,10 @@ class OA_Admin_UI_Model_PageHeaderModel
     public function addSegment($oSegment)
     {
         $this->aEntityBreadcrumbs[] = $oSegment;
-        
+
         $aEntityMap = $oSegment->getEntityMap();
         if (!empty($aEntityMap)) {
             $this->setHasEntityList(true);
         }
     }
 }
-
-?>

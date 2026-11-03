@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ -z "$1" ]; then
 	echo "Usage: $0 <crowdin arguments>"
@@ -7,7 +7,7 @@ fi
 
 sed -i $'s/{\$\([^}]*\)}/{{\\1}}/g' lib/max/language/*/*.lang.php
 
-crowdin-cli $*
+crowdin $*
 
 sed -i $'s/{{\([^}]*\)}}/{$\\1}/g' lib/max/language/*/*.lang.php
 

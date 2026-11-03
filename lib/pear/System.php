@@ -65,13 +65,13 @@ class System
     /**
     * returns the commandline arguments of a function
     *
-    * @param    string  $argv           the commandline
+    * @param    string|array  $argv           the commandline
     * @param    string  $short_options  the allowed option short-tags
     * @param    string  $long_options   the allowed option long-tags
     * @return   array   the given options and there values
     * @access private
     */
-    function _parseArgs($argv, $short_options, $long_options = null)
+    public static function _parseArgs($argv, $short_options, $long_options = null)
     {
         if (!is_array($argv) && $argv !== null) {
             $argv = preg_split('/\s+/', $argv, -1, PREG_SPLIT_NO_EMPTY);
@@ -87,7 +87,7 @@ class System
     * @return bool false
     * @access private
     */
-    function raiseError($error)
+    public static function raiseError($error)
     {
         if (PEAR::isError($error)) {
             $error = $error->getMessage();
@@ -120,7 +120,7 @@ class System
     * @access   private
     */
 
-    function _dirToStruct($sPath, $maxinst, $aktinst = 0)
+    private static function _dirToStruct($sPath, $maxinst, $aktinst = 0)
     {
         $struct = array('dirs' => array(), 'files' => array());
         if (($dir = @opendir($sPath)) === false) {
@@ -157,7 +157,7 @@ class System
     * @return   array
     * @see System::_dirToStruct()
     */
-    function _multipleToStruct($files)
+    private static function _multipleToStruct($files)
     {
         $struct = array('dirs' => array(), 'files' => array());
         settype($files, 'array');
@@ -176,11 +176,11 @@ class System
     * The rm command for removing files.
     * Supports multiple files and dirs and also recursive deletes
     *
-    * @param    string  $args   the arguments for rm
+    * @param    string|array  $args   the arguments for rm
     * @return   mixed   PEAR_Error or true for success
     * @access   public
     */
-    function rm($args)
+    public static function rm($args)
     {
         $opts = System::_parseArgs($args, 'rf'); // "f" do nothing but like it :-)
         if (PEAR::isError($opts)) {
@@ -219,11 +219,11 @@ class System
     * Make directories.
     *
     * The -p option will create parent directories
-    * @param    string  $args    the name of the director(y|ies) to create
+    * @param    string|array  $args    the name of the director(y|ies) to create
     * @return   bool    True for success
     * @access   public
     */
-    function mkDir($args)
+    public static function mkDir($args)
     {
         $opts = System::_parseArgs($args, 'pm:');
         if (PEAR::isError($opts)) {
@@ -236,7 +236,7 @@ class System
             } elseif($opt[0] == 'm') {
                 // if the mode is clearly an octal number (starts with 0)
                 // convert it to decimal
-                if (strlen($opt[1]) && $opt[1]{0} == '0') {
+                if (strlen($opt[1]) && $opt[1][0] == '0') {
                     $opt[1] = octdec($opt[1]);
                 } else {
                     // convert to int
@@ -288,7 +288,7 @@ class System
     * @return   boolean true on success
     * @access   public
     */
-    function &cat($args)
+    public static function &cat($args)
     {
         $ret = null;
         $files = array();
@@ -354,12 +354,12 @@ class System
     *           TMPDIR in Unix will be used. If these vars are also missing
     *           c:\windows\temp or /tmp will be used.
     *
-    * @param   string  $args  The arguments
+    * @param   string|array  $args  The arguments
     * @return  mixed   the full path of the created (file|dir) or false
     * @see System::tmpdir()
     * @access  public
     */
-    function mktemp($args = null)
+    public static function mktemp($args = null)
     {
         static $first_time = true;
         $opts = System::_parseArgs($args, 't:d');
@@ -389,7 +389,7 @@ class System
         }
         $GLOBALS['_System_temp_files'][] = $tmp;
         if ($first_time) {
-            PEAR::registerShutdownFunc(array('System', '_removeTmpFiles'));
+            PEAR::registerShutdownFunc(self::_removeTmpFiles(...));
             $first_time = false;
         }
         return $tmp;
@@ -398,10 +398,8 @@ class System
     /**
     * Remove temporary files created my mkTemp. This function is executed
     * at script shutdown time
-    *
-    * @access private
     */
-    function _removeTmpFiles()
+    public static function _removeTmpFiles()
     {
         if (count($GLOBALS['_System_temp_files'])) {
             $delete = $GLOBALS['_System_temp_files'];
@@ -419,7 +417,7 @@ class System
     *
     * @return string The temporary directory on the system
     */
-    function tmpdir()
+    public static function tmpdir()
     {
         if (OS_WINDOWS) {
             if ($var = isset($_ENV['TMP']) ? $_ENV['TMP'] : getenv('TMP')) {
@@ -451,7 +449,7 @@ class System
     * @return mixed A string with the full path or false if not found
     * @author Stig Bakken <ssb@php.net>
     */
-    function which($program, $fallback = false)
+    public static function which($program, $fallback = false)
     {
         // enforce API
         if (!is_string($program) || '' == $program) {
@@ -528,7 +526,7 @@ class System
     * @return array Array of found files
     *
     */
-    function find($args)
+    public static function find($args)
     {
         if (!is_array($args)) {
             $args = preg_split('/\s+/', $args, -1, PREG_SPLIT_NO_EMPTY);
@@ -551,7 +549,7 @@ class System
                     break;
                 case '-name':
                     if (OS_WINDOWS) {
-                        if ($args[$i+1]{0} == '\\') {
+                        if ($args[$i+1][0] == '\\') {
                             // prepend drive
                             $args[$i+1] = addslashes(substr(getcwd(), 0, 2) . $args[$i + 1]);
                         }

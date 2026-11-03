@@ -14,17 +14,17 @@ require_once MAX_PATH . '/lib/OA/Admin/UI.php';
 
 class OA_Admin_UI_Search extends OA_Admin_UI
 {
-    function __construct()
+    public function __construct()
     {
         $this->oTpl = new OA_Admin_Template('layout/search.html');
     }
 
-    function showHeader($keyword)
+    public function showSearchHeader(OA_Admin_Template $oMainTpl)
     {
-        $this->oTpl->assign('keyword', $keyword);
+        foreach ($oMainTpl->get_template_vars() as $key => $value) {
+            $this->oTpl->assign($key, $value);
+        }
 
-        parent::showHeader(0);
+        $this->showHeader(0);
     }
 }
-
-?>

@@ -15,6 +15,8 @@ require_once MAX_PATH . '/lib/OA/ServiceLocator.php';
 require_once LIB_PATH . '/Maintenance/Statistics.php';
 require_once LIB_PATH . '/Maintenance/Statistics/Task/SetUpdateRequirements.php';
 
+Language_Loader::load();
+
 /**
  * A class for testing the OX_Maintenance_Statistics_Task_SetUpdateRequirements class.
  *
@@ -23,28 +25,19 @@ require_once LIB_PATH . '/Maintenance/Statistics/Task/SetUpdateRequirements.php'
  */
 class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Tests the _getMaintenanceStatisticsLastRunInfo() method.
      */
-    function test_getMaintenanceStatisticsLastRunInfo()
+    public function test_getMaintenanceStatisticsLastRunInfo()
     {
         // Create a reference to the OpenX configuration, and set it to
         // 15 minutes
-        $aConf =& $GLOBALS['_MAX']['CONF'];
+        $aConf = &$GLOBALS['_MAX']['CONF'];
         $aConf['maintenance']['operationInterval'] = 15;
 
         // Create the database connection
-        $oDbh            =& OA_DB::singleton();
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oDbh = OA_DB::singleton();
+        $oServiceLocator = OA_ServiceLocator::instance();
 
         // Prepare the OX_Maintenance_Statistics_Task_SetUpdateRequirements class to test with
         $oSetUpdateRequirements = new OX_Maintenance_Statistics_Task_SetUpdateRequirements();
@@ -58,7 +51,7 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         // Prepare a query to insert entries into the "log_maintenance_statistics" table
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].'log_maintenance_statistics', true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . 'log_maintenance_statistics', true) . "
                 (
                     start_run,
                     end_run,
@@ -68,23 +61,23 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
                 )
             VALUES
                 (?, ?, ?, ?, ?)";
-        $aTypes = array(
+        $aTypes = [
             'timestamp',
             'timestamp',
             'integer',
             'integer',
-            'timestamp'
-        );
+            'timestamp',
+        ];
         $stLogMaintenanceStatistics = $oDbh->prepare($query, $aTypes, MDB2_PREPARE_MANIP);
 
         // Insert an operation interval (only) update
-        $aData = array(
+        $aData = [
             '2004-06-06 10:15:00',
             '2004-06-06 10:16:15',
             75,
             OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI,
-            '2004-06-06 10:14:59'
-        );
+            '2004-06-06 10:14:59',
+        ];
         $rows = $stLogMaintenanceStatistics->execute($aData);
 
         // Test that the operation interval value is returned correctly, while
@@ -95,13 +88,13 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         $this->assertNull($oDate);
 
         // Insert a more recent operation interval (only) update
-        $aData = array(
+        $aData = [
             '2004-06-06 10:45:00',
             '2004-06-06 10:46:15',
             75,
             OX_DAL_MAINTENANCE_STATISTICS_UPDATE_OI,
-            '2004-06-06 10:44:59'
-        );
+            '2004-06-06 10:44:59',
+        ];
         $rows = $stLogMaintenanceStatistics->execute($aData);
 
         // Test that the operation interval value is returned correctly, while
@@ -112,13 +105,13 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         $this->assertNull($oDate);
 
         // Insert an hourly (only) update
-        $aData = array(
+        $aData = [
             '2004-06-06 11:05:00',
             '2004-06-06 11:06:15',
             75,
             OX_DAL_MAINTENANCE_STATISTICS_UPDATE_HOUR,
-            '2004-06-06 10:59:59'
-        );
+            '2004-06-06 10:59:59',
+        ];
         $rows = $stLogMaintenanceStatistics->execute($aData);
 
         // Test that the operation interval value is returned correctly,
@@ -130,13 +123,13 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         $this->assertEqual($oDate, new Date('2004-06-06 10:59:59'));
 
         // Insert an old dual operation interval/hour udpate
-        $aData = array(
+        $aData = [
             '2004-06-05 12:05:00',
             '2004-06-05 12:06:15',
             75,
             OX_DAL_MAINTENANCE_STATISTICS_UPDATE_BOTH,
-            '2004-06-05 11:59:59'
-        );
+            '2004-06-05 11:59:59',
+        ];
         $rows = $stLogMaintenanceStatistics->execute($aData);
 
         // Test the results are unchanged from before
@@ -146,13 +139,13 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         $this->assertEqual($oDate, new Date('2004-06-06 10:59:59'));
 
         // Insert a newer dual operation interval/hour udpate
-        $aData = array(
+        $aData = [
             '2004-06-06 12:05:00',
             '2004-06-06 12:06:15',
             75,
             OX_DAL_MAINTENANCE_STATISTICS_UPDATE_BOTH,
-            '2004-06-06 11:59:59'
-        );
+            '2004-06-06 11:59:59',
+        ];
         $rows = $stLogMaintenanceStatistics->execute($aData);
 
         // Test the results are now updated, and the same
@@ -168,11 +161,11 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
     /**
      * Tests the _getEarliestLoggedDeliveryData() method.
      */
-    function test_getEarliestLoggedDeliveryData()
+    public function test_getEarliestLoggedDeliveryData()
     {
         // Create a reference to the OpenX configuration, and set it to
         // 15 minutes
-        $aConf =& $GLOBALS['_MAX']['CONF'];
+        $aConf = &$GLOBALS['_MAX']['CONF'];
         $aConf['maintenance']['operationInterval'] = 15;
 
         // Prepare the OX_Maintenance_Statistics_Task_SetUpdateRequirements class to test with
@@ -183,7 +176,7 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         $this->assertNull($oDate);
 
         // Create the "application_variable" table required for installing the plugin
-        $oTables =& OA_DB_Table_Core::singleton();
+        $oTables = &OA_DB_Table_Core::singleton();
         $oTables->createTable('application_variable');
 
         // Setup the default OpenX delivery logging plugin for the test
@@ -196,11 +189,11 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         // Ask the appropriate default OpenX delivery logging plugin component
         // to log a click
         require_once MAX_PATH . $aConf['pluginPaths']['plugins'] . '/deliveryLog/oxLogClick/logClick.delivery.php';
-        $GLOBALS['_MAX']['deliveryData'] = array(
+        $GLOBALS['_MAX']['deliveryData'] = [
             'interval_start' => '2008-08-12 14:15:00',
-            'creative_id'    => 1,
-            'zone_id'        => 1,
-        );
+            'creative_id' => 1,
+            'zone_id' => 1,
+        ];
         Plugin_deliveryLog_oxLogClick_logClick_Delivery_logClick();
 
         // Test 3: Test with just the one click logged, and ensure that the correct
@@ -210,11 +203,11 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
 
         // Ask the appropriate default OpenX delivery logging plugin component
         // to log a later click
-        $GLOBALS['_MAX']['deliveryData'] = array(
+        $GLOBALS['_MAX']['deliveryData'] = [
             'interval_start' => '2008-08-12 14:30:00',
-            'creative_id'    => 1,
-            'zone_id'        => 1,
-        );
+            'creative_id' => 1,
+            'zone_id' => 1,
+        ];
         Plugin_deliveryLog_oxLogClick_logClick_Delivery_logClick();
 
         // Test 4: Test with just the two clicks logged, and ensure that the correct
@@ -224,11 +217,11 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
 
         // Ask the appropriate default OpenX delivery logging plugin component
         // to log an earlier click
-        $GLOBALS['_MAX']['deliveryData'] = array(
+        $GLOBALS['_MAX']['deliveryData'] = [
             'interval_start' => '2008-08-12 14:00:00',
-            'creative_id'    => 1,
-            'zone_id'        => 1,
-        );
+            'creative_id' => 1,
+            'zone_id' => 1,
+        ];
         Plugin_deliveryLog_oxLogClick_logClick_Delivery_logClick();
 
         // Test 5: Test with just the three clicks logged, and ensure that the correct
@@ -239,11 +232,11 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         // Ask the appropriate default OpenX delivery logging plugin component
         // to log an earlier impression
         require_once MAX_PATH . $aConf['pluginPaths']['plugins'] . '/deliveryLog/oxLogImpression/logImpression.delivery.php';
-        $GLOBALS['_MAX']['deliveryData'] = array(
+        $GLOBALS['_MAX']['deliveryData'] = [
             'interval_start' => '2008-08-12 13:45:00',
-            'creative_id'    => 1,
-            'zone_id'        => 1,
-        );
+            'creative_id' => 1,
+            'zone_id' => 1,
+        ];
         Plugin_deliveryLog_oxLogImpression_logImpression_Delivery_logImpression();
 
         // Test 6: Test with just the three clicks and one impression logged, and
@@ -263,7 +256,4 @@ class Test_OX_Maintenance_Statistics_Task_SetUpdateRequirements extends UnitTest
         // Reset the testing environment
         TestEnv::restoreEnv();
     }
-
 }
-
-?>

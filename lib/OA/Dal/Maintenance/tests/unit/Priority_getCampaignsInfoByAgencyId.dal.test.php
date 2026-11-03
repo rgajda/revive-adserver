@@ -23,7 +23,7 @@ require_once MAX_PATH . '/lib/max/Dal/DataObjects/Campaigns.php';
  */
 class Test_OA_Dal_Maintenance_Priority_getCampaignsInfoByAgencyId extends UnitTestCase
 {
-    public $aExpectedData = array();
+    public $aExpectedData = [];
 
     private $firsCampaignId;
     private $secondCampaignId;
@@ -32,17 +32,9 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignsInfoByAgencyId extends UnitTe
     private $secondAdId;
 
     /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * A method to test the getCampaignsInfoByAgencyId method.
      */
-    function testGetCampaignsInfoByAgencyId()
+    public function testGetCampaignsInfoByAgencyId()
     {
         list($agencyId1, $agencyId2) = $this->_generateAgencyCampaigns(DataObjects_Campaigns::PRIORITY_ECPM);
 
@@ -62,7 +54,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignsInfoByAgencyId extends UnitTe
     /**
      * A method to test the getCampaignsInfoByAgencyId method.
      */
-    function testGetCampaignsInfoByAgencyIdAndPriority()
+    public function testGetCampaignsInfoByAgencyIdAndPriority()
     {
         list($agencyId1, $agencyId2) = $this->_generateAgencyCampaigns($priority = 4, 1);
 
@@ -79,7 +71,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignsInfoByAgencyId extends UnitTe
         DataGenerator::cleanUp();
     }
 
-    function checkTestResults($ret, $campaignId, $adId)
+    public function checkTestResults($ret, $campaignId, $adId)
     {
         $this->assertTrue(is_array($ret));
         $aExpectedCampaign = $this->aExpectedData['campaigns'][$campaignId];
@@ -107,7 +99,7 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignsInfoByAgencyId extends UnitTe
      *
      * @access private
      */
-    function _generateAgencyCampaigns($priority, $ecpmEnabled = 0)
+    public function _generateAgencyCampaigns($priority, $ecpmEnabled = 0)
     {
         // Add agencies
         $agencyId1 = DataGenerator::generateOne('agency', true);
@@ -219,8 +211,6 @@ class Test_OA_Dal_Maintenance_Priority_getCampaignsInfoByAgencyId extends UnitTe
         DataGenerator::generateOne($doAd_zone_assoc);
         $this->aExpectedData['banners'][$idBanner2]['zone'] = $idZone2;
 
-        return array($agencyId1, $agencyId2);
+        return [$agencyId1, $agencyId2];
     }
 }
-
-?>

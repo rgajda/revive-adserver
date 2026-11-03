@@ -31,116 +31,184 @@ class OA_Dll_BannerTest extends DllUnitTestCase
     /**
      * @var int
      */
-    var $agencyId;
+    public $agencyId;
 
     /**
      * Errors
      *
      */
-    var $unknownIdError = 'Unknown bannerId Error';
-    var $unknownFormatError = 'Unrecognized image file format';
+    public $unknownIdError = 'Unknown bannerId Error';
+    public $unknownFormatError = 'Unrecognized image file format';
+    public $fileSizeTooBigError = 'Image file size is greater than 16 bytes';
 
-    var $binaryGif;
-    var $binarySwf;
-    var $binarySwfConv;
+    public $binaryGif;
 
-    /**
-     * The constructor method.
-     */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         Mock::generatePartial(
             'OA_Dll_Banner',
             'PartialMockOA_Dll_Banner',
-            array('checkPermissions')
+            ['checkPermissions'],
         );
         Mock::generatePartial(
             'OA_Dll_Campaign',
             'PartialMockOA_Dll_Campaign_BannerTest',
-            array('checkPermissions')
+            ['checkPermissions'],
         );
         Mock::generatePartial(
             'OA_Dll_Advertiser',
             'PartialMockOA_Dll_Advertiser_BannerTest',
-            array('checkPermissions', 'getDefaultAgencyId')
+            ['checkPermissions', 'getDefaultAgencyId'],
         );
 
         $this->binaryGif = "GIF89a\001\0\001\0\200\0\0\377\377\377\0\0\0!\371\004\0\0\0\0\0,\0\0\0\0\001\0\001\0\0\002\002D\001\0;";
-        $this->binarySwf = file_get_contents(MAX_PATH . '/lib/OA/Creative/tests/data/swf-link.swf');
-        $this->binarySwfConv = file_get_contents(MAX_PATH . '/lib/OA/Creative/tests/data/converted-link.swf');
     }
 
-    function setUp()
+    public function setUp()
     {
         $this->agencyId = DataGenerator::generateOne('agency');
     }
 
-    function tearDown()
+    public function tearDown()
     {
         DataGenerator::cleanUp();
+    }
+
+    public function testIsStorageTypeAllowed()
+    {
+        $allowedBanners = $GLOBALS['_MAX']['CONF']['allowedBanners'];
+        $types = ['web' => 'web', 'sql' => 'sql', 'url' => 'url', 'html' => 'html', 'txt' => 'text'];
+
+        try {
+            foreach ($types as $storageType => $configKey) {
+                $GLOBALS['_MAX']['CONF']['allowedBanners'] = array_fill_keys(array_values($types), false);
+
+                $this->assertFalse(OA_Dll_Banner::isStorageTypeAllowed($storageType));
+                $this->assertTrue(OA_Dll_Banner::isStorageTypeAllowed($storageType, $storageType));
+
+                $otherType = $storageType === 'web' ? 'sql' : 'web';
+                $this->assertFalse(OA_Dll_Banner::isStorageTypeAllowed($storageType, $otherType));
+
+                $GLOBALS['_MAX']['CONF']['allowedBanners'][$configKey] = true;
+                $this->assertEqual(OA_Dll_Banner::getAllowedStorageTypes(), [$storageType]);
+                $this->assertTrue(OA_Dll_Banner::isStorageTypeAllowed($storageType));
+                $this->assertTrue(OA_Dll_Banner::isStorageTypeAllowed($storageType, $otherType));
+            }
+
+            foreach (['', 'unknown', null, [], ['sql']] as $invalidType) {
+                $this->assertFalse(OA_Dll_Banner::isStorageTypeAllowed($invalidType));
+            }
+        } finally {
+            $GLOBALS['_MAX']['CONF']['allowedBanners'] = $allowedBanners;
+        }
+    }
+
+    public function testStorageTypeRestrictions()
+    {
+        $allowedBanners = $GLOBALS['_MAX']['CONF']['allowedBanners'];
+        $dllBanner = new OA_Dll_Banner();
+        $banner = new OA_Dll_BannerInfo();
+        $banner->campaignId = DataGenerator::generateOne('campaigns', true);
+        $banner->storageType = 'url';
+
+        try {
+            $GLOBALS['_MAX']['CONF']['allowedBanners']['url'] = false;
+            $this->assertFalse($dllBanner->_validate($banner));
+
+            $GLOBALS['_MAX']['CONF']['allowedBanners']['url'] = true;
+            $this->assertTrue($dllBanner->_validate($banner));
+
+            $doBanner = OA_Dal::factoryDO('banners');
+            $doBanner->campaignid = $banner->campaignId;
+            $doBanner->storagetype = 'url';
+            $banner->bannerId = DataGenerator::generateOne($doBanner);
+
+            // Existing banners keep their type even if it is disabled or another type is submitted.
+            $GLOBALS['_MAX']['CONF']['allowedBanners']['url'] = false;
+            $banner->storageType = 'sql';
+            $this->assertTrue($dllBanner->_validate($banner));
+            $this->assertEqual($banner->storageType, 'url');
+        } finally {
+            $GLOBALS['_MAX']['CONF']['allowedBanners'] = $allowedBanners;
+        }
     }
 
     /**
      * A method to test Add, Modify and Delete.
      */
-    function testAddModifyDelete()
+    public function testAddModifyDelete()
     {
+        $GLOBALS['_MAX']['CONF']['store']['mode'] = 0;
+        $GLOBALS['_MAX']['CONF']['store']['webDir'] = MAX_PATH . '/var';
+
         $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_BannerTest($this);
-        $dllCampaignPartialMock   = new PartialMockOA_Dll_Campaign_BannerTest($this);
-        $dllBannerPartialMock     = new PartialMockOA_Dll_Banner($this);
+        $dllCampaignPartialMock = new PartialMockOA_Dll_Campaign_BannerTest($this);
+        $dllBannerPartialMock = new PartialMockOA_Dll_Banner($this);
 
         $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $this->agencyId);
         $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
-        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 2);
+        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 3);
 
         $dllCampaignPartialMock->setReturnValue('checkPermissions', true);
         $dllCampaignPartialMock->expectCallCount('checkPermissions', 1);
 
         $dllBannerPartialMock->setReturnValue('checkPermissions', true);
-        $dllBannerPartialMock->expectCallCount('checkPermissions', 13);
+        $dllBannerPartialMock->expectCallCount('checkPermissions', 12);
 
         $oAdvertiserInfo = new OA_Dll_AdvertiserInfo();
         $oAdvertiserInfo->advertiserName = 'test Advertiser name';
-        $oAdvertiserInfo->agencyId       = $this->agencyId;
+        $oAdvertiserInfo->agencyId = $this->agencyId;
 
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         $oCampaignInfo = new OA_Dll_CampaignInfo();
 
         $oCampaignInfo->advertiserId = $oAdvertiserInfo->advertiserId;
 
         // Add
-        $this->assertTrue($dllCampaignPartialMock->modify($oCampaignInfo),
-                          $dllCampaignPartialMock->getLastError());
+        $this->assertTrue(
+            $dllCampaignPartialMock->modify($oCampaignInfo),
+            $dllCampaignPartialMock->getLastError(),
+        );
 
         $oBannerInfo = new OA_Dll_BannerInfo();
         $oBannerInfo->campaignId = $oCampaignInfo->campaignId;
 
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         // Modify
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         // Delete
-        $this->assertTrue($dllBannerPartialMock->delete($oBannerInfo->bannerId),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->delete($oBannerInfo->bannerId),
+            $dllBannerPartialMock->getLastError(),
+        );
 
 
         // Add gif (SQL stored)
         $oBannerInfo2 = new OA_Dll_BannerInfo();
         $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
         $oBannerInfo2->storageType = 'sql';
-        $oBannerInfo2->aImage = array(
+        $oBannerInfo2->aImage = [
             'filename' => '1x1.gif',
-            'content'  => $this->binaryGif
-        );
+            'content' => $this->binaryGif,
+        ];
 
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo2),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
         $this->assertEqual($doBanners->width, 1);
@@ -150,177 +218,174 @@ class OA_Dll_BannerTest extends DllUnitTestCase
         $doImages = OA_Dal::staticGetDO('images', $doBanners->filename);
         $this->assertEqual($doImages->contents, $this->binaryGif);
 
-        // Modify to SWF
-        $oBannerInfo2 = new OA_Dll_BannerInfo();
-        $oBannerInfo2->bannerId = (int)$doBanners->bannerid;
-        $oBannerInfo2->aImage = array(
-            'filename' => 'foo.swf',
-            'content'  => $this->binarySwf
-        );
-
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
-
-        $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
-        $this->assertEqual($doBanners->width, 468);
-        $this->assertEqual($doBanners->height, 60);
-        $this->assertEqual($doBanners->contenttype, 'swf');
-
-        $doImages = OA_Dal::staticGetDO('images', $doBanners->filename);
-        $this->assertEqual($doImages->contents, $this->binarySwf);
-
-        $GLOBALS['_MAX']['CONF']['store']['mode']   = 0;
-        $GLOBALS['_MAX']['CONF']['store']['webDir'] = MAX_PATH . '/var';
-
         // Add gif (Web stored)
         $oBannerInfo2 = new OA_Dll_BannerInfo();
         $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
         $oBannerInfo2->storageType = 'web';
-        $oBannerInfo2->aImage = array(
+        $oBannerInfo2->aImage = [
             'filename' => '1x1.gif',
-            'content'  => $this->binaryGif
-        );
+            'content' => $this->binaryGif,
+        ];
 
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo2),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
         $this->assertEqual($doBanners->width, 1);
         $this->assertEqual($doBanners->height, 1);
         $this->assertEqual($doBanners->contenttype, 'gif');
 
-        $img = $GLOBALS['_MAX']['CONF']['store']['webDir'].'/'.$doBanners->filename;
+        $img = $GLOBALS['_MAX']['CONF']['store']['webDir'] . '/' . $doBanners->filename;
         $this->assertEqual(file_get_contents($img), $this->binaryGif);
 
         $this->assertTrue(unlink($img));
 
-        // Modify to SWF with backup gif
+        // Modify to different gif
         $oBannerInfo2 = new OA_Dll_BannerInfo();
-        $oBannerInfo2->bannerId = (int)$doBanners->bannerid;
-        $oBannerInfo2->aImage = array(
-            'filename' => 'foo.swf',
-            'content'  => $this->binarySwf
-        );
-        $oBannerInfo2->aBackupImage = array(
+        $oBannerInfo2->bannerId = (int) $doBanners->bannerid;
+        $oBannerInfo2->aImage = [
             'filename' => 'foo.gif',
-            'content'  => $this->binaryGif
+            'content' => $this->binaryGif,
+        ];
+
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo2),
+            $dllBannerPartialMock->getLastError(),
         );
-
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
-
-        $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
-        $this->assertEqual($doBanners->width, 468);
-        $this->assertEqual($doBanners->height, 60);
-        $this->assertEqual($doBanners->contenttype, 'swf');
-        $this->assertEqual($doBanners->alt_contenttype, 'gif');
-
-        $img = $GLOBALS['_MAX']['CONF']['store']['webDir'].'/'.$doBanners->filename;
-        $this->assertEqual(file_get_contents($img), $this->binarySwf);
-        $this->assertTrue(unlink($img));
-
-        $img = $GLOBALS['_MAX']['CONF']['store']['webDir'].'/'.$doBanners->alt_filename;
-        $this->assertEqual(file_get_contents($img), $this->binaryGif);
-        $this->assertTrue(unlink($img));
-
-        // Modify back to gif
-        $oBannerInfo2 = new OA_Dll_BannerInfo();
-        $oBannerInfo2->bannerId = (int)$doBanners->bannerid;
-        $oBannerInfo2->aImage = array(
-            'filename' => 'foo.gif',
-            'content'  => $this->binaryGif
-        );
-
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
 
         $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
         $this->assertEqual($doBanners->width, 1);
         $this->assertEqual($doBanners->height, 1);
         $this->assertEqual($doBanners->contenttype, 'gif');
-        $this->assertFalse($doBanners->alt_contenttype);
 
-        $img = $GLOBALS['_MAX']['CONF']['store']['webDir'].'/'.$doBanners->filename;
+        $img = $GLOBALS['_MAX']['CONF']['store']['webDir'] . '/' . $doBanners->filename;
         $this->assertEqual(file_get_contents($img), $this->binaryGif);
         $this->assertTrue(unlink($img));
-
-        // Add swf (SQL stored, no conversion)
-        $oBannerInfo2 = new OA_Dll_BannerInfo();
-        $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
-        $oBannerInfo2->storageType = 'sql';
-        $oBannerInfo2->aImage = array(
-            'filename' => 'test.swf',
-            'content'  => $this->binarySwf
-        );
-
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
-
-        $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
-        $this->assertEqual($doBanners->width, 468);
-        $this->assertEqual($doBanners->height, 60);
-        $this->assertEqual($doBanners->contenttype, 'swf');
-        $this->assertFalse($doBanners->parameters);
-        $this->assertFalse($doBanners->url);
-        $this->assertFalse($doBanners->target);
-
-        $doImages = OA_Dal::staticGetDO('images', $doBanners->filename);
-        $this->assertEqual($doImages->contents, $this->binarySwf);
-
-        // Add swf (SQL stored, conversion)
-        $oBannerInfo2 = new OA_Dll_BannerInfo();
-        $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
-        $oBannerInfo2->storageType = 'sql';
-        $oBannerInfo2->aImage = array(
-            'filename' => 'test.swf',
-            'content'  => $this->binarySwf,
-            'editswf'  => true
-        );
-
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
-
-        $doBanners = OA_Dal::staticGetDO('banners', $oBannerInfo2->bannerId);
-        $this->assertEqual($doBanners->width, 468);
-        $this->assertEqual($doBanners->height, 60);
-        $this->assertEqual($doBanners->contenttype, 'swf');
-        $this->assertEqual(unserialize($doBanners->parameters), array(
-            'swf' => array(
-                1 => array(
-                    'link' => 'http://www.example.com',
-                    'tar'  => '_blank',
-                )
-            )
-        ));
-        $this->assertTrue($doBanners->url);
-        $this->assertTrue($doBanners->target);
-
-        $doImages = OA_Dal::staticGetDO('images', $doBanners->filename);
-        $this->assertTrue($doImages->contents);
-        $this->assertEqual($doImages->contents, $this->binarySwfConv);
 
         // Add mangled banner
         $oBannerInfo2 = new OA_Dll_BannerInfo();
         $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
         $oBannerInfo2->storageType = 'sql';
-        $oBannerInfo2->aImage = array(
-            'filename' => 'test.swf',
-            'content'  => 'foobar'
+        $oBannerInfo2->aImage = [
+            'filename' => 'test.gif',
+            'content' => 'foobar',
+        ];
+
+        $this->assertTrue(
+            (!$dllBannerPartialMock->modify($oBannerInfo2) &&
+                          $dllBannerPartialMock->getLastError() == $this->unknownFormatError),
+            $this->_getMethodShouldReturnError($this->unknownFormatError),
         );
 
-        $this->assertTrue((!$dllBannerPartialMock->modify($oBannerInfo2) &&
-                          $dllBannerPartialMock->getLastError() == $this->unknownFormatError),
-            $this->_getMethodShouldReturnError($this->unknownFormatError));
+        // Add banner bigger than allowed file size
+        $GLOBALS['_MAX']['CONF']['store']['maxFilesize'] = 16;
+
+        $oBannerInfo2 = new OA_Dll_BannerInfo();
+        $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
+        $oBannerInfo2->storageType = 'sql';
+        $oBannerInfo2->aImage = [
+            'filename' => 'bigger.gif',
+            'content' => $this->binaryGif,
+        ];
+
+        $this->assertTrue(
+            (!$dllBannerPartialMock->modify($oBannerInfo2) &&
+                $dllBannerPartialMock->getLastError() == $this->fileSizeTooBigError),
+            $this->_getMethodShouldReturnError($this->fileSizeTooBigError),
+        );
+
+        // Reset max file size
+        $GLOBALS['_MAX']['CONF']['store']['maxFilesize'] = 0;
 
         // Modify not existing id
-        $this->assertTrue((!$dllBannerPartialMock->modify($oBannerInfo) &&
+        $this->assertTrue(
+            (!$dllBannerPartialMock->modify($oBannerInfo) &&
                           $dllBannerPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         // Delete not existing id
-        $this->assertTrue((!$dllBannerPartialMock->delete($oBannerInfo->bannerId) &&
+        $this->assertTrue(
+            (!$dllBannerPartialMock->delete($oBannerInfo->bannerId) &&
                            $dllBannerPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
+
+        $dllBannerPartialMock->tally();
+    }
+
+    /**
+     * A method to test Modify, moving the banner to a new campaign.
+     */
+    public function testAddModifyNoCampaignPermissions()
+    {
+        $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_BannerTest($this);
+        $dllCampaignPartialMock = new PartialMockOA_Dll_Campaign_BannerTest($this);
+        $dllBannerPartialMock = new PartialMockOA_Dll_Banner($this);
+
+        $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $this->agencyId);
+        $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
+        $dllCampaignPartialMock->setReturnValue('checkPermissions', true);
+
+        for ($i = 0; $i < 6; $i++) {
+            // Fail the first and last check
+            $dllBannerPartialMock->setReturnValueAt($i, 'checkPermissions', !in_array($i, [0, 5]));
+        }
+
+        $oAdvertiserInfo = new OA_Dll_AdvertiserInfo();
+        $oAdvertiserInfo->advertiserName = 'test Advertiser name';
+        $oAdvertiserInfo->agencyId = $this->agencyId;
+
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
+
+        $oCampaignInfo = new OA_Dll_CampaignInfo();
+        $oCampaignInfo->advertiserId = $oAdvertiserInfo->advertiserId;
+
+        // Add
+        $this->assertTrue(
+            $dllCampaignPartialMock->modify($oCampaignInfo),
+            $dllCampaignPartialMock->getLastError(),
+        );
+
+        $oBannerInfo = new OA_Dll_BannerInfo();
+        $oBannerInfo->campaignId = $oCampaignInfo->campaignId;
+
+        // Add, failing
+        $this->assertFalse($dllBannerPartialMock->modify($oBannerInfo));
+
+        // Add, success
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo),
+            $dllBannerPartialMock->getLastError(),
+        );
+
+        $oCampaignInfo = new OA_Dll_CampaignInfo();
+        $oCampaignInfo->advertiserId = $oAdvertiserInfo->advertiserId;
+
+        $dllCampaignPartialMock->modify($oCampaignInfo);
+
+        // Move banner
+        $oBannerInfo->campaignId = $oCampaignInfo->campaignId;
+
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo),
+            $dllBannerPartialMock->getLastError(),
+        );
+
+        $oCampaignInfo = new OA_Dll_CampaignInfo();
+        $oCampaignInfo->advertiserId = $oAdvertiserInfo->advertiserId;
+
+        $dllCampaignPartialMock->modify($oCampaignInfo);
+
+        // Move banner w/ failing permissions check
+        $oBannerInfo->campaignId = $oCampaignInfo->campaignId;
+
+        $this->assertFalse($dllBannerPartialMock->modify($oBannerInfo));
 
         $dllBannerPartialMock->tally();
     }
@@ -328,15 +393,15 @@ class OA_Dll_BannerTest extends DllUnitTestCase
     /**
      * A method to test get and getList method.
      */
-    function testGetAndGetList()
+    public function testGetAndGetList()
     {
         $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_BannerTest($this);
-        $dllCampaignPartialMock   = new PartialMockOA_Dll_Campaign_BannerTest($this);
-        $dllBannerPartialMock     = new PartialMockOA_Dll_Banner($this);
+        $dllCampaignPartialMock = new PartialMockOA_Dll_Campaign_BannerTest($this);
+        $dllBannerPartialMock = new PartialMockOA_Dll_Banner($this);
 
         $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $this->agencyId);
         $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
-        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 2);
+        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 3);
 
         $dllCampaignPartialMock->setReturnValue('checkPermissions', true);
         $dllCampaignPartialMock->expectCallCount('checkPermissions', 1);
@@ -346,49 +411,65 @@ class OA_Dll_BannerTest extends DllUnitTestCase
 
         $oAdvertiserInfo = new OA_Dll_AdvertiserInfo();
         $oAdvertiserInfo->advertiserName = 'test Advertiser name';
-        $oAdvertiserInfo->agencyId       = $this->agencyId;
+        $oAdvertiserInfo->agencyId = $this->agencyId;
 
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         $oCampaignInfo = new OA_Dll_CampaignInfo();
 
         $oCampaignInfo->advertiserId = $oAdvertiserInfo->advertiserId;
 
-        $this->assertTrue($dllCampaignPartialMock->modify($oCampaignInfo),
-                          $dllCampaignPartialMock->getLastError());
+        $this->assertTrue(
+            $dllCampaignPartialMock->modify($oCampaignInfo),
+            $dllCampaignPartialMock->getLastError(),
+        );
 
 
         // Add
-        $oBannerInfo1               = new OA_Dll_BannerInfo();
-        $oBannerInfo1->bannerName   = 'test name 1';
-        $oBannerInfo1->storageType  = 'url';
-        $oBannerInfo1->imageURL     = 'image url';
+        $oBannerInfo1 = new OA_Dll_BannerInfo();
+        $oBannerInfo1->bannerName = 'test name 1';
+        $oBannerInfo1->storageType = 'url';
+        $oBannerInfo1->imageURL = 'image url';
         $oBannerInfo1->htmlTemplate = 'html Template';
-        $oBannerInfo1->width        = 2;
-        $oBannerInfo1->height       = 3;
-        $oBannerInfo1->url          = 'url';
-        $oBannerInfo1->campaignId   = $oCampaignInfo->campaignId;
+        $oBannerInfo1->width = 2;
+        $oBannerInfo1->height = 3;
+        $oBannerInfo1->url = 'url';
+        $oBannerInfo1->campaignId = $oCampaignInfo->campaignId;
 
-        $oBannerInfo2               = new OA_Dll_BannerInfo();
+        $oBannerInfo2 = new OA_Dll_BannerInfo();
         $oBannerInfo2->bannerName = 'test name 2';
-        $oBannerInfo2->campaignId   = $oCampaignInfo->campaignId;
+        $oBannerInfo2->campaignId = $oCampaignInfo->campaignId;
         // Add
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo1),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo1),
+            $dllBannerPartialMock->getLastError(),
+        );
 
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo2),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo2),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         $oBannerInfo1Get = null;
         $oBannerInfo2Get = null;
         // Get
-        $this->assertTrue($dllBannerPartialMock->getBanner($oBannerInfo1->bannerId,
-                                                                   $oBannerInfo1Get),
-                          $dllBannerPartialMock->getLastError());
-        $this->assertTrue($dllBannerPartialMock->getBanner($oBannerInfo2->bannerId,
-                                                                   $oBannerInfo2Get),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->getBanner(
+                $oBannerInfo1->bannerId,
+                $oBannerInfo1Get,
+            ),
+            $dllBannerPartialMock->getLastError(),
+        );
+        $this->assertTrue(
+            $dllBannerPartialMock->getBanner(
+                $oBannerInfo2->bannerId,
+                $oBannerInfo2Get,
+            ),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         // Check field value
         $this->assertFieldEqual($oBannerInfo1, $oBannerInfo1Get, 'bannerName');
@@ -402,12 +483,18 @@ class OA_Dll_BannerTest extends DllUnitTestCase
         $this->assertFieldEqual($oBannerInfo2, $oBannerInfo2Get, 'bannerName');
 
         // Get List
-        $aBannerList = array();
-        $this->assertTrue($dllBannerPartialMock->getBannerListByCampaignId($oCampaignInfo->campaignId,
-                                                                           $aBannerList),
-                          $dllBannerPartialMock->getLastError());
-        $this->assertEqual(count($aBannerList) == 2,
-                           '2 records should be returned');
+        $aBannerList = [];
+        $this->assertTrue(
+            $dllBannerPartialMock->getBannerListByCampaignId(
+                $oCampaignInfo->campaignId,
+                $aBannerList,
+            ),
+            $dllBannerPartialMock->getLastError(),
+        );
+        $this->assertEqual(
+            count($aBannerList) == 2,
+            '2 records should be returned',
+        );
         $oBannerInfo1Get = $aBannerList[0];
         $oBannerInfo2Get = $aBannerList[1];
         if ($oBannerInfo1->bannerId == $oBannerInfo2Get->bannerId) {
@@ -416,18 +503,24 @@ class OA_Dll_BannerTest extends DllUnitTestCase
         }
         // Check field value from list
         $this->assertFieldEqual($oBannerInfo1, $oBannerInfo1Get, 'bannerName');
-        $this->assertFieldEqual($obannerInfo2, $obannerInfo2Get, 'bannerName');
+        $this->assertFieldEqual($oBannerInfo2, $oBannerInfo2Get, 'bannerName');
 
 
         // Delete
-        $this->assertTrue($dllBannerPartialMock->delete($oBannerInfo1->bannerId),
-            $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->delete($oBannerInfo1->bannerId),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         // Get not existing id
-        $this->assertTrue((!$dllBannerPartialMock->getBanner($oBannerInfo1->bannerId,
-                                                                     $oBannerInfo1Get) &&
+        $this->assertTrue(
+            (!$dllBannerPartialMock->getBanner(
+                $oBannerInfo1->bannerId,
+                $oBannerInfo1Get,
+            ) &&
                           $dllBannerPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         $dllBannerPartialMock->tally();
     }
@@ -439,7 +532,7 @@ class OA_Dll_BannerTest extends DllUnitTestCase
      *
      * @param string $methodName  Method name in Dll
      */
-    function _testStatistics($methodName)
+    public function _testStatistics($methodName)
     {
         $dllAdvertiserPartialMock = new PartialMockOA_Dll_Advertiser_BannerTest($this);
         $dllCampaignPartialMock = new PartialMockOA_Dll_Campaign_BannerTest($this);
@@ -447,7 +540,7 @@ class OA_Dll_BannerTest extends DllUnitTestCase
 
         $dllAdvertiserPartialMock->setReturnValue('getDefaultAgencyId', $this->agencyId);
         $dllAdvertiserPartialMock->setReturnValue('checkPermissions', true);
-        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 2);
+        $dllAdvertiserPartialMock->expectCallCount('checkPermissions', 3);
 
         $dllCampaignPartialMock->setReturnValue('checkPermissions', true);
         $dllCampaignPartialMock->expectCallCount('checkPermissions', 1);
@@ -457,30 +550,40 @@ class OA_Dll_BannerTest extends DllUnitTestCase
 
         $oAdvertiserInfo = new OA_Dll_AdvertiserInfo();
         $oAdvertiserInfo->advertiserName = 'test Advertiser name';
-        $oAdvertiserInfo->agencyId       = $this->agencyId;
+        $oAdvertiserInfo->agencyId = $this->agencyId;
 
-        $this->assertTrue($dllAdvertiserPartialMock->modify($oAdvertiserInfo),
-                          $dllAdvertiserPartialMock->getLastError());
+        $this->assertTrue(
+            $dllAdvertiserPartialMock->modify($oAdvertiserInfo),
+            $dllAdvertiserPartialMock->getLastError(),
+        );
 
         $oCampaignInfo = new OA_Dll_CampaignInfo();
 
         $oCampaignInfo->advertiserId = $oAdvertiserInfo->advertiserId;
 
         // Add
-        $this->assertTrue($dllCampaignPartialMock->modify($oCampaignInfo),
-                          $dllCampaignPartialMock->getLastError());
+        $this->assertTrue(
+            $dllCampaignPartialMock->modify($oCampaignInfo),
+            $dllCampaignPartialMock->getLastError(),
+        );
 
         $oBannerInfo = new OA_Dll_BannerInfo();
         $oBannerInfo->campaignId = $oCampaignInfo->campaignId;
 
-        $this->assertTrue($dllBannerPartialMock->modify($oBannerInfo),
-                          $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->modify($oBannerInfo),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         // Get no data
         $rsBannerStatistics = null;
         $this->assertTrue($dllBannerPartialMock->$methodName(
-            $oBannerInfo->bannerId, new Date('2001-12-01'), new Date('2007-09-19'), false,
-            $rsBannerStatistics), $dllBannerPartialMock->getLastError());
+            $oBannerInfo->bannerId,
+            new Date('2001-12-01'),
+            new Date('2007-09-19'),
+            false,
+            $rsBannerStatistics,
+        ), $dllBannerPartialMock->getLastError());
 
         $this->assertTrue(isset($rsBannerStatistics));
         if (is_array($rsBannerStatistics)) {
@@ -491,23 +594,37 @@ class OA_Dll_BannerTest extends DllUnitTestCase
 
         // Test for wrong date order
         $rsBannerStatistics = null;
-        $this->assertTrue((!$dllBannerPartialMock->$methodName(
-                $oBannerInfo->bannerId, new Date('2007-09-19'),  new Date('2001-12-01'), false,
-                $rsBannerStatistics) &&
+        $this->assertTrue(
+            (!$dllBannerPartialMock->$methodName(
+                $oBannerInfo->bannerId,
+                new Date('2007-09-19'),
+                new Date('2001-12-01'),
+                false,
+                $rsBannerStatistics,
+            ) &&
             $dllBannerPartialMock->getLastError() == $this->wrongDateError),
-            $this->_getMethodShouldReturnError($this->wrongDateError));
+            $this->_getMethodShouldReturnError($this->wrongDateError),
+        );
 
         // Delete
-        $this->assertTrue($dllBannerPartialMock->delete($oBannerInfo->bannerId),
-            $dllBannerPartialMock->getLastError());
+        $this->assertTrue(
+            $dllBannerPartialMock->delete($oBannerInfo->bannerId),
+            $dllBannerPartialMock->getLastError(),
+        );
 
         // Test statistics for not existing id
         $rsBannerStatistics = null;
-        $this->assertTrue((!$dllBannerPartialMock->$methodName(
-                $oBannerInfo->bannerId, new Date('2001-12-01'),  new Date('2007-09-19'), false,
-                $rsBannerStatistics) &&
+        $this->assertTrue(
+            (!$dllBannerPartialMock->$methodName(
+                $oBannerInfo->bannerId,
+                new Date('2001-12-01'),
+                new Date('2007-09-19'),
+                false,
+                $rsBannerStatistics,
+            ) &&
             $dllBannerPartialMock->getLastError() == $this->unknownIdError),
-            $this->_getMethodShouldReturnError($this->unknownIdError));
+            $this->_getMethodShouldReturnError($this->unknownIdError),
+        );
 
         $dllBannerPartialMock->tally();
     }
@@ -515,15 +632,23 @@ class OA_Dll_BannerTest extends DllUnitTestCase
     /**
      * A method to test getBannerDailyStatistics.
      */
-    function testDailyStatistics()
+    public function testDailyStatistics()
     {
         $this->_testStatistics('getBannerDailyStatistics');
     }
 
     /**
+     * A method to test getBannerHourlyStatistics.
+     */
+    public function testHourlyStatistics()
+    {
+        $this->_testStatistics('getBannerHourlyStatistics');
+    }
+
+    /**
      * A method to test getBannerPublisherStatistics.
      */
-    function testPublisherStatistics()
+    public function testPublisherStatistics()
     {
         $this->_testStatistics('getBannerPublisherStatistics');
     }
@@ -531,11 +656,8 @@ class OA_Dll_BannerTest extends DllUnitTestCase
     /**
      * A method to test getBannerZoneStatistics.
      */
-    function testZoneStatistics()
+    public function testZoneStatistics()
     {
         $this->_testStatistics('getBannerZoneStatistics');
     }
-
 }
-
-?>

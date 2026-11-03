@@ -25,7 +25,7 @@ require_once 'memory.php';
 function RV_initialSystemCheck()
 {
     $installed = OX_checkSystemInstalled();
-    $aErrors = array();
+    $aErrors = [];
     $erorCode = RV_checkSystemInitialRequirements($aErrors);
     if ($erorCode !== true) {
         $imageRelativePath = "./www/admin/precheck/";
@@ -33,9 +33,9 @@ function RV_initialSystemCheck()
         // guess the proper relative path...
         if ($erorCode != -2) {
             // Checking if URL include www or admin in path
-            if (strpos($_SERVER['REQUEST_URI'], '/www/admin/') !== false) {
+            if (str_contains($_SERVER['REQUEST_URI'], '/www/admin/')) {
                 $imageRelativePath = "./precheck/";
-            } else if (strpos($_SERVER['REQUEST_URI'], '/www/') !== false) {
+            } elseif (str_contains($_SERVER['REQUEST_URI'], '/www/')) {
                 $imageRelativePath = "./admin/precheck/";
             }
         }
@@ -54,7 +54,7 @@ function RV_initialSystemCheck()
     <style type="text/css">
         body {
             margin: 0;
-            background: #fff '. $bodyBackground .';
+            background: #fff ' . $bodyBackground . ';
             font-family: Arial, Helvetica, sans-serif;
             font: 12px Arial;
             color: #747474;
@@ -93,7 +93,7 @@ function RV_initialSystemCheck()
 
         }
         li {
-            '.$liBackground.'
+            ' . $liBackground . '
             padding-left:10px;
         }
         .help_link:active, .help_link:link, .help_link:visited  {
@@ -105,7 +105,7 @@ function RV_initialSystemCheck()
             text-decoration:underline;
         }
         .logo_image {
-            '.$logo.'
+            ' . $logo . '
             width:  270px;
             height: 32px;
         }
@@ -156,13 +156,9 @@ function RV_initialSystemCheck()
  */
 function OX_checkSystemInstalled()
 {
-    $path = @dirname(__FILE__);
+    $path = @__DIR__;
     if (!@empty($path)) {
-        if (@file_exists($path . '/var/UPGRADE')) {
-            return false;
-        } else {
-            return true;
-        }
+        return !@file_exists($path . '/var/UPGRADE');
     }
     return false;
 }
@@ -183,8 +179,8 @@ function OX_checkSystemInstalled()
  *                         -4 => The amount of memory required was too low
  *
  */
-function RV_checkSystemInitialRequirements(&$aErrors){
-
+function RV_checkSystemInitialRequirements(&$aErrors)
+{
     // Variables for tracking if the test has passed or not,
     // and if not, what value to return
     $isSystemOK = true;
@@ -204,7 +200,7 @@ function RV_checkSystemInitialRequirements(&$aErrors){
     // These other functions are tested separately, as they are
     // required to test for the existence of the functions in the
     // array below!
-    $aRequiredFunctions = array(
+    $aRequiredFunctions = [
         'dirname',
         'empty',
         'file_exists',
@@ -212,8 +208,8 @@ function RV_checkSystemInitialRequirements(&$aErrors){
         'parse_ini_file',
         'version_compare',
         'set_include_path',
-        'scandir'
-    );
+        'scandir',
+    ];
 
     // Prepare error strings, in the simplest possible way
     $errorString1 = 'The built in PHP function "';
@@ -234,7 +230,7 @@ function RV_checkSystemInitialRequirements(&$aErrors){
     if (!function_exists('parse_url')) {
         $aErrors[] = $errorString1 . 'parse_url' . $errorString2;
         $isSystemOK = false;
-        if ($return === true) {
+        if ($return) {
             $return = -2;
         }
     }
@@ -285,7 +281,7 @@ function RV_checkSystemInitialRequirements(&$aErrors){
         $aDisabledFunctions[$key] = trim($value);
     }
     $aNeededFunctions = array_intersect($aDisabledFunctions, $aRequiredFunctions);
-    if (count($aNeededFunctions) > 0) {
+    if ($aNeededFunctions !== []) {
         $isSystemOK = false;
         if ($return === true) {
             $return = -3;
@@ -295,17 +291,13 @@ function RV_checkSystemInitialRequirements(&$aErrors){
         }
     }
 
-    // Check PHP version, as use of the minimum required version of PHP >= 5.6.0
+    // Check PHP version, as use of anything below the minimum required version of PHP
     // may result in parse errors, which we want to avoid
-    $errorMessage = "PHP version 5.6.0, or greater, was not detected.";
-    if (function_exists('version_compare')) {
-        $result = version_compare(phpversion(), '5.6.0', '<');
-        if ($result) {
-            $aErrors[] = $errorMessage;
-            $isSystemOK = false;
-            if ($return === true) {
-                $return = -3;
-            }
+    if (PHP_VERSION_ID < 80235) {
+        $aErrors[] = "PHP version 8.2.35, or greater, was not detected.";
+        $isSystemOK = false;
+        if ($return === true) {
+            $return = -3;
         }
     }
 
@@ -317,10 +309,9 @@ function RV_checkSystemInitialRequirements(&$aErrors){
         $memoryCanBeSet = OX_checkMemoryCanBeSet();
         if (!$memoryCanBeSet) {
             $minimumRequiredMemoryInMB = $minimumRequiredMemory / 1048576;
-            $errorMessage = 'The PHP "memory_limit" value is set to less than the required minimum of ' .
-                            $minimumRequiredMemoryInMB . 'MB, but because the built in PHP function "ini_set" ' .
-                            'has been disabled, the memory limit cannot be automatically increased.';
-            $aErrors[] = $errorMessage;
+            $aErrors[] = 'The PHP "memory_limit" value is set to less than the required minimum of ' .
+                         $minimumRequiredMemoryInMB . 'MB, but because the built in PHP function "ini_set" ' .
+                         'has been disabled, the memory limit cannot be automatically increased.';
             $isSystemOK = false;
             if ($return === true) {
                 $return = -4;
@@ -335,5 +326,3 @@ function RV_checkSystemInitialRequirements(&$aErrors){
 }
 
 RV_initialSystemCheck();
-
-?>

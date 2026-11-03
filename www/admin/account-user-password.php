@@ -19,8 +19,8 @@ require_once MAX_PATH . '/lib/OA/Admin/UI/UserAccess.php';
 
 require_once MAX_PATH . '/lib/RV/Admin/Languages.php';
 require_once MAX_PATH . '/lib/max/Plugin/Translation.php';
+require_once MAX_PATH . '/lib/OX/Extension/authentication/authentication.php';
 require_once MAX_PATH . '/www/admin/config.php';
-
 
 // Security check
 OA_Permission::enforceAccount(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER, OA_ACCOUNT_ADVERTISER, OA_ACCOUNT_TRAFFICKER);
@@ -29,7 +29,7 @@ OA_Permission::enforceAccount(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER, OA_ACCOUNT_A
 $oOptions = new OA_Admin_Option('user');
 
 // Prepare an array for storing error messages
-$aErrormessage = array();
+$aErrormessage = [];
 
 // If the settings page is a submission, deal with the form data
 if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
@@ -37,17 +37,10 @@ if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
     phpAds_registerGlobalUnslashed(
         'pwold',
         'pw',
-        'pw2'
+        'pw2',
     );
 
     OA_Permission::checkSessionToken();
-
-    // Get the DB_DataObject for the current user
-    $doUsers = OA_Dal::factoryDO('users');
-    $doUsers->get(OA_Permission::getUserId());
-
-    // Set defaults
-    $changePassword = false;
 
     // Get the current authentication plugin instance
     $oPlugin = OA_Auth::staticGetAuthPlugin();
@@ -56,30 +49,23 @@ if (isset($_POST['submitok']) && $_POST['submitok'] == 'true') {
     if (!isset($pwold) || !$oPlugin->checkPassword(OA_Permission::getUsername(), $pwold)) {
         $aErrormessage[0][] = $GLOBALS['strPasswordWrong'];
     }
-    if (isset($pw) && strlen($pw) || isset($pw2) && strlen($pw2)) {
-        if (!strlen($pw)  || strstr("\\", $pw)) {
-            $aErrormessage[0][] = $GLOBALS['strInvalidPassword'];
-        } elseif (strcmp($pw, $pw2)) {
-            $aErrormessage[0][] = $GLOBALS['strNotSamePasswords'];
-        } else {
-            $changePassword = true;
-        }
+
+    $auth = new Plugins_Authentication();
+    $auth->validateUsersPassword($pw ?? '', $pw2 ?? '');
+
+    if (!empty($auth->aValidationErrors)) {
+        $aErrormessage[0] = array_merge($aErrormessage[0] ?? [], $auth->aValidationErrors);
     }
-    if (!count($aErrormessage) && $changePassword) {
-        $result = $oPlugin->changePassword($doUsers, $pw, $pwold);
-        if (PEAR::isError($result)) {
-            $aErrormessage[0][] = $result->getMessage();
-        }
-    }
-    if (!count($aErrormessage)) {
-        if ($doUsers->update() === false) {
+
+    if ($aErrormessage === []) {
+        if (!$oPlugin->setNewPassword(OA_Permission::getUserId(), $pw)) {
             // Unable to update the preferences
-            $aErrormessage[0][] = $strUnableToWritePrefs;
+            $aErrormessage[0][] = $GLOBALS['strUnableToWritePrefs'];
         } else {
             // Regenerate session ID and clear all other sessions
             phpAds_SessionRegenerateId(true);
 
-            $translation = new OX_Translation ();
+            $translation = new OX_Translation();
             $translated_message = $translation->translate($GLOBALS['strPasswordChanged']);
             OA_Admin_UI::queueMessage($translated_message, 'local', 'confirm', 0);
 
@@ -106,71 +92,74 @@ $aUser = $oUser->aUser;
 
 // Prepare an array of HTML elements to display for the form, and
 // output using the $oOption object
-$aSettings = array (
-    array (
-        'text'  => $strChangePassword,
-        'items' => array (
-            array (
-                'type'     => 'plaintext',
-                'name'     => 'username',
-                'value'    => $aUser['username'],
-                'text'     => $strUsername,
-                'size'     => 35
-            ),
-            array (
-                'type'     => 'break'
-            ),
-            array (
-                'type'     => 'plaintext',
-                'name'     => 'contact_name',
-                'value'    => $aUser['contact_name'],
-                'text'     => $strFullName,
-                'size'     => 35
-            ),
-            array (
-                'type'     => 'break'
-            ),
-            array (
-                'type'    => 'plaintext',
-                'name'    => 'email_address',
-                'value'   => $aUser['email_address'],
-                'text'    => $strEmailAddress,
-                'size'    => 35
-            ),
-            array (
-                'type'    => 'break'
-            ),
-            array (
-                'type'    => 'password',
-                'name'    => 'pwold',
-                'text'    => $strCurrentPassword,
-                'disabled' => ''
-
-            ),
-            array (
-                'type'    => 'break'
-            ),
-            array (
-                'type'    => 'password',
-                'name'    => 'pw',
-                'text'    => $strChooseNewPassword
-            ),
-            array (
-                'type'    => 'break'
-            ),
-            array (
-                'type'    => 'password',
-                'name'    => 'pw2',
-                'text'    => $strReenterNewPassword,
-                'check'   => 'compare:pw'
-            )
-        )
-    )
-);
+$aSettings = [
+    [
+        'text' => $strChangePassword,
+        'items' => [
+            [
+                'type' => 'plaintext',
+                'name' => 'username',
+                'value' => $aUser['username'],
+                'text' => $strUsername,
+                'size' => 35,
+                'autocomplete' => 'username',
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'plaintext',
+                'name' => 'contact_name',
+                'value' => $aUser['contact_name'],
+                'text' => $strFullName,
+                'size' => 35,
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'plaintext',
+                'name' => 'email_address',
+                'value' => $aUser['email_address'],
+                'text' => $strEmailAddress,
+                'size' => 35,
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'password',
+                'name' => 'pwold',
+                'text' => $strCurrentPassword,
+                'disabled' => '',
+                'autocomplete' => 'current-password',
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'password',
+                'name' => 'pw',
+                'text' => $strChooseNewPassword,
+                'strengthIndicator' => true,
+                'check' => 'string+' . ($conf['security']['passwordMinLength'] ?? OA_Auth::DEFAULT_MIN_PASSWORD_LENGTH),
+                'autocomplete' => 'new-password',
+            ],
+            [
+                'type' => 'break',
+            ],
+            [
+                'type' => 'password',
+                'name' => 'pw2',
+                'text' => $strReenterNewPassword,
+                'check' => 'compare:pw',
+                'autocomplete' => 'new-password',
+            ],
+        ],
+    ],
+];
 
 $oOptions->show($aSettings, $aErrormessage);
 
 // Display the page footer
 phpAds_PageFooter();
-
-?>

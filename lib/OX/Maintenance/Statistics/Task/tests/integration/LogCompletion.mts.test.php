@@ -24,19 +24,10 @@ require_once MAX_PATH . '/lib/pear/Date.php';
  */
 class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Test the creation of the class.
      */
-    function testCreate()
+    public function testCreate()
     {
         $oLogCompletion = new OX_Maintenance_Statistics_Task_LogCompletion();
         $this->assertTrue(is_a($oLogCompletion, 'OX_Maintenance_Statistics_Task_LogCompletion'));
@@ -45,15 +36,15 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
     /**
      * A method to test the run() method.
      */
-    function testRun()
+    public function testRun()
     {
         // Reset the testing environment
         TestEnv::restoreEnv();
 
-        $aConf =& $GLOBALS['_MAX']['CONF'];
-        $oTable =& OA_DB_Table_Core::singleton();
-        $oDbh =& OA_DB::singleton();
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $aConf = &$GLOBALS['_MAX']['CONF'];
+        $oTable = &OA_DB_Table_Core::singleton();
+        $oDbh = OA_DB::singleton();
+        $oServiceLocator = OA_ServiceLocator::instance();
 
         $oNow = new Date('2004-06-06 18:10:00');
         $oServiceLocator->register('now', $oNow);
@@ -75,7 +66,7 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
             SELECT
                 *
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['log_maintenance_statistics'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['log_maintenance_statistics'], true) . "
             WHERE
                 adserver_run_type = 0";
         $rc = $oDbh->query($query);
@@ -96,7 +87,7 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
             SELECT
                 *
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['log_maintenance_statistics'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['log_maintenance_statistics'], true) . "
             WHERE
                 adserver_run_type = 1";
         $rc = $oDbh->query($query);
@@ -117,7 +108,7 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
             SELECT
                 *
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['log_maintenance_statistics'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['log_maintenance_statistics'], true) . "
             WHERE
                 adserver_run_type = 2";
         $rc = $oDbh->query($query);
@@ -137,10 +128,10 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
      * Requirements:
      * Test 1: Test two writes to reports.
      */
-    function testSetMaintenanceStatisticsRunReport()
+    public function testSetMaintenanceStatisticsRunReport()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
 
         // Create a new OX_Maintenance_Statistics_Task_LogCompletion object
         $oLogCompletion = new OX_Maintenance_Statistics_Task_LogCompletion();
@@ -158,7 +149,7 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
                 object,
                 details
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['userlog'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['userlog'], true) . "
             WHERE
                 userlogid = 1";
 
@@ -182,7 +173,7 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
                 object,
                 details
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['userlog'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['userlog'], true) . "
             WHERE
                 userlogid = 2";
 
@@ -196,7 +187,4 @@ class Test_OX_Maintenance_Statistics_Task_LogCompletion extends UnitTestCase
 
         TestEnv::restoreEnv();
     }
-
 }
-
-?>

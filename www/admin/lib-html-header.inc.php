@@ -11,5 +11,3 @@
 */
 
 function phpAds_buildPageHeader($page, $user, $template = '') {}
-
-?>

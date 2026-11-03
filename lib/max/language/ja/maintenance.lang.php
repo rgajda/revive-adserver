@@ -60,6 +60,8 @@ $GLOBALS['strMoveToDirectory'] = "画像の保存先をデータベースから�
 $GLOBALS['strStorageExplaination'] = "	バナー用の画像は、データベースかディレクトリに保存します。
 	画像をディレクトリに保存すると、CPU負荷が低下し、配信スピードが向上します。";
 
+// Security
+
 // Encoding
 $GLOBALS['strEncoding'] = "エンコード形式";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME}  は全てのデータをUTF-8形式でデータベースに保存します。<br />可能な限り、使用者の入力内容はUTF-8に変換されます。<br />もしアップグレード後に文字化けが発生しているようであれば、こちらのツールを使用して、文字コードを変換して下さい。 ";
@@ -107,6 +109,7 @@ $GLOBALS['strAndPlain'] = "および";
 
 //  Deliver Limitations
 $GLOBALS['strErrorsFound'] = "エラーがあります";
+$GLOBALS['strRepairCompiledLimitations'] = "いくつか内容に矛盾があります。下記のボタンを使用して問題を修正してください。この設定は、すべてのバナー及びチャンネルの再集計に対する上限値を設定し直します。<br />";
 $GLOBALS['strRecompile'] = "再集計";
 
 //  Append codes
@@ -118,3 +121,5 @@ $GLOBALS['strAppendCodesValid'] = "全ての追跡コードは正常です。";
 $GLOBALS['strRepairAppenedCodes'] = "何らかの問題が見つかりました。以下のボタンを使用して修正してください。これは全ての追跡コードの値を再集計します。";
 
 
+
+// Users

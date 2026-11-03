@@ -14,6 +14,8 @@ require_once MAX_PATH . '/lib/max/Plugin.php';
 // Using multi-dirname so that the tests can run from either plugins or plugins_repo
 require_once dirname(dirname(dirname(__FILE__))) . '/Client/Ip.delivery.php';
 
+Language_Loader::load();
+
 /**
  * A class for testing the Plugins_DeliveryLimitations_Client_Ip class.
  *
@@ -22,7 +24,7 @@ require_once dirname(dirname(dirname(__FILE__))) . '/Client/Ip.delivery.php';
  */
 class Plugins_TestOfPlugins_DeliveryLimitations_Client_Ip extends UnitTestCase
 {
-    function testMAX_checkClient_Ip()
+    public function testMAX_checkClient_Ip()
     {
         $_SERVER['REMOTE_ADDR'] = '150.254.149.189';
 
@@ -47,5 +49,3 @@ class Plugins_TestOfPlugins_DeliveryLimitations_Client_Ip extends UnitTestCase
         $this->assertTrue(MAX_checkClient_Ip('150.253.0.0/255.255.0.0', '!='));
     }
 }
-
-?>

@@ -22,11 +22,11 @@ require_once MAX_PATH . '/lib/max/Dal/Admin/Variables.php';
 
 class OA_Dll_Tracker extends OA_Dll
 {
-    const ERROR_UNKNOWN_TRACKER_ID = 'Unknown trackerId Error';
-    const ERROR_UNKNOWN_CAMPAIGN_ID = 'Unknown campaignId Error';
-    const ERROR_UPDATE_CODE = 'Error updating variable code';
-    const ERROR_DELETE = 'Error deleting tracker';
-    const ERROR_CAMPAIGN_ADVERTISER_MISMATCH = 'Campaign must be owned by same advertiser';
+    public const ERROR_UNKNOWN_TRACKER_ID = 'Unknown trackerId Error';
+    public const ERROR_UNKNOWN_CAMPAIGN_ID = 'Unknown campaignId Error';
+    public const ERROR_UPDATE_CODE = 'Error updating variable code';
+    public const ERROR_DELETE = 'Error deleting tracker';
+    public const ERROR_CAMPAIGN_ADVERTISER_MISMATCH = 'Campaign must be owned by same advertiser';
 
     /**
      * Performs data validation for a tracker. The method connects
@@ -44,27 +44,18 @@ class OA_Dll_Tracker extends OA_Dll
             if (!$this->checkStructureRequiredIntegerField($oTrackerInfo, 'trackerId') ||
                 !$this->checkIdExistence('trackers', $oTrackerInfo->trackerId) ||
                 !$this->checkStructureNotRequiredStringField($oTrackerInfo, 'trackerName', 255)) {
-
                 return false;
             }
-        } else {
+        } elseif (!$this->checkStructureRequiredIntegerField($oTrackerInfo, 'clientId') ||
+            !$this->checkStructureRequiredStringField($oTrackerInfo, 'trackerName', 255)) {
             // Adding a tracker.
-            if (!$this->checkStructureRequiredIntegerField($oTrackerInfo, 'clientId') ||
-                !$this->checkStructureRequiredStringField($oTrackerInfo, 'trackerName', 255)) {
-
-                return false;
-            }
+            return false;
         }
-
-        if (!$this->checkStructureNotRequiredStringField($oTrackerInfo, 'description', 255) ||
+        return !(!$this->checkStructureNotRequiredStringField($oTrackerInfo, 'description', 255) ||
             !$this->checkStructureNotRequiredIntegerField($oTrackerInfo, 'status') ||
             !$this->checkStructureNotRequiredIntegerField($oTrackerInfo, 'type') ||
             !$this->checkStructureNotRequiredBooleanField($oTrackerInfo, 'linkCampaigns') ||
-            !$this->checkStructureNotRequiredStringField($oTrackerInfo, 'variableMethod')) {
-
-            return false;
-        }
-        return true;
+            !$this->checkStructureNotRequiredStringField($oTrackerInfo, 'variableMethod'));
     }
 
     /**
@@ -88,25 +79,28 @@ class OA_Dll_Tracker extends OA_Dll
         if (!isset($oTrackerInfo->trackerId)) {
             // Add
             $oTrackerInfo->setDefaultForAdd();
-
-            // Check permission for the advertiser.
-            if (isset($oTrackerInfo->clientId)) {
-                if (!$this->checkPermissions(
-                        array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-                        'clients', $oTrackerInfo->clientId)) {
-                    return false;
-                }
-            }
         } else {
             // Modify
             if (!$this->checkIdExistence('trackers', $oTrackerInfo->trackerId)) {
                 $this->raiseError(self::ERROR_UNKNOWN_TRACKER_ID);
                 return false;
             }
-            if (!$this->checkPermissions(array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-                'trackers', $oTrackerInfo->trackerId)) {
+            if (!$this->checkPermissions(
+                [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+                'trackers',
+                $oTrackerInfo->trackerId,
+            )) {
                 return false;
             }
+        }
+
+        // Check permission for the advertiser.
+        if (isset($oTrackerInfo->clientId) && !$this->checkPermissions(
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+            'clients',
+            $oTrackerInfo->clientId,
+        )) {
+            return false;
         }
 
         if ($this->validate($oTrackerInfo)) {
@@ -133,10 +127,8 @@ class OA_Dll_Tracker extends OA_Dll
             }
 
             return true;
-
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -152,9 +144,10 @@ class OA_Dll_Tracker extends OA_Dll
         }
 
         if (!$this->checkPermissions(
-            array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-            'trackers', $trackerId)) {
-
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+            'trackers',
+            $trackerId,
+        )) {
             return false;
         }
 
@@ -164,10 +157,9 @@ class OA_Dll_Tracker extends OA_Dll
 
         if ($result) {
             return true;
-        } else {
-            $this->raiseError(self::ERROR_DELETE);
-            return false;
         }
+        $this->raiseError(self::ERROR_DELETE);
+        return false;
     }
 
 
@@ -192,8 +184,11 @@ class OA_Dll_Tracker extends OA_Dll
             return false;
         }
 
-        if (!$this->checkPermissions(array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-            'trackers', $oTrackerInfo->trackerId)) {
+        if (!$this->checkPermissions(
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+            'trackers',
+            $trackerId,
+        )) {
             return false;
         }
 
@@ -212,10 +207,9 @@ class OA_Dll_Tracker extends OA_Dll
                 return false;
             }
             return true;
-        } else {
-            // Already linked
-            return true;
         }
+        // Already linked
+        return true;
     }
 
     /**
@@ -239,12 +233,9 @@ class OA_Dll_Tracker extends OA_Dll
 
             $oTrackerInfo->setTrackerDataFromArray($aTrackerData);
             return true;
-
-        } else {
-
-            $this->raiseError(self::ERROR_UNKNOWN_TRACKER_ID);
-            return false;
         }
+        $this->raiseError(self::ERROR_UNKNOWN_TRACKER_ID);
+        return false;
     }
 
     public function checkSameAdvertiser($trackerId, $campaignId)
@@ -259,5 +250,3 @@ class OA_Dll_Tracker extends OA_Dll
         return false;
     }
 }
-
-?>

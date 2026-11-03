@@ -5,7 +5,7 @@
  <name>openads</name>
  <create>true</create>
  <overwrite>false</overwrite>
- <version>623</version>
+ <version>628</version>
  <status>final</status>
 
  <table>
@@ -274,16 +274,8 @@
    </field>
 
    <index>
-    <name>bannerid</name>
-    <field>
-     <name>bannerid</name>
-     <sorting>ascending</sorting>
-    </field>
-   </index>
-
-   <index>
-    <name>bannerid_executionorder</name>
-    <unique>true</unique>
+    <name>acls_pkey</name>
+    <primary>true</primary>
     <field>
      <name>bannerid</name>
      <sorting>ascending</sorting>
@@ -353,16 +345,8 @@
    </field>
 
    <index>
-    <name>channelid</name>
-    <field>
-     <name>channelid</name>
-     <sorting>ascending</sorting>
-    </field>
-   </index>
-
-   <index>
-    <name>channelid_executionorder</name>
-    <unique>true</unique>
+    <name>acls_channel_pkey</name>
+    <primary>true</primary>
     <field>
      <name>channelid</name>
      <sorting>ascending</sorting>
@@ -855,14 +839,6 @@
    </field>
 
    <field>
-    <name>active</name>
-    <type>openads_smallint</type>
-    <length>1</length>
-    <notnull>false</notnull>
-    <default>0</default>
-   </field>
-
-   <field>
     <name>updated</name>
     <type>openads_datetime</type>
     <notnull>true</notnull>
@@ -875,6 +851,14 @@
     <length>9</length>
     <notnull>false</notnull>
     <default></default>
+   </field>
+
+   <field>
+    <name>status</name>
+    <type>openads_smallint</type>
+    <length>6</length>
+    <notnull>true</notnull>
+    <default>0</default>
    </field>
 
    <index>
@@ -908,7 +892,7 @@
    <field>
     <name>name</name>
     <type>openads_varchar</type>
-    <length>255</length>
+    <length>250</length>
     <notnull>true</notnull>
     <default></default>
    </field>
@@ -959,7 +943,7 @@
    <field>
     <name>context</name>
     <type>openads_varchar</type>
-    <length>255</length>
+    <length>200</length>
     <notnull>true</notnull>
     <default></default>
    </field>
@@ -1152,8 +1136,8 @@
 
    <field>
     <name>contenttype</name>
-    <type>openads_enum</type>
-    <length>'gif','jpeg','png','html','swf','dcr','rpm','mov','txt'</length>
+    <type>openads_varchar</type>
+    <length>8</length>
     <notnull>true</notnull>
     <default>gif</default>
    </field>
@@ -1168,8 +1152,8 @@
 
    <field>
     <name>storagetype</name>
-    <type>openads_enum</type>
-    <length>'sql','web','url','html','network','txt'</length>
+    <type>openads_varchar</type>
+    <length>16</length>
     <notnull>true</notnull>
     <default>sql</default>
    </field>
@@ -1361,8 +1345,8 @@
 
    <field>
     <name>alt_contenttype</name>
-    <type>openads_enum</type>
-    <length>'gif','jpeg','png'</length>
+    <type>openads_varchar</type>
+    <length>8</length>
     <notnull>true</notnull>
     <default>gif</default>
    </field>
@@ -5455,7 +5439,7 @@
     <name>username</name>
     <type>openads_varchar</type>
     <length>64</length>
-    <notnull>false</notnull>
+    <notnull>true</notnull>
     <default></default>
    </field>
 
@@ -5463,7 +5447,7 @@
     <name>password</name>
     <type>openads_varchar</type>
     <length>64</length>
-    <notnull>false</notnull>
+    <notnull>true</notnull>
     <default></default>
    </field>
 

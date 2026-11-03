@@ -29,23 +29,29 @@ class VariableXmlRpcService extends BaseVariableService
         $oVariableInfo = new OA_Dll_VariableInfo();
         $oResponseWithError = null;
 
-        if (!XmlRpcUtils::getRequiredScalarValue($sessionId, $oParams, 0,
-                $oResponseWithError) ||
-            !XmlRpcUtils::getStructureScalarAndNotScalarFields($oVariableInfo, $oParams, 1,
-                array('trackerId', 'variableName', 'description', 'dataType',
+        if (!XmlRpcUtils::getRequiredScalarValue(
+            $sessionId,
+            $oParams,
+            0,
+            $oResponseWithError,
+        ) ||
+            !XmlRpcUtils::getStructureScalarAndNotScalarFields(
+                $oVariableInfo,
+                $oParams,
+                1,
+                ['trackerId', 'variableName', 'description', 'dataType',
                     'purpose', 'rejectIfEmpty', 'isUnique', 'uniqueWindow',
-                    'variableCode', 'hidden'),
-                array('hiddenWebsites'),
-                $oResponseWithError)) {
-
+                    'variableCode', 'hidden'],
+                ['hiddenWebsites'],
+                $oResponseWithError,
+            )) {
             return $oResponseWithError;
         }
 
         if ($this->oVariableServiceImpl->addVariable($sessionId, $oVariableInfo)) {
             return XmlRpcUtils::integerTypeResponse($oVariableInfo->variableId);
-        } else {
-            return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
         }
+        return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
     }
 
     /**
@@ -57,27 +63,33 @@ class VariableXmlRpcService extends BaseVariableService
      */
     public function modifyVariable(&$oParams)
     {
-        $sessionId  = null;
+        $sessionId = null;
         $oVariableInfo = new OA_Dll_VariableInfo();
         $oResponseWithError = null;
 
-        if (!XmlRpcUtils::getRequiredScalarValue($sessionId, $oParams, 0,
-                $oResponseWithError) ||
-            !XmlRpcUtils::getStructureScalarAndNotScalarFields($oVariableInfo, $oParams, 1,
-                array('variableId', 'trackerId', 'variableName', 'description',
+        if (!XmlRpcUtils::getRequiredScalarValue(
+            $sessionId,
+            $oParams,
+            0,
+            $oResponseWithError,
+        ) ||
+            !XmlRpcUtils::getStructureScalarAndNotScalarFields(
+                $oVariableInfo,
+                $oParams,
+                1,
+                ['variableId', 'trackerId', 'variableName', 'description',
                     'dataType', 'purpose', 'rejectIfEmpty', 'isUnique', 'uniqueWindow',
-                    'variableCode', 'hidden'),
-                array('hiddenWebsites'),
-                $oResponseWithError)) {
-
+                    'variableCode', 'hidden'],
+                ['hiddenWebsites'],
+                $oResponseWithError,
+            )) {
             return $oResponseWithError;
         }
 
         if ($this->oVariableServiceImpl->modifyVariable($sessionId, $oVariableInfo)) {
             return XmlRpcUtils::booleanTypeResponse(true);
-        } else {
-            return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
         }
+        return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
     }
 
     /**
@@ -92,17 +104,19 @@ class VariableXmlRpcService extends BaseVariableService
         $variableId = null;
         $oResponseWithError = null;
 
-        if (!XmlRpcUtils::getScalarValues(array(&$sessionId, &$variableId),
-            array(true, true), $oParams, $oResponseWithError )) {
-
+        if (!XmlRpcUtils::getScalarValues(
+            [&$sessionId, &$variableId],
+            [true, true],
+            $oParams,
+            $oResponseWithError,
+        )) {
             return $oResponseWithError;
         }
 
         if ($this->oVariableServiceImpl->deleteVariable($sessionId, $variableId)) {
             return XmlRpcUtils::booleanTypeResponse(true);
-        } else {
-            return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
         }
+        return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
     }
 
     public function getVariable(&$oParams)
@@ -112,20 +126,21 @@ class VariableXmlRpcService extends BaseVariableService
         $oVariableInfo = new OA_Dll_VariableInfo();
         $oResponseWithError = null;
         if (!XmlRpcUtils::getScalarValues(
-                array(&$sessionId, &$variableId),
-                array(true, true), $oParams, $oResponseWithError)) {
-           return $oResponseWithError;
+            [&$sessionId, &$variableId],
+            [true, true],
+            $oParams,
+            $oResponseWithError,
+        )) {
+            return $oResponseWithError;
         }
 
-        if ($this->oVariableServiceImpl->getVariable($sessionId,
-                $variableId, $oVariableInfo)) {
-
+        if ($this->oVariableServiceImpl->getVariable(
+            $sessionId,
+            $variableId,
+            $oVariableInfo,
+        )) {
             return XmlRpcUtils::getEntityResponse($oVariableInfo);
-        } else {
-
-            return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
         }
+        return XmlRpcUtils::generateError($this->oVariableServiceImpl->getLastError());
     }
 }
-
-?>

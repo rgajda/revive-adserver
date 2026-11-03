@@ -146,7 +146,7 @@ class Config_Container_IniCommented {
         $pos = 0; // position in $text
 
         do {
-            $char = $text{$pos};
+            $char = $text[$pos];
             $state = $this->_getQACEvent($stack);
 
             if ($tokens[$state]) {
@@ -267,20 +267,8 @@ class Config_Container_IniCommented {
                     $content = '0';
                 } elseif ($content === true) {
                     $content = '1';
-                /*} elseif ( strpos($content, '\'') !== false ||
-                           strpos($content, '\\') !== false )  // OPENX FIX :)
-                {
-                    // leave unquoted*/
-                } elseif ( strpos($content, '"') !== false ) // OPENX FIX :)
-                {
-                    // can't do anything with double quotes, they will break parse_ini_file()
-                } elseif (
-                            strlen(trim($content)) < strlen($content) ||
-                            preg_match( '/[\W]/', $content, $aMatches)   // OPENX FIX :)
-                         )
-                {
-                    $content = '"'.$content.'"';    // OPENX FIX :)
-                                                    // removed addslashes as parse_ini_file works correct only with unescaped chars
+                } elseif (preg_match( '/\W/', $content)) {
+                    $content = '"'.addcslashes($content, '$"\\').'"';
                 }
                 if ($count > 1) {
                     // multiple values for a directive are separated by a comma

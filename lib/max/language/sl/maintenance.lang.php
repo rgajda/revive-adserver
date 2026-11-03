@@ -60,6 +60,12 @@ $GLOBALS['strMoveToDirectory'] = "Premakni slike shranjene v podatkovni bazi v m
 $GLOBALS['strStorageExplaination'] = "	Slike, ki jih uporablja lokalna pasica, so shranjene v podatkovni bazi ali mapi. Če boste slike shranili
 	v mapo, boste pospešili nalagalni čas podatkovne baze.";
 
+// Security
+$GLOBALS['strSecurity'] = "Varnost";
+$GLOBALS['strSecurityOK'] = "Vaš brskalnik ni uspel pridobiti zaščitenih datotek, to je odlična novica!";
+$GLOBALS['strSecurityKO'] = "Vaš brskalnik je uspel pridobiti nekatere datoteke, do katerih ne bi smel imeti dostopa. Na primer:";
+$GLOBALS['strSecurityReadMore'] = "Kliknite tukaj za več informacij o tem, kako zaščititi svojo namestitev.";
+
 // Encoding
 $GLOBALS['strEncoding'] = "Šifriranje";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME} zdaj shranjuje podatke v bazo v UTF-8 formatu.<br />Vaši podatki so bili samodejno pretvorjeni v ta format, kjer je to bilo mogoče.<br />Če po posodobitvi najdete pokvarjene znake in poznate, katero šifriranje ste izbrali, lahko uporabite to orodje za pretvorbo podatkov v format UTF-8";
@@ -111,8 +117,11 @@ $GLOBALS['strRunningOn'] = "teče na";
 $GLOBALS['strAndPlain'] = "in";
 
 //  Deliver Limitations
+$GLOBALS['strDeliveryLimitations'] = "Pravila dostave";
 $GLOBALS['strErrorsFound'] = "Najdene napake";
+$GLOBALS['strRepairCompiledLimitations'] = "Zgoraj je bilo najdenih nekaj nedoslednosti. Te lahko odpravite s klikom na spodnjim gumbom, ki bo znova sestavil zbrane omejitve za vsako pasico/kanal v sistemu<br />";
 $GLOBALS['strRecompile'] = "Znova sestavi";
+$GLOBALS['strCheckACLs'] = "Preveri pravila dostave";
 
 //  Append codes
 $GLOBALS['strAppendCodesDesc'] = "Po nekaterimi pogoji dostavno orodje ne deluje pravilno z shranjenim zbirnikom za sledilnike. Uporabite naslednjo povezavo za potrditev zbrinika v podatkovni bazi";
@@ -128,3 +137,12 @@ $GLOBALS['strPluginsPrecis'] = "Diagnosticiraj in popravi težave z OpenX vtičn
 $GLOBALS['strMenus'] = "Meniji";
 $GLOBALS['strMenusPrecis'] = "Ponovno sestavi menijski pomnilnik";
 $GLOBALS['strMenusCachedOk'] = "Menijskih pomnilnik je bil ponovno sestavljen";
+
+// Users
+$GLOBALS['strUserPasswords'] = "Gesla uporabnikov";
+$GLOBALS['strUserPasswordsExplaination'] = "Od različice 5.4 naprej, {$PRODUCT_NAME} shranjuje gesla v varnejši obliki.
+Uporabite to orodje, da preverite, ali imajo kateri uporabniki še vedno gesla shranjena v stari obliki, in da izbranim uporabnikom pošljete e-pošto, s katero jim omogočite nastavitev novega gesla.
+Orodje se lahko uporablja tudi za opomin novih uporabnikov, da naj nastavijo svoje prvo geslo.";
+$GLOBALS['strCheckUserPasswords'] = "Preveri gesla uporabnikov";
+$GLOBALS['strUserPasswordsEverythingOK'] = "Noben uporabnik ne potrebuje ponastavitve gesla, vse je v redu.";
+$GLOBALS['strUserPasswordsEmailsSent'] = "Elektronska sporočila za izbrane uporabnike so bila poslana.";

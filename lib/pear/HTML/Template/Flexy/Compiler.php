@@ -48,7 +48,7 @@ class HTML_Template_Flexy_Compiler {
     * @return   object    The Compiler Object
     * @access   public
     */
-    function factory($options)
+    public static function factory($options)
     {
         if (empty($options['compiler'])) {
             $options['compiler'] = 'Flexy';
@@ -134,7 +134,7 @@ class HTML_Template_Flexy_Compiler {
                 if (!$name) {  // empty!?
                     continue;
                 }
-                if ($name{0} == '.') {
+                if ($name[0] == '.') {
                     continue;
                 }
 

@@ -64,7 +64,7 @@ $GLOBALS['strNo'] = "아니오";
 $GLOBALS['strNone'] = "없�?�";
 $GLOBALS['strCustom'] = "사용�? 지정";
 $GLOBALS['strDefault'] = "기본설정";
-$GLOBALS['strUnknown'] = "알수없음";
+$GLOBALS['strUnknown'] = "알려지지 않�?�";
 $GLOBALS['strUnlimited'] = "제한없�?�";
 $GLOBALS['strUntitled'] = "제목없�?�";
 $GLOBALS['strAll'] = "전체";
@@ -151,6 +151,7 @@ $GLOBALS['strAuthentification'] = "인증";
 $GLOBALS['strWelcomeTo'] = "환영합니다!";
 $GLOBALS['strEnterUsername'] = "사용자ID와 비밀번호를 입력해 주세요.";
 $GLOBALS['strEnterBoth'] = "사용자ID와 비밀번호를 모두 입력하세요!";
+$GLOBALS['strEnableCookies'] = "{$PRODUCT_NAME}를 사용하려면 쿠키를 사용하도록 설정해야 한다.";
 $GLOBALS['strSessionIDNotMatch'] = "세션 쿠키 오류, 다시 로그인 하시기 바랍니다";
 $GLOBALS['strLogin'] = "로그인";
 $GLOBALS['strLogout'] = "로그아웃";
@@ -160,10 +161,8 @@ $GLOBALS['strPasswordRepeat'] = "비밀번호 확인";
 $GLOBALS['strAccessDenied'] = "접근할 수 없습니다.";
 $GLOBALS['strUsernameOrPasswordWrong'] = "사용자 이름 혹은 비밀번호가 정확하지 않습니다. 다시 시도해 주십시오.";
 $GLOBALS['strPasswordWrong'] = "올바른 비밀번호가 아닙니다.";
-$GLOBALS['strNotAdmin'] = "권한�?� 없습니다.";
 $GLOBALS['strDuplicateClientName'] = "이미 존재하는 ID입니다. 다른 사용자ID를 입력해 주세요!";
 $GLOBALS['strInvalidPassword'] = "새 암호가 유효하지 않습니다. 다른 암호를 사용하세요.";
-$GLOBALS['strInvalidEmail'] = "이메일 주소가 명확하지 않습니다. 이메일 주소를 정확하게 입력하세요.";
 $GLOBALS['strNotSamePasswords'] = "두개의 암호가 일치하지 않습니다.";
 $GLOBALS['strRepeatPassword'] = "비밀번호 확인";
 $GLOBALS['strDeadLink'] = "링크가 올바르지 않습니다.";
@@ -206,14 +205,19 @@ $GLOBALS['strMonths'] = "월간";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
 $GLOBALS['strDayShortCuts'][0] = '일';
 $GLOBALS['strDayShortCuts'][1] = '월';
+$GLOBALS['strDayShortCuts'][2] = '화';
+$GLOBALS['strDayShortCuts'][3] = '수';
+$GLOBALS['strDayShortCuts'][4] = '목';
+$GLOBALS['strDayShortCuts'][5] = '금';
+$GLOBALS['strDayShortCuts'][6] = '토';
 
 $GLOBALS['strHour'] = "시";
 $GLOBALS['strSeconds'] = "초";
@@ -283,6 +287,7 @@ $GLOBALS['strStandardContract'] = "연락처";
 $GLOBALS['strConfirmDeleteTrackers'] = "정말 선택된 추적내역을 삭제 하시겠습니까?";
 $GLOBALS['strConfirmDeleteTracker'] = "정말 추적내역을 삭제 하시겠습니까?";
 $GLOBALS['strTrackerProperties'] = "추적 속성";
+$GLOBALS['strStatus'] = "상태";
 $GLOBALS['strManual'] = "사용방법";
 
 // Banners (General)
@@ -293,8 +298,10 @@ $GLOBALS['strAddBanner_Key'] = "새 배너 추가(<u>n</u>)";
 $GLOBALS['strShowBanner'] = "배너 보기";
 $GLOBALS['strBannerProperties'] = "배너 속성";
 $GLOBALS['strNoBanners'] = "이 캠페인에 등록된 배너가 없습니다.";
-$GLOBALS['strConfirmDeleteBanner'] = "해당 배너를 삭제하시면 통계내역도 함께 삭제됩니다.\n정말 이 배너를 삭제 하시겠습니까?";
-$GLOBALS['strConfirmDeleteBanners'] = "해당 배너를 삭제하시면 통계내역도 함께 삭제됩니다.\n정말 선택된 배너를 삭제 하시겠습니까?";
+$GLOBALS['strConfirmDeleteBanner'] = "해당 배너를 삭제하시면 통계내역도 함께 삭제됩니다.
+정말 이 배너를 삭제 하시겠습니까?";
+$GLOBALS['strConfirmDeleteBanners'] = "해당 배너를 삭제하시면 통계내역도 함께 삭제됩니다.
+정말 선택된 배너를 삭제 하시겠습니까?";
 $GLOBALS['strShowParentCampaigns'] = "상위 캠페인 표시";
 $GLOBALS['strHideParentCampaigns'] = "상위 캠페인 숨김";
 $GLOBALS['strHideInactiveBanners'] = "비활성화 된 배너 숨김";
@@ -319,15 +326,9 @@ $GLOBALS['strWeight'] = "가중치";
 $GLOBALS['strAlt'] = "Alt 텍스트";
 $GLOBALS['strStatusText'] = "상태표시줄 텍스트";
 $GLOBALS['strBannerWeight'] = "배너 가중치";
+$GLOBALS['strAdserverTypeGeneric'] = "일반 HTML 배너";
 
 // Banner (advanced)
-
-// Banner (swf)
-$GLOBALS['strCheckSWF'] = "플래시 파�?��? 입력�?� �?�?�를 확�?�합니다.";
-$GLOBALS['strConvertSWFLinks'] = "플래시 링크변환";
-$GLOBALS['strHardcodedLinks'] = "내장�?� �?�?�";
-$GLOBALS['strCompressSWF'] = "보다 빠른전송을 위해 SWF 파일을 압축합니다. (플래시 6 버젼이상 필요)";
-$GLOBALS['strOverwriteSource'] = "원본소스 파라미터 덮어쓰기";
 
 // Display Delviery Rules
 $GLOBALS['strModifyBannerAcl'] = "전송 옵션";
@@ -338,21 +339,22 @@ $GLOBALS['strAND'] = "그리고";                          // logical operator
 $GLOBALS['strOR'] = "또는";                         // logical operator
 $GLOBALS['strOnlyDisplayWhen'] = "다음 조건에서만 배너를 표시합니다.:";
 $GLOBALS['strWeekDays'] = "주간";
+$GLOBALS['strTime'] = "시간";
 $GLOBALS['strDomain'] = "도메인";
 $GLOBALS['strSource'] = "소스";
 $GLOBALS['strBrowser'] = "브라우저";
 
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 
 // Website
@@ -380,7 +382,7 @@ $GLOBALS['strCountry'] = "국가";
 $GLOBALS['strWebsiteZones'] = "광고게시 웹사이트 영역";
 
 // Zone
-$GLOBALS['strZone'] = "영역";
+$GLOBALS['strZone'] = "광고영역";
 $GLOBALS['strZones'] = "영역";
 $GLOBALS['strAddNewZone'] = "새 광고영역 추가";
 $GLOBALS['strAddNewZone_Key'] = "새 광고영역 추가 (<u>n</u>)";
@@ -429,6 +431,7 @@ $GLOBALS['strSelectAd'] = "배너 선택";
 $GLOBALS['strSelectPublisher'] = "웹사이트 선택";
 $GLOBALS['strSelectZone'] = "광고영역 선택";
 $GLOBALS['strStatusDuplicate'] = "복제";
+$GLOBALS['strConnTypeSale'] = "저장";
 
 // Statistics
 $GLOBALS['strStats'] = "통계";
@@ -468,7 +471,6 @@ $GLOBALS['strParameters'] = "카테고리 설정";
 $GLOBALS['strFrameSize'] = "프레임 크기";
 $GLOBALS['strBannercode'] = "배너코드";
 
-
 // Errors
 $GLOBALS['strNoMatchesFound'] = "검색 결과가 없습니다.";
 $GLOBALS['strErrorOccurred'] = "오류가 발생했습니다.";
@@ -477,6 +479,7 @@ $GLOBALS['strErrorOccurred'] = "오류가 발생했습니다.";
 
 // Email
 $GLOBALS['strMailSubject'] = "광고주 보고서";
+$GLOBALS['strMailHeader'] = "{contact}님,";
 $GLOBALS['strMailBannerStats'] = "{clientname}님!  배너 통계는 다음과 같습니다.";
 $GLOBALS['strMailBannerActivatedSubject'] = "캠페인 {id} 활성화";
 $GLOBALS['strMailBannerDeactivatedSubject'] = "캠페인 {id} 비활성화";
@@ -513,6 +516,8 @@ $GLOBALS['strCTR_short'] = "클릭율";
 $GLOBALS['strGlobalSettings'] = "전체 설정";
 $GLOBALS['strGeneralSettings'] = "일반 설정";
 $GLOBALS['strMainSettings'] = "메인설정";
+$GLOBALS['strPlugins'] = "플러그인";
+$GLOBALS['strChooseSection'] = '�?역 선�?';
 
 // Product Updates
 $GLOBALS['strProductUpdates'] = "제품 업데이트";
@@ -525,15 +530,25 @@ $GLOBALS['strTotalAgencies'] = "전체 계정";
 $GLOBALS['strNoAgencies'] = "현재 등�?�?� �?역�?� 없습니다.";
 $GLOBALS['strConfirmDeleteAgency'] = "�?� �?역�?� 삭제합니까?";
 $GLOBALS['strInactiveAgenciesHidden'] = "배너가 숨겨져 있습니다.";
+$GLOBALS['strAgencyStatusInactive'] = "사용가능";
 
 // Channels
-$GLOBALS['strChannelLimitations'] = "전달유지 옵션";
+$GLOBALS['strChannelLimitations'] = "전송 옵션";
 
 // Tracker Variables
 $GLOBALS['strVariableDescription'] = "설명";
 $GLOBALS['strVariableDataType'] = "데이터 형식";
 
 // Password recovery
+
+// Password recovery - Default
+
+
+// Password recovery - Welcome email
+
+// Password recovery - Hash update
+
+// Password reset warning
 
 // Audit
 
@@ -558,6 +573,21 @@ $GLOBALS['strCampaignsHaveBeenDeleted'] = "선택 된 모든 캠페인이 삭제
 
 
 // Report error messages
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

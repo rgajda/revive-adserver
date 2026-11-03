@@ -26,27 +26,27 @@ class OX_UI_WizardSteps
     {
         $currentStepId = $aParams['current'];
         $aSteps = $aParams['steps'];
-        $addStepNo = isset($aParams['addStepNumber']) ? $aParams['addStepNumber'] : true;
+        $addStepNo = $aParams['addStepNumber'] ?? true;
 
-        $aWizardSteps = array();
-        $stepCount = count($aSteps);
+        $aWizardSteps = [];
         $i = 0;
+        $currentReached = false;
         if ($aSteps) {
             foreach ($aSteps as $stepId => $stepName) {
-                $currentReached = $currentReached ? $currentReached : $stepId == $currentStepId;
+                $currentReached = $currentReached ?: $stepId == $currentStepId;
                 $current = $stepId == $currentStepId;
 
                 if ($current && $i > 0) {
-                    $aWizardSteps[$i-1]['beforeCurrent'] = true;
+                    $aWizardSteps[$i - 1]['beforeCurrent'] = true;
                 }
 
-                $aStep = array(
+                $aStep = [
                     'id' => $stepId,
-                    'name' => $addStepNo ? ($i+1).'. '.$stepName : $stepName,
+                    'name' => $addStepNo ? ($i + 1) . '. ' . $stepName : $stepName,
                     'current' => $current,
                     'done' => !$currentReached,
-                    'beforeCurrent' => false //this will be updated when current is reached
-                );
+                    'beforeCurrent' => false, //this will be updated when current is reached
+                ];
 
                 $aWizardSteps[] = $aStep;
                 $i++;

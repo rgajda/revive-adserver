@@ -38,6 +38,8 @@ $GLOBALS['strCache'] = "Leveransminne";
 $GLOBALS['strStorage'] = "Lager";
 $GLOBALS['strMoveToDirectory'] = "Flytta bilder som lagrats i databasen till en directory";
 
+// Security
+
 // Encoding
 
 // Product Updates
@@ -61,7 +63,11 @@ $GLOBALS['strRunningOn'] = "körs på";
 $GLOBALS['strAndPlain'] = "och";
 
 //  Deliver Limitations
+$GLOBALS['strDeliveryLimitations'] = "Leveransregler";
 
 //  Append codes
 
+$GLOBALS['strPlugins'] = "Tillägg";
 
+
+// Users

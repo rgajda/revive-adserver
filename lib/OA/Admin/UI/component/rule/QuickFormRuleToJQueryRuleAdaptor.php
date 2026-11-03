@@ -20,21 +20,21 @@
  *           'validation'  => $validation,
  *           'reset'       => $reset,
  *           'dependent'   => $dependent
- *       ); 
- *  
+ *       );
+ *
  */
 interface OA_Admin_UI_Rule_QuickFormToJQueryRuleAdaptor
 {
     /**
-     * Returns JS method code that should be installed as a validation method 
+     * Returns JS method code that should be installed as a validation method
      * to JQuery validation plugin under the Quickfor rule name
      *
      * @param array $rule
      * @return string
      */
     public function getJQueryValidationMethodCode();
-    
-    
+
+
     /**
      * Returns Jquery validation plugin compliant rule definition for a given quickform rule
      *
@@ -51,4 +51,3 @@ interface OA_Admin_UI_Rule_QuickFormToJQueryRuleAdaptor
      */
     public function getJQueryValidationMessage($rule);
 }
-?>

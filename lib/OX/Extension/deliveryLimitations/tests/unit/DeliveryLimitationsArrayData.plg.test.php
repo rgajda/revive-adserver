@@ -13,6 +13,8 @@
 require_once MAX_PATH . '/lib/max/Plugin.php';
 require_once LIB_PATH . '/Extension/deliveryLimitations/DeliveryLimitationsCommaSeparatedData.php';
 
+Language_Loader::load();
+
 /**
  * A class for testing the Plugins_DeliveryLimitations_Client_Browser class.
  *
@@ -21,17 +23,19 @@ require_once LIB_PATH . '/Extension/deliveryLimitations/DeliveryLimitationsComma
  */
 class Plugins_DeliveryLimitations_ArrayData_Test extends UnitTestCase
 {
-     function Plugins_DeliveryLimitations_TestCase()
+    public function Plugins_DeliveryLimitations_TestCase()
     {
         parent::__construct();
     }
 
-    function test_preCompile()
+    public function test_preCompile()
     {
-        $oPlugin = new Plugins_DeliveryLimitations_CommaSeparatedData();
+        $oPlugin = new class extends Plugins_DeliveryLimitations_CommaSeparatedData {
+            public function displayArrayData() {}
+        };
+
         $this->assertEqual('ab,cd,ef,gh', $oPlugin->_preCompile('ab,cd,ef,gh'));
         $this->assertEqual('ab,cd,ef,gh', $oPlugin->_preCompile('aB,cD, ef,gh '));
         $this->assertEqual('a\\b,cd,ef,gh', $oPlugin->_preCompile('a\\b,cd,ef,gh'));
     }
 }
-?>

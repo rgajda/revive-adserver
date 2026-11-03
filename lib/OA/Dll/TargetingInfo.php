@@ -55,13 +55,13 @@ class OA_Dll_TargetingInfo extends OA_Info
     public $data;
 
 
-    function getFieldsTypes()
+    public function getFieldsTypes()
     {
-        return array(
-                    'logical' => 'string',
-                    'type' => 'string',
-                    'comparison' => 'string',
-                    'data' => 'string'
-                );
+        return [
+            'logical' => 'string',
+            'type' => 'string',
+            'comparison' => 'string',
+            'data' => 'string',
+        ];
     }
 }

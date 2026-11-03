@@ -20,15 +20,18 @@ require_once MAX_PATH . '/lib/OX/Translation.php';
  */
 class OA_Dashboard_Widget_Audit extends OA_Dashboard_Widget
 {
-    var $oTrans;
+    /** @var OX_Translation */
+    public $oTrans;
+
+    /** @var OA_Admin_Template */
+    public $oTpl;
 
     /**
      * The class constructor
      *
      * @param array $aParams The parameters array, usually $_REQUEST
-     * @return OA_Dashboard_Widget_BlogFeed
      */
-    function __construct($aParams)
+    public function __construct($aParams)
     {
         parent::__construct($aParams);
 
@@ -38,13 +41,13 @@ class OA_Dashboard_Widget_Audit extends OA_Dashboard_Widget
         $this->oTrans = new OX_Translation();
     }
 
-    function display()
+    public function display($aParams = [])
     {
         $conf = $GLOBALS['_MAX']['CONF'];
         if (!$conf['audit']['enabled']) {
-            $this->oTpl->assign('screen',       'disabled');
-            $this->oTpl->assign('siteTitle',    $GLOBALS['strAuditTrailSetup']);
-            $this->oTpl->assign('siteUrl',      MAX::constructUrl(MAX_URL_ADMIN, 'account-settings-debug.php'));
+            $this->oTpl->assign('screen', 'disabled');
+            $this->oTpl->assign('siteTitle', $GLOBALS['strAuditTrailSetup']);
+            $this->oTpl->assign('siteUrl', MAX::constructUrl(MAX_URL_ADMIN, 'account-settings-debug.php'));
         } else {
             // Account security
             if (OA_Permission::isAccount(OA_ACCOUNT_MANAGER)) {
@@ -77,16 +80,14 @@ class OA_Dashboard_Widget_Audit extends OA_Dashboard_Widget
                     $aAuditData[$key]['desc'] = (strlen($str) > 30) ? substr($str, 0, 30) . '...' : $str;
                 }
             } else {
-                $this->oTpl->assign('noData',   $GLOBALS['strAuditNoData']);
+                $this->oTpl->assign('noData', $GLOBALS['strAuditNoData']);
             }
 
-            $this->oTpl->assign('screen',       'enabled');
-            $this->oTpl->assign('aAuditData',   $aAuditData);
-            $this->oTpl->assign('siteUrl',      MAX::constructUrl(MAX_URL_ADMIN, 'userlog-index.php'));
-            $this->oTpl->assign('siteTitle',    $GLOBALS['strAuditTrailGoTo']);
+            $this->oTpl->assign('screen', 'enabled');
+            $this->oTpl->assign('aAuditData', $aAuditData);
+            $this->oTpl->assign('siteUrl', MAX::constructUrl(MAX_URL_ADMIN, 'userlog-index.php'));
+            $this->oTpl->assign('siteTitle', $GLOBALS['strAuditTrailGoTo']);
         }
         $this->oTpl->display();
     }
 }
-
-?>

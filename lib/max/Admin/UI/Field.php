@@ -10,12 +10,12 @@
 +---------------------------------------------------------------------------+
 */
 
-define ('FILTER_NONE',0);
-define ('FILTER_TRACKER_PRESENT',1);
-define ('FILTER_ZONE_INVENTORY_DOMAIN_PAGE_INDEXED',2);
-define ('FILTER_ZONE_INVENTORY_COUNTRY_INDEXED',3);
-define ('FILTER_ZONE_INVENTORY_SOURCE_INDEXED',4);
-define ('FILTER_ZONE_INVENTORY_CHANNEL_INDEXED',5);
+define('FILTER_NONE', 0);
+define('FILTER_TRACKER_PRESENT', 1);
+define('FILTER_ZONE_INVENTORY_DOMAIN_PAGE_INDEXED', 2);
+define('FILTER_ZONE_INVENTORY_COUNTRY_INDEXED', 3);
+define('FILTER_ZONE_INVENTORY_SOURCE_INDEXED', 4);
+define('FILTER_ZONE_INVENTORY_CHANNEL_INDEXED', 5);
 
 require_once MAX_PATH . '/lib/OA/Admin/Statistics/Common.php';
 
@@ -25,52 +25,53 @@ require_once MAX_PATH . '/lib/OA/Admin/Statistics/Common.php';
  * Always use the factory method to instantiate fields -- it will create
  * the right subclass for you.
  *
- * @abstract
  * @package    Max
  */
-class Admin_UI_Field
+abstract class Admin_UI_Field
 {
-    /* @var string */
-    var $_name;
-    /* @var string */
-    var $_value;
-    /* @var integer */
-    var $_tabIndex;
-    /* @var integer */
-    var $_filter;
+    /** @var string */
+    public $_name;
+    /** @var string */
+    public $_value;
+    /** @var integer */
+    public $_tabIndex;
+    /** @var integer */
+    public $_filter;
+    /** @var array */
+    protected $coreParams;
 
-    function __construct()
+    public function __construct()
     {
         $this->coreParams = OA_Admin_Statistics_Common::getCoreParams();
     }
 
-    function setName($name)
+    public function setName($name)
     {
         $this->_name = $name;
     }
 
-    function setValue($value)
+    public function setValue($value)
     {
         $this->_value = $value;
     }
 
-    function getValue()
+    public function getValue()
     {
         return $this->_value;
     }
 
-    function setFilter($filter)
+    public function setFilter($filter)
     {
-        switch ($filter) {
-            case 'tracker-present' : $this->_filter = FILTER_TRACKER_PRESENT; break;
-            case 'zone-inventory-domain-page-indexed' : $this->_filter = FILTER_ZONE_INVENTORY_DOMAIN_PAGE_INDEXED; break;
-            case 'zone-inventory-country-indexed' : $this->_filter = FILTER_ZONE_INVENTORY_COUNTRY_INDEXED; break;
-            case 'zone-inventory-source-indexed' : $this->_filter = FILTER_ZONE_INVENTORY_SOURCE_INDEXED; break;
-            case 'zone-inventory-channel-indexed' : $this->_filter = FILTER_ZONE_INVENTORY_CHANNEL_INDEXED; break;
-            default : $this->_filter = FILTER_NONE; break;
-        }
+        $this->_filter = match ($filter) {
+            'tracker-present' => FILTER_TRACKER_PRESENT,
+            'zone-inventory-domain-page-indexed' => FILTER_ZONE_INVENTORY_DOMAIN_PAGE_INDEXED,
+            'zone-inventory-country-indexed' => FILTER_ZONE_INVENTORY_COUNTRY_INDEXED,
+            'zone-inventory-source-indexed' => FILTER_ZONE_INVENTORY_SOURCE_INDEXED,
+            'zone-inventory-channel-indexed' => FILTER_ZONE_INVENTORY_CHANNEL_INDEXED,
+            default => FILTER_NONE,
+        };
     }
-    function setValueFromArray($aFieldValues)
+    public function setValueFromArray($aFieldValues)
     {
         $name = $this->_name;
         if (!is_null($aFieldValues[$name])) {
@@ -80,45 +81,24 @@ class Admin_UI_Field
 
     // e.g. multisort($a, "'name'", true, 0, "'id'", false, 2));
     // This works like MYSQL 'ORDER BY id DESC, name ASC'
-    function multiSort($array)
+    public function multiSort($array, ...$other)
     {
-        for($i = 1; $i < func_num_args(); $i += 3) {
-            $key = func_get_arg($i);
-            if (is_string($key)) {
-                $key = '"'.$key.'"';
-            }
-            $order = true;
-            if($i + 1 < func_num_args()) {
-                $order = func_get_arg($i + 1);
-            }
-            $type = 0;
-            if($i + 2 < func_num_args()) {
-                $type = func_get_arg($i + 2);
-            }
+        while (!empty($other)) {
+            $key = array_shift($other);
+            $order = array_shift($other) ?? true;
+            $type = array_shift($other) ?? 0;
 
-            switch($type) {
-            case 1: // Case insensitive natural.
-                $t = 'strcasecmp($a[' . $key . '], $b[' . $key . '])';
-                break;
-            case 2: // Numeric.
-                $t = '($a[' . $key . '] == $b[' . $key . ']) ? 0:(($a[' . $key . '] < $b[' . $key . ']) ? -1 : 1)';
-                break;
-            case 3: // Case sensitive string.
-                $t = 'strcmp($a[' . $key . '], $b[' . $key . '])';
-                break;
-            case 4: // Case insensitive string.
-                $t = 'strcasecmp($a[' . $key . '], $b[' . $key . '])';
-                break;
-            default: // Case sensitive natural.
-                $t = 'strnatcmp($a[' . $key . '], $b[' . $key . '])';
-                break;
-            }
+            $mult = $order ? 1 : -1;
 
-            usort($array, create_function('$a, $b', '; return ' . ($order ? '' : '-') . '(' . $t . ');'));
+            usort($array, fn($a, $b) => match ($type) {
+                1 => $mult * strcasecmp($a[$key], $b[$key]),
+                2 => $a[$key] == $b[$key] ? 0 : $mult * ($a[$key] < $b[$key] ? -1 : 1),
+                3 => $mult * strcmp($a[$key], $b[$key]),
+                4 => $mult * strcasecmp($a[$key], $b[$key]),
+                default => $mult * strnatcmp($a[$key], $b[$key]),
+            });
         }
+
         return $array;
     }
-
 }
-
-?>

@@ -37,27 +37,27 @@ if (!empty($GLOBALS['_MAX']['COOKIE']['newViewerId']) && empty($_GET[$conf['var'
     MAX_cookieSetViewerIdAndRedirect($viewerId);
 }
 
-$adId       = isset($_REQUEST[$conf['var']['adId']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['adId']]) : array();
-$zoneId     = isset($_REQUEST[$conf['var']['zoneId']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['zoneId']]) : array();
-$creativeId = isset($_REQUEST[$conf['var']['creativeId']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['creativeId']]) : array();
-$lastClick  = isset($_REQUEST[$conf['var']['lastClick']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['lastClick']]) : array();
-$aBlockLoggingClick = isset($_REQUEST[$conf['var']['blockLoggingClick']]) ? $_REQUEST[$conf['var']['blockLoggingClick']] : array();
+$adId = isset($_REQUEST[$conf['var']['adId']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['adId']]) : [];
+$zoneId = isset($_REQUEST[$conf['var']['zoneId']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['zoneId']]) : [];
+$creativeId = isset($_REQUEST[$conf['var']['creativeId']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['creativeId']]) : [];
+$lastClick = isset($_REQUEST[$conf['var']['lastClick']]) ? explode($GLOBALS['_MAX']['MAX_DELIVERY_MULTIPLE_DELIMITER'], $_REQUEST[$conf['var']['lastClick']]) : [];
+$aBlockLoggingClick = $_REQUEST[$conf['var']['blockLoggingClick']] ?? [];
 
 if (!empty($conf['deliveryLog']['enabled'])) {
     foreach ($adId as $k => $v) {
-        OX_Delivery_logMessage('$adId['.$k.']='.$v, 7);
+        OX_Delivery_logMessage('$adId[' . $k . ']=' . $v, 7);
     }
     foreach ($zoneId as $k => $v) {
-        OX_Delivery_logMessage('$zoneId['.$k.']='.$v, 7);
+        OX_Delivery_logMessage('$zoneId[' . $k . ']=' . $v, 7);
     }
     foreach ($creativeId as $k => $v) {
-        OX_Delivery_logMessage('$creativeId['.$k.']='.$v, 7);
+        OX_Delivery_logMessage('$creativeId[' . $k . ']=' . $v, 7);
     }
     foreach ($lastClick as $k => $v) {
-        OX_Delivery_logMessage('$lastClick['.$k.']='.$v, 7);
+        OX_Delivery_logMessage('$lastClick[' . $k . ']=' . $v, 7);
     }
     foreach ($aBlockLoggingClick as $k => $v) {
-        OX_Delivery_logMessage('$aBlockLoggingClick['.$k.']='.$v, 7);
+        OX_Delivery_logMessage('$aBlockLoggingClick[' . $k . ']=' . $v, 7);
     }
 }
 
@@ -71,14 +71,14 @@ if (empty($adId) && !empty($zoneId)) {
 
 // Log the click
 for ($i = 0; $i < count($adId); $i++) {
-    $adId[$i] = intval($adId[$i]);
-    $zoneId[$i] = intval($zoneId[$i]);
+    $adId[$i] = (int) $adId[$i];
+    $zoneId[$i] = (int) $zoneId[$i];
     if (isset($creativeId[$i])) {
-        $creativeId[$i] = intval($creativeId[$i]);
+        $creativeId[$i] = (int) $creativeId[$i];
     } else {
         $creativeId[$i] = 0;
     }
-    if (($adId[$i] > 0 || $adId[$i] == -1) && ($conf['logging']['adClicks']) && !(isset($_GET['log']) && ($_GET['log'] == 'no'))) {
+    if (($adId[$i] > 0 || $adId[$i] == -1) && ($conf['logging']['adClicks']) && (!isset($_GET['log']) || $_GET['log'] != 'no')) {
         // Check to see if the ad click logging action/ad click redirect action
         // is blocked (as a result of the settings & banner inactivity), and if
         // so, exit click processing at this point, without recording the click
@@ -107,7 +107,7 @@ MAX_cookieAdd($conf['var']['viewerId'], $viewerId, time() + $conf['cookie']['per
 MAX_cookieFlush();
 
 // Get the URL that we are going to redirect to
-$destination = MAX_querystringGetDestinationUrl($adId[0]);
+$destination = MAX_querystringGetDestinationUrl($adId[0], $zoneId[0]);
 
 // Redirect to the destination URL
 if (!empty($destination) && empty($_GET['trackonly'])) {
@@ -126,30 +126,22 @@ if (!empty($destination) && empty($_GET['trackonly'])) {
 
 function _getZoneAd($zoneId)
 {
-    $conf = $GLOBALS['conf'];
-
     $zoneLinkedAds = MAX_cacheGetZoneLinkedAds($zoneId, false);
     if (!empty($zoneLinkedAds['xAds']) && count($zoneLinkedAds['xAds']) == 1) {
         reset($zoneLinkedAds['xAds']);
-        list($adId, $ad) = each($zoneLinkedAds['xAds']);
+        [$adId, $ad] = each($zoneLinkedAds['xAds']);
     } elseif (!empty($zoneLinkedAds['ads']) && count($zoneLinkedAds['ads']) == 1) {
         reset($zoneLinkedAds['ads']);
         // we select the first (and only) banner linked to this email zone
-        foreach($zoneLinkedAds['ads'] as $priority => $ads) {
-            foreach($ads as $adId => $ad) {
+        foreach ($zoneLinkedAds['ads'] as $priority => $ads) {
+            foreach ($ads as $adId => $ad) {
                 break;
             }
         }
     } elseif (!empty($zoneLinkedAds['lAds']) && count($zoneLinkedAds['lAds']) == 1) {
         reset($zoneLinkedAds['lAds']);
-        list($adId, $ad) = each($zoneLinkedAds['lAds']);
+        [$adId, $ad] = each($zoneLinkedAds['lAds']);
     }
 
-    if (!empty($ad['url'])) {
-        // Store the destination URL to save querying the DB again
-        $_REQUEST[$conf['var']['dest']] = $ad['url'];
-    }
     return $adId;
 }
-
-?>

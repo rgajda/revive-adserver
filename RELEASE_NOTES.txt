@@ -1,12 +1,12 @@
 +---------------------------------------------------------------------------+
 | Revive Adserver                                                           |
-| http://www.revive-adserver.com                                            |
+| https://www.revive-adserver.com                                           |
 |                                                                           |
 | Copyright: See the COPYRIGHT.txt file.                                    |
 | License: GPLv2 or later, see the LICENSE.txt file.                        |
 +---------------------------------------------------------------------------+
 
-Release Notes: Revive Adserver 4.1.2
+Release Notes: Revive Adserver 6.0.9
 ====================================
 
 These release notes cover what's new, system requirements, download and
@@ -14,38 +14,23 @@ installation instructions, known issues and frequently asked questions for
 Revive Adserver. Please read these notes before reporting any bugs.
 
 
-What's New in Revive Adserver 4.1.2
+What's New in Revive Adserver 6.0.9
 -----------------------------------
 
  * Release date: t.b.d.
 
- Security Updates
- ----------------
+This version brings...
 
- * None
-
- New Features
- ------------
-
-  * None
-
- Bug Fixes
- ---------
-
-  * Fixed an issue that was sometimes preventing file/folder permission errors
-    from being written to the debug log.
-
- Non-Backwards Compatible Changes
- --------------------------------
-
- * None
+For a detailed change log, please see: CHANGELOG.md
 
 
 System Requirements
 -------------------
 
 Before installing, please make sure your server meets the system
-requirements, which can be found at https://www.revive-adserver.com/.
+requirements, which can be found at:
+
+https://www.revive-adserver.com/support/requirements/
 
 
 Downloading and Installing
@@ -53,18 +38,21 @@ Downloading and Installing
 
  * Downloading Revive Adserver
 
-   You can always find the latest version of Revive Adserver at
+   You can always find the latest version of Revive Adserver at:
+
    https://www.revive-adserver.com.
 
  * Installing Revive Adserver
 
-   Installing Revive Adserver is a straightforward process. Follow the steps at
-   https://www.revive-adserver.com/support/installation/.
+   Installing Revive Adserver is a straightforward process. Follow the steps at:
+
+   https://www.revive-adserver.com/how-to/install/
 
  * Upgrading Revive Adserver
 
-   Upgrading Revive Adserver is a straightforward process. Follow the steps at
-   https://www.revive-adserver.com/support/upgrading/.
+   Upgrading Revive Adserver is a straightforward process. Follow the steps at:
+
+   https://www.revive-adserver.com/how-to/update/
 
    Please note: The upgrade process will update your Revive Adserver database,
    and the database may no longer be compatible with your old installation.
@@ -75,7 +63,11 @@ Downloading and Installing
    ---------------------------------------------------------------
    | Product                             | Version(s)            |
    ---------------------------------------------------------------
-   | Revive Adserver 4.x                 | All previous versions |
+   | Revive Adserver 6.x                 | All previous versions |
+   ---------------------------------------------------------------
+   | Revive Adserver 5.x                 | All versions          |
+   ---------------------------------------------------------------
+   | Revive Adserver 4.x                 | All versions          |
    ---------------------------------------------------------------
    | Revive Adserver 3.x                 | All versions          |
    ---------------------------------------------------------------

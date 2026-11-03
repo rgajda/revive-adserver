@@ -20,10 +20,12 @@ require_once MAX_PATH . '/lib/OX/Plugin/PluginExport.php';
  */
 class OX_UpgradePluginImport extends OX_PluginExport
 {
-    public $aDataObjectFiles = array();
-    public $aMissingFiles    = array();
-    public $basePath; // The path to look for file in
+    public $aDataObjectFiles = [];
+    public $aMissingFiles = [];
     public $destPath = MAX_PATH; // The path to look to place files in
+
+    /** @var string */
+    private $logFile;
 
     /**
      * Initialise the plugin
@@ -31,7 +33,7 @@ class OX_UpgradePluginImport extends OX_PluginExport
      * @param string $name  The name of the plugin to init
      * @return boolean Init result
      */
-    function init($name)
+    public function init($name)
     {
         return true;
     }
@@ -42,21 +44,19 @@ class OX_UpgradePluginImport extends OX_PluginExport
      * @param string $name The name of the plugin to prepare
      * @return boolean The preparation result
      */
-    function prepare($name)
+    public function prepare($name)
     {
         $this->clean();
 
-        $this->oPluginManager   = new OX_PluginManager();
+        $this->oPluginManager = new OX_PluginManager();
         $this->oPluginManager->basePath = $this->basePath;
 
-        if (!$this->oPluginManager->_parsePackage($name))
-        {
+        if (!$this->oPluginManager->_parsePackage($name)) {
             $this->aErrors = $this->oPluginManager->aErrors;
             return false;
         }
         $this->aPlugin = $this->oPluginManager->aParse['package'];
-        if (!$this->oPluginManager->_parseComponentGroups($this->aPlugin['install']['contents']))
-        {
+        if (!$this->oPluginManager->_parseComponentGroups($this->aPlugin['install']['contents'])) {
             $this->aErrors = $this->oPluginManager->aErrors;
             return false;
         }
@@ -79,7 +79,7 @@ class OX_UpgradePluginImport extends OX_PluginExport
      * @param unknown_type $name
      * @return unknown
      */
-    function import($name)
+    public function import($name)
     {
         $sucess = true;
         if ($this->prepare($name)) {
@@ -109,10 +109,10 @@ class OX_UpgradePluginImport extends OX_PluginExport
         return $sucess;
     }
 
-    function verifyAll($aPlugins = array(), $checkDataObjects = true)
+    public function verifyAll($aPlugins = [], $checkDataObjects = true)
     {
         $sucess = true;
-        $this->aDataObjectFiles = array();
+        $this->aDataObjectFiles = [];
         $this->_log('Starting file-check for plugins...');
         foreach ($aPlugins as $plugin => $enabled) {
             if (!$this->verify($plugin)) {
@@ -135,27 +135,22 @@ class OX_UpgradePluginImport extends OX_PluginExport
      * @param string $name The name of the plugin to be checked
      * @return boolean  True if all declared files can be found, false otherwise
      */
-    function verify($name)
+    public function verify($name)
     {
-        $sucess = true;
-        if ($this->prepare($name)) {
-            foreach ($this->aFileList as $file) {
-                $filename = $this->basePath . substr($file, strlen($this->basePath));
-                if (!file_exists($filename)) {
-                    // Check for a pre 2.7.31 path (extensions not plugins)
-                    $filename = str_replace(DIRECTORY_SEPARATOR, '/', $filename);
-                    $filename = str_replace('/plugins/', '/extensions/', $filename);
-                    if (!file_exists($filename)) {
-                        $this->_log("Plugin: {$name} - Unable to locate file: " . $filename);
-                        $sucess = false;
-                    }
-                }
-            }
-        } else {
+        if (!$this->prepare($name)) {
             $this->_log("Plugin: {$name} - Unable to locate XML files");
-            $sucess = false;
+            return false;
         }
-        return $sucess;
+
+        foreach ($this->aFileList as $file) {
+            $filename = $this->basePath . substr($file, strlen($this->basePath));
+            if (!file_exists($filename)) {
+                $this->_log("Plugin: {$name} - Unable to locate file: " . $filename);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -163,18 +158,15 @@ class OX_UpgradePluginImport extends OX_PluginExport
      *
      * @param string $message
      */
-    function _log($message)
+    public function _log($message)
     {
-        $this->aMessages[] = $message;
-        if(empty($this->logFile)) {
+        if (empty($this->logFile)) {
             $this->logFile = MAX_PATH . '/var/install.log';
         }
         $log = fopen($this->logFile, 'a');
-        if($log) {
-	        fwrite($log, "{$message}\n");
-	        fclose($log);
+        if ($log) {
+            fwrite($log, "{$message}\n");
+            fclose($log);
         }
     }
 }
-
-?>

@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "続行する »";
 $GLOBALS['strBtnRecover'] = "復旧する »";
 $GLOBALS['strBtnAgree'] = "承認する »";
 $GLOBALS['strBtnRetry'] = "再試行する";
-$GLOBALS['strWarningRegisterArgcArv'] = "PHPの設定値[register_argc_argv]を'on'にしてください";
+$GLOBALS['strTablesPrefix'] = "テーブルプリフィックス";
 $GLOBALS['strTablesType'] = "テーブルタイプ";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "前回のアップデートでエラーが発生";
@@ -40,6 +40,7 @@ $GLOBALS['strImagesUrlPrefix'] = "画像ストレージURL";
 $GLOBALS['strImagesUrlPrefixSSL'] = "画像ストレージURL(SSL)";
 
 
+$GLOBALS['strUpgrade'] = "アップデート";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
@@ -49,10 +50,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "画像ストレージURL(SSL)";
 $GLOBALS['strChooseSection'] = "セクションの選択";
 $GLOBALS['strUnableToWriteConfig'] = "設定ファイルに書き込む事ができませんでした。";
 $GLOBALS['strUnableToWritePrefs'] = "データベースに設定を反映できませんでした。";
-$GLOBALS['strImageDirLockedDetected'] = "指定した<b>画像ストレージ</b>への書き込みができません。<br>ディレクトリのパーミッションを変更するか、新しくディレクトリを作成してください。";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "設定";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "管理者  ユーザ名";
@@ -94,6 +93,8 @@ $GLOBALS['strQmailPatch'] = "Qメールパッチ";
 $GLOBALS['strEnableQmailPatch'] = "Qmailパッチを適用する";
 $GLOBALS['strEmailHeader'] = "Eメールヘッダ";
 $GLOBALS['strEmailLog'] = "Eメールログ";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "追跡記録ログ";
@@ -162,15 +163,8 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "広告ビュー";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPCで広告を生成する";
 $GLOBALS['strDeliveryFilenamesLocal'] = "ローカルサーバより広告を生成する";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "フロントコントローラ";
-$GLOBALS['strDeliveryFilenamesFlash'] = "FlashのURL（フルURL）";
 $GLOBALS['strDeliveryCaching'] = "バナーキャッシュの設定";
 $GLOBALS['strDeliveryCacheLimit'] = "バナーキャッシュの更新間隔";
-$GLOBALS['strDeliveryExecPhp'] = "バナーの内容にPHPコードを許可する<br />(Warning: セキュリティリスクとなり得る)";
-$GLOBALS['strDeliveryCtDelimiter'] = "サードパーティー製の、クリック追跡時用区切り文字";
-$GLOBALS['strP3PSettings'] = "P3Pプライベートポリシー";
-$GLOBALS['strUseP3P'] = "P3Pポリシーを使う";
-$GLOBALS['strP3PCompactPolicy'] = "P3Pコンパクトポリシー";
-$GLOBALS['strP3PPolicyLocation'] = "P3Pポリシーの場所";
 
 // General Settings
 $GLOBALS['generalSettings'] = "全般設定";

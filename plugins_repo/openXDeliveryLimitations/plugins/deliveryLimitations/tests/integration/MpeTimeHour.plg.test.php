@@ -13,21 +13,22 @@
 require_once MAX_PATH . '/lib/OA/Maintenance/Priority/DeliveryLimitation.php';
 require_once MAX_PATH . '/lib/pear/Date.php';
 
+Language_Loader::load();
+
 /**
  * @package    OpenXMaintenance
  * @subpackage TestSuite
  */
 class Test_OA_Maintenance_Priority_DeliveryLimitation_Hour extends UnitTestCase
 {
-    function setUp()
+    public function setUp()
     {
         // Install the openXDeliveryLog plugin
         TestEnv::uninstallPluginPackage('openXDeliveryLimitations', false);
         TestEnv::installPluginPackage('openXDeliveryLimitations', false);
-
     }
 
-    function tearDown()
+    public function tearDown()
     {
         // Uninstall the openXDeliveryLog plugin
         TestEnv::uninstallPluginPackage('openXDeliveryLimitations', false);
@@ -36,19 +37,28 @@ class Test_OA_Maintenance_Priority_DeliveryLimitation_Hour extends UnitTestCase
     /**
      * A method to test the deliveryBlocked() method.
      */
-    function testDeliveryBlocked()
+    public function testDeliveryBlocked()
     {
         OA_setTimeZoneUTC();
 
-        $aDeliveryLimitation = array(
-            'ad_id'          => 1,
-            'logical'        => 'and',
-            'type'           => 'deliveryLimitations:Time:Hour',
-            'comparison'     => '=~',
-            'data'           => '1,5,7,20',
-            'executionorder' => 1
-        );
+        $aDeliveryLimitation = [
+            'ad_id' => 1,
+            'logical' => 'and',
+            'type' => 'deliveryLimitations:Time:Hour',
+            'comparison' => '=~',
+            'data' => '1,5,7,20',
+            'executionorder' => 1,
+        ];
         $oLimitationHour = OA_Maintenance_Priority_DeliveryLimitation_Factory::factory($aDeliveryLimitation);
+
+        // Test error with non-UTC date
+        $oDate = new Date('2006-02-07 23:15:45');
+        $oDate->convertTZbyID('Europe/Rome');
+
+        PEAR::pushErrorHandling(null);
+        $this->assertTrue($oLimitationHour->deliveryBlocked($oDate) instanceof PEAR_Error);
+        PEAR::popErrorHandling();
+
         $oDate = new Date('2006-02-07 23:15:45');
         for ($i = 0; $i < 24; $i++) {
             $oDate->addSeconds(SECONDS_PER_HOUR);
@@ -60,14 +70,14 @@ class Test_OA_Maintenance_Priority_DeliveryLimitation_Hour extends UnitTestCase
         }
 
         // Test timezone
-        $aDeliveryLimitation = array(
-            'ad_id'          => 1,
-            'logical'        => 'and',
-            'type'           => 'deliveryLimitations:Time:Hour',
-            'comparison'     => '=~',
-            'data'           => '1,5,7,20@Europe/Rome',
-            'executionorder' => 1
-        );
+        $aDeliveryLimitation = [
+            'ad_id' => 1,
+            'logical' => 'and',
+            'type' => 'deliveryLimitations:Time:Hour',
+            'comparison' => '=~',
+            'data' => '1,5,7,20@Europe/Rome',
+            'executionorder' => 1,
+        ];
         $oLimitationHour = OA_Maintenance_Priority_DeliveryLimitation_Factory::factory($aDeliveryLimitation);
         $oDate = new Date('2006-02-07 23:15:45');
         for ($i = 0; $i < 24; $i++) {
@@ -82,5 +92,3 @@ class Test_OA_Maintenance_Priority_DeliveryLimitation_Hour extends UnitTestCase
         OA_setTimeZoneLocal();
     }
 }
-
-?>

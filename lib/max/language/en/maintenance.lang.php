@@ -69,6 +69,15 @@ $GLOBALS['strMoveToDirectory'] = "Move images stored inside the database to a di
 $GLOBALS['strStorageExplaination'] = "	The images used by local banners are stored inside the database or stored in a directory. If you store the images inside
 	a directory the load on the database will be reduced and this will lead to an increase in speed.";
 
+// Security
+$GLOBALS['strSecurity'] = "Security";
+$GLOBALS['strSecurityExplanation'] = "Some directories in the {$PRODUCT_NAME} package are not supposed to be served by 
+    your webserver directly, for security reasons. Leaving such files and directories accessible might disclose unwanted
+    information and pose a security threat. A quick security check has been run and you will find the results below.";
+$GLOBALS['strSecurityOK'] = "Your browser was not able to fetch the protected files, that's great news!";
+$GLOBALS['strSecurityKO'] = "Your browser was able to fetch some files that should not be accessible. For example:";
+$GLOBALS['strSecurityReadMore'] = "Click here to find more information on how to secure your installation.";
+
 // Encoding
 $GLOBALS['strEncoding'] = "Encoding";
 $GLOBALS['strEncodingExplaination'] = "{$PRODUCT_NAME} now stores all data in the database in UTF-8 format.<br />
@@ -81,6 +90,7 @@ $GLOBALS['strConvertThese'] = "The following data will be changed if you continu
 // Product Updates
 $GLOBALS['strSearchingUpdates'] = "Looking for updates. Please wait...";
 $GLOBALS['strAvailableUpdates'] = "Available updates";
+$GLOBALS['strAlternativeUpdateOptions'] = "Alternatively, if upgrading to a newer major or minor release is not feasible, consider this option:";
 $GLOBALS['strDownloadZip'] = "Download (.zip)";
 $GLOBALS['strDownloadGZip'] = "Download (.tar.gz)";
 
@@ -123,7 +133,7 @@ $GLOBALS['strBannerChannelResult'] = "Here are the results of the banner/deliver
 $GLOBALS['strChannelCompiledLimitationsValid'] = "All compiled delivery rules for delivery rule sets are valid";
 $GLOBALS['strBannerCompiledLimitationsValid'] = "All compiled delivery rules for banners are valid";
 $GLOBALS['strErrorsFound'] = "Errors found";
-$GLOBALS['strRepairCompiledLimitations'] = "Some inconsistancies were found above, you can repair these using the button below, this will recompile the compiled limitation for every banner/delivery rule set in the system<br />";
+$GLOBALS['strRepairCompiledLimitations'] = "Some inconsistencies were found above, you can repair these using the button below, this will recompile the compiled limitation for every banner/delivery rule set in the system<br />";
 $GLOBALS['strRecompile'] = "Recompile";
 $GLOBALS['strDeliveryEngineDisagreeNotice'] = "Under some circumstances the delivery engine can disagree with the stored delivery rules for banners and delivery rule sets, use the folowing link to validate the delivery rules in the database";
 $GLOBALS['strCheckACLs'] = "Check delivery rules";
@@ -134,7 +144,7 @@ $GLOBALS['strCheckAppendCodes'] = "Check Append codes";
 $GLOBALS['strAppendCodesRecompiled'] = "All compiled append codes values have been recompiled";
 $GLOBALS['strAppendCodesResult'] = "Here are the results of the compiled append codes validation";
 $GLOBALS['strAppendCodesValid'] = "All tracker compiled appendcodes are valid";
-$GLOBALS['strRepairAppenedCodes'] = "Some inconsistancies were found above, you can repair these using the button below, this will recompile the append codes for every tracker in the system";
+$GLOBALS['strRepairAppenedCodes'] = "Some inconsistencies were found above, you can repair these using the button below, this will recompile the append codes for every tracker in the system";
 
 $GLOBALS['strPlugins'] = "Plugins";
 $GLOBALS['strPluginsPrecis'] = "Diagnose and repair problems with {$PRODUCT_NAME} plugins";
@@ -142,3 +152,12 @@ $GLOBALS['strPluginsPrecis'] = "Diagnose and repair problems with {$PRODUCT_NAME
 $GLOBALS['strMenus'] = "Menus";
 $GLOBALS['strMenusPrecis'] = "Rebuild the menu cache";
 $GLOBALS['strMenusCachedOk'] = "Menu cache has been rebuilt";
+
+// Users
+$GLOBALS['strUserPasswords'] = "User passwords";
+$GLOBALS['strUserPasswordsExplaination'] = "Starting with version 5.4, {$PRODUCT_NAME} stores passwords in a safer format.
+Use this tool to check if any users still have passwords stored in the old format, and to send selected users an email enabling them to enter a new password.
+The tool can also be used to remind new users that they should set their first password.";
+$GLOBALS['strCheckUserPasswords'] = "Check user passwords";
+$GLOBALS['strUserPasswordsEverythingOK'] = "No user requires a password reset, everything is OK.";
+$GLOBALS['strUserPasswordsEmailsSent'] = "The emails for the users you have selected have been sent.";

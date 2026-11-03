@@ -20,13 +20,15 @@ require_once MAX_PATH . '/lib/max/Delivery/flash.php';
 // No Caching
 MAX_commonSetNoCacheHeaders();
 
+OX_Delivery_Common_sendPreconnectHeaders();
+
 //Register any script specific input variables
-MAX_commonRegisterGlobalsArray(array('refresh', 'resize', 'rewrite', 'n'));
+MAX_commonRegisterGlobalsArray(['refresh', 'resize', 'rewrite', 'n']);
 
 // Initialise any afr.php specific variables
-if (!isset($rewrite))   $rewrite = 1;
-if (!isset($refresh))   $refresh = 0;
-if (!isset($resize))    $resize = 0;
+$rewrite ??= 1;
+$refresh ??= 0;
+$resize ??= 0;
 
 // Get the banner
 $banner = MAX_adSelect($what, $campaignid, $target, $source, $withtext, $charset, $context, true, $ct0, $loc, $referer);
@@ -35,7 +37,7 @@ $banner = MAX_adSelect($what, $campaignid, $target, $source, $withtext, $charset
 if (!empty($n)) {
     if (!empty($banner['html'])) {
         // Send bannerid headers
-        $cookie = array();
+        $cookie = [];
         $cookie[$conf['var']['adId']] = $banner['bannerid'];
         // Send zoneid headers
         if ($zoneid != 0) {
@@ -59,50 +61,54 @@ MAX_commonSendContentTypeHeader('text/html', $charset);
 // Rewrite targets in HTML code to make sure they are
 // local to the parent and not local to the iframe
 if (isset($rewrite) && $rewrite == 1) {
-	$banner['html'] = preg_replace('#target\s*=\s*([\'"])_parent\1#i', "target='_top'", $banner['html']);
-	$banner['html'] = preg_replace('#target\s*=\s*([\'"])_self\1#i', "target='_parent'", $banner['html']);
+    $banner['html'] = preg_replace('#target\s*=\s*([\'"])_parent\1#i', "target='_top'", $banner['html']);
+    $banner['html'] = preg_replace('#target\s*=\s*([\'"])_self\1#i', "target='_parent'", $banner['html']);
 }
 
 // Build HTML
 $outputHtml = "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>\n";
 $outputHtml .= "<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>\n";
 $outputHtml .= "<head>\n";
-$outputHtml .= "<title>".(!empty($banner['alt']) ? $banner['alt'] : 'Advertisement')."</title>\n";
-
-// Include the FlashObject script if required
-if (isset($banner['contenttype']) && $banner['contenttype'] == 'swf') {
-    $outputHtml .= MAX_flashGetFlashObjectExternal();
-}
+$outputHtml .= "<title>" . (empty($banner['alt']) ? 'Advertisement' : htmlspecialchars($banner['alt'])) . "</title>\n";
 
 // Add refresh meta tag if $refresh is set and numeric
 if (isset($refresh) && is_numeric($refresh) && $refresh > 0) {
-    $dest = MAX_commonGetDeliveryUrl($conf['file']['frame']).'?'.$_SERVER['QUERY_STRING'];
+    $dest = MAX_commonGetDeliveryUrl($conf['file']['frame']) . '?' . $_SERVER['QUERY_STRING'];
     parse_str($_SERVER['QUERY_STRING'], $qs);
-    $dest .= (!array_key_exists('loc', $qs)) ? "&loc=" . urlencode($loc) : '';
+    $dest .= (array_key_exists('loc', $qs)) ? '' : "&loc=" . urlencode($loc);
+
+    $refresh = (int) $refresh;
+    // JS needs to be escaped twice: the setTimeout argument is evaluated at runtime
+    $jsDest = addcslashes(addcslashes($dest, "\0..\37/\"\\"), "'\\");
+    $htmlDest = htmlspecialchars($dest, ENT_QUOTES);
 
     // Try to use JS location.replace since browsers deal with this and history much better than meta-refresh
-	$outputHtml .= "
+    $outputHtml .= "
     <script type='text/javascript'><!--// <![CDATA[
-        setTimeout('window.location.replace(\"{$dest}\")', " . ($refresh * 1000) . ");
-    // ]]> --></script><noscript><meta http-equiv='refresh' content='".$refresh.";url={$dest}'></noscript>
+        setTimeout('window.location.replace(\"{$jsDest}\")', " . ($refresh * 1000) . ");
+    // ]]> --></script><noscript><meta http-equiv='refresh' content='" . $refresh . ";url={$htmlDest}'></noscript>
     ";
 }
 
 if (isset($resize) && $resize == 1) {
-	$outputHtml .= "<script type='text/javascript'>\n";
-	$outputHtml .= "<!--// <![CDATA[ \n";
-	$outputHtml .= "\tfunction MAX_adjustframe(frame) {\n";
-	$outputHtml .= "\t\tif (document.all) {\n";
-    $outputHtml .= "\t\t\tparent.document.all[frame.name].width = ".$banner['width'].";\n";
-    $outputHtml .= "\t\t\tparent.document.all[frame.name].height = ".$banner['height'].";\n";
-  	$outputHtml .= "\t\t}\n";
-  	$outputHtml .= "\t\telse if (document.getElementById) {\n";
-    $outputHtml .= "\t\t\tparent.document.getElementById(frame.name).width = ".$banner['width'].";\n";
-    $outputHtml .= "\t\t\tparent.document.getElementById(frame.name).height = ".$banner['height'].";\n";
-  	$outputHtml .= "\t\t}\n";
-	$outputHtml .= "\t}\n";
-	$outputHtml .= "// ]]> -->\n";
-	$outputHtml .= "</script>\n";
+    // If no banner found, use 0 as width and height
+    $bannerWidth = empty($banner['width']) ? 0 : $banner['width'];
+    $bannerHeight = empty($banner['height']) ? 0 : $banner['height'];
+
+    $outputHtml .= "<script type='text/javascript'>\n";
+    $outputHtml .= "<!--// <![CDATA[ \n";
+    $outputHtml .= "\tfunction MAX_adjustframe(frame) {\n";
+    $outputHtml .= "\t\tif (document.all) {\n";
+    $outputHtml .= "\t\t\tparent.document.all[frame.name].width = " . $bannerWidth . ";\n";
+    $outputHtml .= "\t\t\tparent.document.all[frame.name].height = " . $bannerHeight . ";\n";
+    $outputHtml .= "\t\t}\n";
+    $outputHtml .= "\t\telse if (document.getElementById) {\n";
+    $outputHtml .= "\t\t\tparent.document.getElementById(frame.name).width = " . $bannerWidth . ";\n";
+    $outputHtml .= "\t\t\tparent.document.getElementById(frame.name).height = " . $bannerHeight . ";\n";
+    $outputHtml .= "\t\t}\n";
+    $outputHtml .= "\t}\n";
+    $outputHtml .= "// ]]> -->\n";
+    $outputHtml .= "</script>\n";
 }
 
 $outputHtml .= "<style type='text/css'>\n";
@@ -111,9 +117,9 @@ $outputHtml .= "</style>\n";
 $outputHtml .= "</head>\n";
 
 if (isset($resize) && $resize == 1) {
-	$outputHtml .= "<body onload=\"MAX_adjustframe(window);\">\n";
+    $outputHtml .= "<body onload=\"MAX_adjustframe(window);\">\n";
 } else {
-	$outputHtml .= "<body>\n";
+    $outputHtml .= "<body>\n";
 }
 
 $outputHtml .= $banner['html'];
@@ -121,5 +127,3 @@ $outputHtml .= "\n</body>\n";
 $outputHtml .= "</html>\n";
 
 echo $outputHtml;
-
-?>

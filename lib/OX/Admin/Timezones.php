@@ -16,9 +16,8 @@
  *
  * @package    OpenXAdmin
  */
- class OX_Admin_Timezones
- {
-
+class OX_Admin_Timezones
+{
     /**
      * Returns an array of available timezones.
      *
@@ -27,11 +26,11 @@
      *                          to the beginning of the array.
      * @return array An array containing all the available timezones.
      */
-    static function availableTimezones($addBlank = false)
+    public static function availableTimezones($addBlank = false)
     {
         global $_DATE_TIMEZONE_DATA;
 
-        $_aTimezoneBcData = array(
+        $_aTimezoneBcData = [
             'Brazil/Acre', 'Brazil/DeNoronha', 'Brazil/East', 'Brazil/West', 'Canada/Atlantic',
             'Canada/Central', 'Canada/East-Saskatchewan', 'Canada/Eastern', 'Canada/Mountain',
             'Canada/Newfoundland', 'Canada/Pacific', 'Canada/Saskatchewan', 'Canada/Yukon',
@@ -49,24 +48,23 @@
             'PST8PDT', 'ROC', 'ROK', 'Singapore', 'Turkey', 'UCT', 'Universal', 'US/Alaska',
             'US/Aleutian', 'US/Arizona', 'US/Central', 'US/East-Indiana', 'US/Eastern',
             'US/Hawaii', 'US/Indiana-Starke', 'US/Michigan', 'US/Mountain', 'US/Pacific',
-            'US/Pacific-New', 'US/Samoa', 'W-SU', 'WET', 'Zulu');
+            'US/Pacific-New', 'US/Samoa', 'W-SU', 'WET', 'Zulu'];
 
         // Load global array of timezones
-        require_once MAX_PATH .'/lib/pear/Date/TimeZone.php';
+        require_once MAX_PATH . '/lib/pear/Date/TimeZone.php';
         $aTimezoneKey = Date_TimeZone::getAvailableIDs();
 
         if (!defined('MAX_PATH')) {
             $tz = self::getTimezone();
         } else {
-            $tz = $GLOBALS['_MAX']['PREF']['timezone'];
-            if (is_null($tz)) {
-                $tz = self::getTimezone();
-            }
+            $tz = $GLOBALS['_MAX']['PREF']['timezone'] ?? self::getTimezone();
         }
 
         $tzSave = date_default_timezone_get();
         foreach ($aTimezoneKey as $key) {
-            if (!@date_default_timezone_set($key)) continue;
+            if (!@date_default_timezone_set($key)) {
+                continue;
+            }
             if ((in_array($tz, $_aTimezoneBcData) && $key == $tz) || !in_array($key, $_aTimezoneBcData)) {
                 // Calculate the timezone offset
                 $offset = self::_convertOffset($_DATE_TIMEZONE_DATA[$key]['offset']);
@@ -93,7 +91,7 @@
         asort($aNegTimezone);
 
         // Reverse array element order while preserving alphabetical order
-        $hasRun       = false;
+        $hasRun = false;
         foreach ($aTimezone as $offset => $aValue) {
             if ($hasRun == false) {
                 $aRevTimezone[] = $aValue;
@@ -104,7 +102,7 @@
         }
 
         // Build the result array
-        foreach($aRevTimezone as $aValue) {
+        foreach ($aRevTimezone as $aValue) {
             foreach ($aValue as $k => $v) {
                 $aResult[$k] = $v;
             }
@@ -125,13 +123,13 @@
      * putenv("TZ=...") to set the timezone manually.
      *
      * @static
-     * @return array An array of two items:
+     * @return string An array of two items:
      *      'tz'         => The timezone string; and
      *      'calculated' => A boolean; true if the timezone
      *                      value needed to be calculated
      *                      when PHP < 5.1.0.
      */
-    static function getTimezone()
+    public static function getTimezone()
     {
         return date_default_timezone_get();
     }
@@ -149,21 +147,19 @@
      * @return string The timezone value to write to the
      *                configuration file.
      */
-    static function getConfigTimezoneValue($tz, $timezone)
+    public static function getConfigTimezoneValue($tz, $timezone)
     {
         if ($tz != $timezone) {
             // The user selected timezone is not equal to the
             // environment timezone, so, must write the user
             // selected value to the config file
-            $return = $tz;
-        } else {
-            // The user selected timezone is the same as the
-            // environment timezone, so we don't have to write the
-            // timezone to the config file - it will be set
-            // automatically by PHP.
-            $return = '';
+            return $tz;
         }
-        return $return;
+        // The user selected timezone is the same as the
+        // environment timezone, so we don't have to write the
+        // timezone to the config file - it will be set
+        // automatically by PHP.
+        return '';
     }
 
     /**
@@ -173,9 +169,9 @@
      * @param float $offset A float in hours of the time zone offset (i.e. 9.5, 10.75)
      * @return string Human read able timezone offset
      */
-    static function _convertOffset($offset)
+    public static function _convertOffset($offset)
     {
-        $offset = ((($offset / 1000 ) / 60 ) / 60);
+        $offset = ((($offset / 1000) / 60) / 60);
 
         //  calculate offset hours
         $offsetHours = str_pad((int) abs($offset), 2, 0, STR_PAD_LEFT);
@@ -196,5 +192,3 @@
         return $offset;
     }
 }
-
-?>

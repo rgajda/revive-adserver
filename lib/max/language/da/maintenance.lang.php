@@ -48,6 +48,8 @@ $GLOBALS['strDeliveryCacheFiles'] = "	Leverings cachen er for øjeblikket gemt i
 // Storage
 $GLOBALS['strStorage'] = "Lager";
 
+// Security
+
 // Encoding
 
 // Product Updates
@@ -94,3 +96,5 @@ $GLOBALS['strAndPlain'] = "og";
 //  Append codes
 
 
+
+// Users

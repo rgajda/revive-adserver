@@ -23,22 +23,21 @@ require_once MAX_PATH . '/lib/OA/Auth.php';
 Language_Loader::load('default');
 
 $oDbh = OA_DB::singleton();
-if (PEAR::isError($oDbh))
-{
+if (PEAR::isError($oDbh)) {
     // Check if UI is enabled
     if (!$GLOBALS['_MAX']['CONF']['ui']['enabled']) {
-        phpAds_PageHeader(OA_Auth::login($checkRedirectFunc));
-        phpAds_ShowBreak();
-        echo "<br /><img src='" . OX::assetPath() . "/images/info.gif' align='absmiddle'>&nbsp;";
-        echo $GLOBALS['strNoAdminInterface'];
-        phpAds_PageFooter();
+        OA_Admin_UI::showUIDisabledScreen();
+
         exit;
     }
 
-    phpAds_Die ($GLOBALS['strErrorDatabaseConnection'], sprintf(
-        $GLOBALS['strErrorCantConnectToDatabase'],
-        PRODUCT_NAME,
-        $GLOBALS['_MAX']['CONF']['database']['type'])
+    phpAds_Die(
+        $GLOBALS['strErrorDatabaseConnection'],
+        sprintf(
+            $GLOBALS['strErrorCantConnectToDatabase'],
+            PRODUCT_NAME,
+            $GLOBALS['_MAX']['CONF']['database']['type'],
+        ),
     );
 }
 
@@ -61,33 +60,33 @@ Language_Loader::load('default');
 
 // Register variables
 phpAds_registerGlobalUnslashed(
-     'affiliateid'
-    ,'agencyid'
-    ,'bannerid'
-    ,'campaignid'
-    ,'channelid'
-    ,'clientid'
-    ,'day'
-    ,'trackerid'
-    ,'userlogid'
-    ,'zoneid'
+    'affiliateid',
+    'agencyid',
+    'bannerid',
+    'campaignid',
+    'channelid',
+    'clientid',
+    'day',
+    'trackerid',
+    'userlogid',
+    'zoneid',
 );
 
-if (!isset($affiliateid))   $affiliateid = (OA_Permission::isAccount(OA_ACCOUNT_TRAFFICKER)) ? OA_Permission::getEntityId() : '';
-if (!isset($agencyid))      $agencyid = (OA_Permission::isAccount(OA_ACCOUNT_ADMIN)) ? '' : OA_Permission::getAgencyId();
-if (!isset($bannerid))      $bannerid = '';
-if (!isset($campaignid))    $campaignid = '';
-if (!isset($channelid))     $channelid = '';
-if (!isset($clientid))      $clientid = (OA_Permission::isAccount(OA_ACCOUNT_ADVERTISER)) ? OA_Permission::getEntityId() : '';
-if (!isset($day))           $day = '';
-if (!isset($trackerid))     $trackerid = '';
-if (!isset($userlogid))     $userlogid = '';
-if (!isset($zoneid))        $zoneid = '';
+$affiliateid ??= (OA_Permission::isAccount(OA_ACCOUNT_TRAFFICKER)) ? OA_Permission::getEntityId() : '';
+$agencyid ??= (OA_Permission::isAccount(OA_ACCOUNT_ADMIN)) ? '' : OA_Permission::getAgencyId();
+$bannerid ??= '';
+$campaignid ??= '';
+$channelid ??= '';
+$clientid ??= (OA_Permission::isAccount(OA_ACCOUNT_ADVERTISER)) ? OA_Permission::getEntityId() : '';
+$day ??= '';
+$trackerid ??= '';
+$userlogid ??= '';
+$zoneid ??= '';
 
 /**
  * Starts or continue existing session
  *
- * @param unknown_type $checkRedirectFunc
+ * @param callable $checkRedirectFunc
  */
 function OA_Start($checkRedirectFunc = null)
 {
@@ -99,10 +98,10 @@ function OA_Start($checkRedirectFunc = null)
     MAX_header('Cache-Control: no-cache, no-store, must-revalidate');
     MAX_header('Expires: 0');
 
-    if (OA_INSTALLATION_STATUS == OA_INSTALLATION_STATUS_INSTALLED)
-    {
+    if (OA_INSTALLATION_STATUS == OA_INSTALLATION_STATUS_INSTALLED) {
         phpAds_SessionDataFetch();
     }
+
     if (!OA_Auth::isLoggedIn() || OA_Auth::suppliedCredentials()) {
         // Required files
         include_once MAX_PATH . '/lib/max/language/Loader.php';
@@ -112,14 +111,15 @@ function OA_Start($checkRedirectFunc = null)
         phpAds_SessionDataRegister(OA_Auth::login($checkRedirectFunc));
 
         $aPlugins = OX_Component::getListOfRegisteredComponentsForHook('afterLogin');
-        foreach ($aPlugins as $i => $id)
-        {
-            if ($obj = OX_Component::factoryByComponentIdentifier($id))
-            {
+        foreach ($aPlugins as $i => $id) {
+            if ($obj = OX_Component::factoryByComponentIdentifier($id)) {
                 $obj->afterLogin();
             }
         }
+
+        OA_Auth::checkAndQueueUnsafePasswordWarning();
     }
+
     // Overwrite certain preset preferences
     if (!empty($session['language']) && $session['language'] != $GLOBALS['pref']['language']) {
         $GLOBALS['_MAX']['CONF']['max']['language'] = $session['language'];
@@ -130,7 +130,4 @@ function OA_Start($checkRedirectFunc = null)
         unset($session['accountSwitch']);
         phpAds_SessionDataStore();
     }
-
 }
-
-?>

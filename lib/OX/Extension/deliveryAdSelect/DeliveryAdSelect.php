@@ -10,20 +10,10 @@
 +---------------------------------------------------------------------------+
 */
 
-require_once(LIB_PATH.'/Extension/ExtensionDelivery.php');
+require_once(LIB_PATH . '/Extension/ExtensionDelivery.php');
 
 /**
  * @package    OpenXExtension
  * @subpackage DeliveryAdSelect
  */
-class Plugins_DeliveryAdSelect extends OX_Component 
-{
-
-    function __construct()
-    {
-
-    }
-
-}
-
-?>
+class Plugins_DeliveryAdSelect extends OX_Component {}

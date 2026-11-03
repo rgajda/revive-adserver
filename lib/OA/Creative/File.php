@@ -19,15 +19,18 @@ require_once MAX_PATH . '/www/admin/lib-storage.inc.php';
  */
 class OA_Creative_File extends OA_Creative
 {
-    var $fileName;
+    public $fileName;
 
     /**
      * Class constructor
      *
      * @param string $fileName
+     *
      * @return OA_Creative_File
+     *
+     * @noinspection PhpMissingParentConstructorInspection
      */
-    function __construct($fileName)
+    public function __construct($fileName)
     {
         $this->fileName = $fileName;
     }
@@ -38,7 +41,7 @@ class OA_Creative_File extends OA_Creative
      * @param string $filePath
      * @return mixed True on success, PEAR_Error otherwise
      */
-    function loadFile($filePath)
+    public function loadFile($filePath)
     {
         if (($this->content = @file_get_contents($filePath)) === false) {
             return new PEAR_Error("Cannot load image file");
@@ -48,22 +51,26 @@ class OA_Creative_File extends OA_Creative
     }
 
     /**
+     * @throws \RuntimeException
+     */
+    public static function checkSize(int $size): void
+    {
+        $maxFilesize = (int) ($GLOBALS['_MAX']['CONF']['store']['maxFilesize'] ?? 0);
+
+        if ($maxFilesize > 0 && $size > $maxFilesize) {
+            throw new \RuntimeException("Image file size is greater than {$maxFilesize} bytes");
+        }
+    }
+
+    /**
      * A method to load the creative from a file
      *
      * @param string $filePath
      * @param array  $aTypes Optional parameters of allowed types (@see getimagesize)
      * @return mixed True on success, PEAR_Error otherwise
      */
-    function readCreativeDetails($filePath, $aTypes = null)
+    public function readCreativeDetails($filePath, $aTypes = null)
     {
-        if (!isset($aTypes)) {
-            $aTypes = array(
-                IMAGETYPE_GIF  => 'gif',
-                IMAGETYPE_PNG  => 'png',
-                IMAGETYPE_JPEG => 'jpeg',
-            );
-        }
-
         if (!($aImage = @getimagesize($filePath))) {
             return new PEAR_Error("Unrecognized image file format");
         }
@@ -72,51 +79,59 @@ class OA_Creative_File extends OA_Creative
             return new PEAR_Error('Unsupported image format');
         }
 
+        if (PHP_VERSION_ID < 80200 && $aImage[2] === IMAGETYPE_AVIF) {
+            return new PEAR_Error('AVIF is only supported with PHP 8.2+');
+        }
+
         $this->contentType = $aTypes[$aImage[2]];
-        $this->width   = $aImage[0];
-        $this->height  = $aImage[1];
+        $this->width = $aImage[0];
+        $this->height = $aImage[1];
 
         return true;
     }
 
-    function getFileDetails()
+    public function getFileDetails()
     {
-        return array(
-            'filename'      => $this->fileName,
-            'width'         => $this->width,
-            'height'        => $this->height,
-            'contenttype'   => $this->contentType,
+        return [
+            'filename' => $this->fileName,
+            'width' => $this->width,
+            'height' => $this->height,
+            'contenttype' => $this->contentType,
             'pluginversion' => 0,
-            'editswf'       => false
-        );
+        ];
     }
 
-    function store($type)
+    public function store($type)
     {
         $this->fileName = phpAds_ImageStore($type, $this->fileName, $this->content);
     }
 
-    function getContentTypeByExtension($alt = false)
+    public function getContentTypeByExtension($alt = false)
     {
         return OA_Creative_File::staticGetContentTypeByExtension(
-            $this->fileName, $alt);
+            $this->fileName,
+            $alt,
+        );
     }
 
-    function staticGetContentTypeByExtension($fileName, $alt = false)
+    public static function staticGetContentTypeByExtension($fileName, $alt = false)
     {
         $contentType = '';
 
         $ext = substr($fileName, strrpos($fileName, '.') + 1);
-        switch (strtolower($ext)) {
-            case 'jpeg': $contentType = 'jpeg'; break;
-            case 'jpg':  $contentType = 'jpeg'; break;
-            case 'png':  $contentType = 'png';  break;
-            case 'gif':  $contentType = 'gif';  break;
-            case 'swf':  $contentType = $alt ? '' : 'swf';  break;
-            case 'dcr':  $contentType = $alt ? '' : 'dcr';  break;
-            case 'rpm':  $contentType = $alt ? '' : 'rpm';  break;
-            case 'mov':  $contentType = $alt ? '' : 'mov';  break;
-        }
+        $contentType = match (strtolower($ext)) {
+            'jpeg' => 'jpeg',
+            'jpg' => 'jpeg',
+            'png' => 'png',
+            'gif' => 'gif',
+            'webp' => 'webp',
+            'avif' => 'avif',
+            'swf' => $alt ? '' : 'swf',
+            'dcr' => $alt ? '' : 'dcr',
+            'rpm' => $alt ? '' : 'rpm',
+            'mov' => $alt ? '' : 'mov',
+            default => $contentType,
+        };
         return $contentType;
     }
 
@@ -125,33 +140,32 @@ class OA_Creative_File extends OA_Creative
      *
      * @param string $filePath
      * @param string $fileName If empty, it will be generated from filePath
-     * @return OA_Creative_File
+     * @return OA_Creative_File|PEAR_Error
      */
-    function &factory($filePath, $fileName = '')
+    public static function factory($filePath, $fileName = '')
     {
         if (!@is_readable($filePath)) {
-            return new PEAR_Error('Could not read the file: '.$filePath);
+            return new PEAR_Error('Could not read the file: ' . $filePath);
         }
 
         if (empty($fileName)) {
             $fileName = basename($filePath);
         }
 
-        $validImageExtensions = 'png|svg|gif|jpg|jpeg|jpe|tif|tiff|ppm|bmp|rle|dib|tga|pcz|wbmp|wbm';
-        if (preg_match('/\.swf$/i', $fileName)) {
-            $type = 'Swf';
-        } elseif (preg_match('/\.(?:dcr|rpm|mov)$/i', $fileName)) {
+        $validImageExtensions = 'png|svg|gif|jpg|jpeg|jpe|tif|tiff|ppm|bmp|rle|dib|tga|pcz|wbmp|wbm|webp|avif';
+        if (preg_match('/\.(?:dcr|rpm|mov)$/i', $fileName)) {
             $type = 'RichMedia';
-        } elseif (preg_match('/\.('.$validImageExtensions.')$/i', $fileName)) {
+        } elseif (preg_match('/\.(' . $validImageExtensions . ')$/i', $fileName)) {
             $type = 'Image';
         } else {
             return new PEAR_Error('The uploaded file does not have a valid extension.
-            The file must be an image file (JPG, PNG, GIF, etc.) or a SWF.');
+            The file must be an image file (JPG, PNG, GIF, etc.).');
         }
 
         require_once(MAX_PATH . '/lib/OA/Creative/File/' . $type . '.php');
-        $className = 'OA_Creative_File_'.$type;
+        $className = 'OA_Creative_File_' . $type;
 
+        /** @var OA_Creative_File $oCreative */
         $oCreative = new $className($fileName);
 
         $result = $oCreative->loadFile($filePath);
@@ -167,23 +181,29 @@ class OA_Creative_File extends OA_Creative
      *
      * @param string $fileName
      * @param string $content
-     * @return OA_Creative_File
+     * @return OA_Creative_File|PEAR_Error
      */
-    function &factoryString($fileName, $content)
+    public static function factoryString($fileName, $content)
     {
+        try {
+            self::checkSize(strlen($content));
+        } catch (\Exception $e) {
+            return new PEAR_Error($e->getMessage());
+        }
+
         // Create temp file
         $filePath = tempnam(MAX_PATH . '/var', 'oa_creative_');
         // Open temp file
         if (!($fp = @fopen($filePath, 'w'))) {
-            return new PEAR_Error('Could not open the file: '.$filePath);
+            return new PEAR_Error('Could not open the file: ' . $filePath);
         }
         // Write to temp file
         if (!@fwrite($fp, $content)) {
-            return new PEAR_Error('Could not write to file: '.$filePath);
+            return new PEAR_Error('Could not write to file: ' . $filePath);
         }
 
         // Get new instance
-        $oCreative = &OA_Creative_File::factory($filePath, $fileName);
+        $oCreative = OA_Creative_File::factory($filePath, $fileName);
 
         // Cleanup
         @fclose($fp);
@@ -198,49 +218,55 @@ class OA_Creative_File extends OA_Creative
      * @todo: improve checks
      *
      * @param string $variableName
-     * @return OA_Creative_File
+     * @return OA_Creative_File|PEAR_Error
      */
-    function &factoryUploadedFile($variableName) {
+    public static function factoryUploadedFile($variableName)
+    {
         if (!empty($_FILES[$variableName]['error'])) {
-            $aErrors = array(
-                UPLOAD_ERR_INI_SIZE   => "file size exceeds PHP max allowed size.",
-                UPLOAD_ERR_FORM_SIZE  => "file size exceeds form max allowed size.",
-                UPLOAD_ERR_PARTIAL    => "partial upload.",
-                UPLOAD_ERR_NO_FILE    => "no file uploaded.",
-                UPLOAD_ERR_NO_TMP_DIR => "temp directory not available."
-            );
-            if (isset($aErrors[$_FILES[$variableName]['error']])) {
-                $message = $aErrors[$_FILES[$variableName]['error']];
-            } else {
-                $message = 'Error code: '.$_FILES[$variableName]['error'];
-            }
-            return new PEAR_Error('An error occurred dealing with the file upload: '.$message);
+            $aErrors = [
+                UPLOAD_ERR_INI_SIZE => "file size exceeds PHP max allowed size.",
+                UPLOAD_ERR_FORM_SIZE => "file size exceeds form max allowed size.",
+                UPLOAD_ERR_PARTIAL => "partial upload.",
+                UPLOAD_ERR_NO_FILE => "no file uploaded.",
+                UPLOAD_ERR_NO_TMP_DIR => "temp directory not available.",
+            ];
+
+            $message = $aErrors[$_FILES[$variableName]['error']] ?? "Error code {$_FILES[$variableName]['error']}";
+
+            return new PEAR_Error('An error occurred dealing with the file upload: ' . $message);
         }
         if (!isset($_FILES[$variableName]['tmp_name']) || !is_uploaded_file($_FILES[$variableName]['tmp_name'])) {
-            return new PEAR_Error('Could not find the uploaded file: '.$variableName);
+            return new PEAR_Error('Could not find the uploaded file: ' . $variableName);
         }
         if (!isset($_FILES[$variableName]['name'])) {
-            return new PEAR_Error('Could not find the uploaded file name: '.$variableName);
+            return new PEAR_Error('Could not find the uploaded file name: ' . $variableName);
         }
+
+        try {
+            self::checkSize($_FILES[$variableName]['size']);
+        } catch (\Exception $e) {
+            return new PEAR_Error($e->getMessage());
+        }
+
         $fileName = basename($_FILES[$variableName]['name']);
         $filePath = $_FILES[$variableName]['tmp_name'];
         if (!@is_readable($filePath)) {
             // The uploaded file is not directly readable, we should use a file from the var folder instead
             $tmpName = tempnam(MAX_PATH . '/var', 'oa_creative_');
             if ($tmpName === false) {
-                return new PEAR_Error('Cannot create a temporary file: '.$filePath);
+                return new PEAR_Error('Cannot create a temporary file: ' . $filePath);
             }
             // Move uploaded file to a temporary file
             if (!@move_uploaded_file($filePath, $tmpName)) {
                 // Cleanup
                 @unlink($tmpName);
-                return new PEAR_Error('Could not move the uploaded file to: '.$tmpName);
+                return new PEAR_Error('Could not move the uploaded file to: ' . $tmpName);
             }
             $filePath = $tmpName;
         }
 
         // Get new instance
-        $oCreative = &OA_Creative_File::factory($filePath, $fileName);
+        $oCreative = OA_Creative_File::factory($filePath, $fileName);
 
         // Cleanup
         if (isset($tmpName)) {
@@ -250,5 +276,3 @@ class OA_Creative_File extends OA_Creative
         return $oCreative;
     }
 }
-
-?>

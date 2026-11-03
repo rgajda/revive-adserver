@@ -24,12 +24,11 @@ require_once LIB_PATH . '/OperationInterval.php';
  */
 class Test_Max_Delivery_Log_RMC extends UnitTestCase
 {
-    /**
-     * The constructor method.
-     */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
+
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
     }
 
     /**
@@ -37,9 +36,9 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
      * MAX_Delivery_log_logAdImpression() and MAX_Delivery_log_logAdClick()
      * functions.
      */
-    function testRequestImpressionClickFunction()
+    public function testRequestImpressionClickFunction()
     {
-        $aConf =& $GLOBALS['_MAX']['CONF'];
+        $aConf = &$GLOBALS['_MAX']['CONF'];
         $aConf['maintenance']['operationInterval'] = 60;
 
         $GLOBALS['_MAX']['NOW'] = time();
@@ -47,14 +46,13 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
         $aDates = OX_OperationInterval::convertDateToOperationIntervalStartAndEndDates($oNowDate);
         $intervalStart = $aDates['start']->format('%Y-%m-%d %H:%M:%S');
 
-        $aTables = array(
-            'MAX_Delivery_log_logAdRequest'    => 'data_bkt_r',
+        $aTables = [
+            'MAX_Delivery_log_logAdRequest' => 'data_bkt_r',
             'MAX_Delivery_log_logAdImpression' => 'data_bkt_m',
-            'MAX_Delivery_log_logAdClick'      => 'data_bkt_c'
-        );
+            'MAX_Delivery_log_logAdClick' => 'data_bkt_c',
+        ];
 
         foreach ($aTables as $function => $table) {
-
             // Test to ensure that the openXDeliveryLog plugin's data bucket
             // table does not exist
             $oTable = new OA_DB_Table();
@@ -64,15 +62,13 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
             // Test calling the main logging function without any plugins installed,
             // to ensure that this does not result in any kind of error
             unset($GLOBALS['_MAX']['deliveryData']['Plugin_deliveryDataPrepare_oxDeliveryDataPrepare_dataCommon']);
-            call_user_func_array($function, array(1, 1));
-
+            call_user_func_array($function, [1, 1]);
         }
 
         // Install the openXDeliveryLog plugin
         TestEnv::installPluginPackage('openXDeliveryLog', false);
 
         foreach ($aTables as $function => $table) {
-
             // Test to ensure that the openXDeliveryLog plugin's data bucket
             // table now does exist
             $tableExists = $oTable->extistsTable($aConf['table']['prefix'] . $table);
@@ -86,7 +82,7 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
 
             // Call the main logging function
             unset($GLOBALS['_MAX']['deliveryData']['Plugin_deliveryDataPrepare_oxDeliveryDataPrepare_dataCommon']);
-            call_user_func_array($function, array(1, 1));
+            call_user_func_array($function, [1, 1]);
 
             // Ensure that the data was logged correctly
             $doData_bkt = OA_Dal::factoryDO($table);
@@ -100,7 +96,7 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
                 // Enable it
                 $GLOBALS['_MAX']['CONF']['logging']['adRequests'] = true;
                 unset($GLOBALS['_MAX']['deliveryData']['Plugin_deliveryDataPrepare_oxDeliveryDataPrepare_dataCommon']);
-                call_user_func_array($function, array(1, 1));
+                call_user_func_array($function, [1, 1]);
 
                 // Now ensure that the data was logged correctly
                 $doData_bkt->find();
@@ -111,17 +107,17 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
 
             $doData_bkt = OA_Dal::factoryDO($table);
             $doData_bkt->creative_id = 1;
-            $doData_bkt->zone_id     = 1;
+            $doData_bkt->zone_id = 1;
             $doData_bkt->find();
             $rows = $doData_bkt->getRowCount();
             $this->assertEqual($rows, 1);
             $doData_bkt->fetch();
-            $this->assertEqual($doData_bkt->count,          1);
+            $this->assertEqual($doData_bkt->count, 1);
             $this->assertEqual($doData_bkt->interval_start, $intervalStart);
 
             // Call the main logging function again
             unset($GLOBALS['_MAX']['deliveryData']['Plugin_deliveryDataPrepare_oxDeliveryDataPrepare_dataCommon']);
-            call_user_func_array($function, array(1, 1));
+            call_user_func_array($function, [1, 1]);
 
             // Ensure that the data was logged correctly
             $doData_bkt = OA_Dal::factoryDO($table);
@@ -131,18 +127,18 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
 
             $doData_bkt = OA_Dal::factoryDO($table);
             $doData_bkt->creative_id = 1;
-            $doData_bkt->zone_id     = 1;
+            $doData_bkt->zone_id = 1;
             $doData_bkt->find();
             $rows = $doData_bkt->getRowCount();
             $this->assertEqual($rows, 1);
             $doData_bkt->fetch();
-            $this->assertEqual($doData_bkt->count,          2);
+            $this->assertEqual($doData_bkt->count, 2);
             $this->assertEqual($doData_bkt->interval_start, $intervalStart);
 
             // Call the main logging function again, but with a differen
             // creative/zone pair
             unset($GLOBALS['_MAX']['deliveryData']['Plugin_deliveryDataPrepare_oxDeliveryDataPrepare_dataCommon']);
-            call_user_func_array($function, array(2, 1));
+            call_user_func_array($function, [2, 1]);
 
             // Ensure that the data was logged correctly
             $doData_bkt = OA_Dal::factoryDO($table);
@@ -152,24 +148,23 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
 
             $doData_bkt = OA_Dal::factoryDO($table);
             $doData_bkt->creative_id = 1;
-            $doData_bkt->zone_id     = 1;
+            $doData_bkt->zone_id = 1;
             $doData_bkt->find();
             $rows = $doData_bkt->getRowCount();
             $this->assertEqual($rows, 1);
             $doData_bkt->fetch();
-            $this->assertEqual($doData_bkt->count,          2);
+            $this->assertEqual($doData_bkt->count, 2);
             $this->assertEqual($doData_bkt->interval_start, $intervalStart);
 
             $doData_bkt = OA_Dal::factoryDO($table);
             $doData_bkt->creative_id = 2;
-            $doData_bkt->zone_id     = 1;
+            $doData_bkt->zone_id = 1;
             $doData_bkt->find();
             $rows = $doData_bkt->getRowCount();
             $this->assertEqual($rows, 1);
             $doData_bkt->fetch();
-            $this->assertEqual($doData_bkt->count,          1);
+            $this->assertEqual($doData_bkt->count, 1);
             $this->assertEqual($doData_bkt->interval_start, $intervalStart);
-
         }
 
         // Uninstall the openXDeliveryLog plugin
@@ -178,7 +173,4 @@ class Test_Max_Delivery_Log_RMC extends UnitTestCase
         // Restore the test configuration file
         TestEnv::restoreConfig();
     }
-
 }
-
-?>

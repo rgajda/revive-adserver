@@ -26,15 +26,6 @@ require_once MAX_PATH . '/lib/pear/Date.php';
  */
 class Test_OA_Dal_Maintenance_Common extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * A method to test the setProcessLastRunInfo() method.
      *
@@ -45,13 +36,13 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
      * Test 3: Test that bad table and column names return false.
      * Test 4: Test that run type information is logged correctly.
      */
-    function testSetProcessLastRunInfo()
+    public function testSetProcessLastRunInfo()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
 
-        $oStartDate    = new Date('2006-10-05 12:07:01');
-        $oEndDate      = new Date('2006-10-05 12:15:00');
+        $oStartDate = new Date('2006-10-05 12:07:01');
+        $oEndDate = new Date('2006-10-05 12:15:00');
         $oUpdateToDate = new Date('2006-10-05 11:59:59');
 
         $oDalMaintenanceCommon = new OA_Dal_Maintenance_Common();
@@ -62,15 +53,15 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $oEndDate,
             $oUpdateToDate,
             $aConf['table']['log_maintenance_priority'],
-            true
+            true,
         );
         $this->assertFalse($result);
         $result = $oDalMaintenanceCommon->setProcessLastRunInfo(
             $oStartDate,
             null,
             $oUpdateToDate,
-            $tableName,
-            true
+            $aConf['table']['log_maintenance_priority'],
+            true,
         );
         $this->assertFalse($result);
         $result = $oDalMaintenanceCommon->setProcessLastRunInfo(
@@ -78,7 +69,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $oEndDate,
             'foo',
             $aConf['table']['log_maintenance_priority'],
-            true
+            true,
         );
         $this->assertFalse($result);
         $this->assertFalse($result);
@@ -87,7 +78,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $oEndDate,
             $oUpdateToDate,
             $aConf['table']['log_maintenance_priority'],
-            17
+            17,
         );
         $this->assertFalse($result);
 
@@ -97,7 +88,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $oEndDate,
             $oUpdateToDate,
             $aConf['table']['log_maintenance_forecasting'],
-            true
+            true,
         );
         $this->assertTrue($result);
         $query = "
@@ -109,7 +100,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
                 duration,
                 updated_to
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['log_maintenance_forecasting'],true);
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['log_maintenance_forecasting'], true);
         $rc = $oDbh->query($query);
         $aRow = $rc->fetchRow();
         $this->assertEqual($aRow['log_maintenance_forecasting_id'], 1);
@@ -121,14 +112,14 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
 
         // Test 3
         RV::disableErrorHandling();
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oDalMaintenanceCommon = new OA_Dal_Maintenance_Common();
         $result = $oDalMaintenanceCommon->setProcessLastRunInfo(
             $oStartDate,
             $oEndDate,
             $oUpdateToDate,
             'foo',
-            true
+            true,
         );
         $this->assertFalse($result);
         $result = $oDalMaintenanceCommon->setProcessLastRunInfo(
@@ -138,7 +129,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $aConf['table']['log_maintenance_priority'],
             true,
             'foo',
-            1
+            1,
         );
         $this->assertFalse($result);
         RV::enableErrorHandling();
@@ -151,7 +142,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $aConf['table']['log_maintenance_priority'],
             true,
             'run_type',
-            0
+            0,
         );
         $result = $oDalMaintenanceCommon->setProcessLastRunInfo(
             $oStartDate,
@@ -160,7 +151,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             $aConf['table']['log_maintenance_priority'],
             true,
             'run_type',
-            1
+            1,
         );
         $this->assertTrue($result);
         $query = "
@@ -173,7 +164,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
                 updated_to,
                 run_type
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['log_maintenance_priority'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['log_maintenance_priority'], true) . "
             WHERE
                 log_maintenance_priority_id = 1";
         $rc = $oDbh->query($query);
@@ -195,7 +186,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
                 updated_to,
                 run_type
             FROM
-                ".$oDbh->quoteIdentifier($aConf['table']['prefix'].$aConf['table']['log_maintenance_priority'],true)."
+                " . $oDbh->quoteIdentifier($aConf['table']['prefix'] . $aConf['table']['log_maintenance_priority'], true) . "
             WHERE
                 log_maintenance_priority_id = 2";
         $rc = $oDbh->query($query);
@@ -207,7 +198,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $this->assertEqual($aRow['duration'], (7 * 60) + 59);
         $this->assertEqual($aRow['updated_to'], '2006-10-05 11:59:59');
         $this->assertEqual($aRow['run_type'], 1);
-        $aCleanupTables = array($aConf['table']['log_maintenance_priority'],$aConf['table']['log_maintenance_forecasting'],$aConf['table']['log_maintenance_forecasting']);
+        $aCleanupTables = [$aConf['table']['log_maintenance_priority'], $aConf['table']['log_maintenance_forecasting'], $aConf['table']['log_maintenance_forecasting']];
         DataGenerator::cleanUp($aCleanupTables);
     }
 
@@ -221,10 +212,10 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
      * Test 4: Test that the correct values are returned from data_ tables.
      * Test 5: Test that the correct values are returned from log_ tables.
      */
-    function testGetProcessLastRunInfo()
+    public function testGetProcessLastRunInfo()
     {
-        $aConf =& $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $aConf = &$GLOBALS['_MAX']['CONF'];
+        $oDbh = OA_DB::singleton();
 
         $log_maintenance_priority = $aConf['table']['prefix'] . $aConf['table']['log_maintenance_priority'];
         $data_raw_ad_impression = $aConf['table']['prefix'] . $aConf['table']['data_raw_ad_impression'];
@@ -237,32 +228,32 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
             'foo',
             null,
             'start_run',
-            array()
+            [],
         );
         $this->assertFalse($result);
         $result = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array(),
+            [],
             null,
             'start_run',
-            'foo'
+            'foo',
         );
         $this->assertFalse($result);
 
         // Test 2
         $result = $oDalMaintenanceCommon->getProcessLastRunInfo(
-            $aConf['table']['log_maintenance_priority']
+            $aConf['table']['log_maintenance_priority'],
         );
         $this->assertNull($result);
         $result = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array(),
+            [],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertNull($result);
 
@@ -270,29 +261,29 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         RV::disableErrorHandling();
         $result = $oDalMaintenanceCommon->getProcessLastRunInfo(
             'foo',
-            array(),
+            [],
             null,
             'start_run',
-            array()
+            [],
         );
         $this->assertFalse($result);
         $result = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('foo'),
+            ['foo'],
             null,
             'start_run',
-            array()
+            [],
         );
         $this->assertFalse($result);
         $result = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array(),
+            [],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => 'foo',
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertFalse($result);
         RV::enableErrorHandling();
@@ -300,7 +291,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         // Test 4
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($data_raw_ad_impression,true)."
+                " . $oDbh->quoteIdentifier($data_raw_ad_impression, true) . "
                 (
                     date_time,
                     ad_id,
@@ -317,20 +308,20 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $rows = $oDbh->exec($query);
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval'),
+            ['operation_interval'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 1);
         $this->assertEqual($aResult['updated_to'], '2006-10-06 07:59:59');
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($data_raw_ad_impression,true)."
+                " . $oDbh->quoteIdentifier($data_raw_ad_impression, true) . "
                 (
                     date_time,
                     ad_id,
@@ -347,13 +338,13 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $rows = $oDbh->exec($query);
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval'),
+            ['operation_interval'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 1);
@@ -362,26 +353,26 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $aConf['maintenance']['operationInterval'] = 60;
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval'),
+            ['operation_interval'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 1);
         $this->assertEqual($aResult['updated_to'], '2006-10-06 07:59:59');
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval'),
+            ['operation_interval'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'oi'
-            )
+                'type' => 'oi',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 1);
@@ -390,26 +381,26 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $aConf['maintenance']['operationInterval'] = 30;
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval'),
+            ['operation_interval'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 1);
         $this->assertEqual($aResult['updated_to'], '2006-10-06 07:59:59');
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval'),
+            ['operation_interval'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'oi'
-            )
+                'type' => 'oi',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 1);
@@ -420,7 +411,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         // Test 5
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($log_maintenance_priority,true)."
+                " . $oDbh->quoteIdentifier($log_maintenance_priority, true) . "
                 (
                     start_run,
                     end_run,
@@ -441,13 +432,13 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $rows = $oDbh->exec($query);
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval', 'run_type'),
+            ['operation_interval', 'run_type'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 3);
@@ -456,7 +447,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $this->assertEqual($aResult['run_type'], 1);
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($log_maintenance_priority,true)."
+                " . $oDbh->quoteIdentifier($log_maintenance_priority, true) . "
                 (
                     start_run,
                     end_run,
@@ -477,13 +468,13 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $rows = $oDbh->exec($query);
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval', 'run_type'),
+            ['operation_interval', 'run_type'],
             null,
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 3);
@@ -492,13 +483,13 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $this->assertEqual($aResult['run_type'], 1);
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval', 'run_type'),
+            ['operation_interval', 'run_type'],
             null,
             'updated_to',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 3);
@@ -507,13 +498,13 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $this->assertEqual($aResult['run_type'], 0);
         $aResult = $oDalMaintenanceCommon->getProcessLastRunInfo(
             $aConf['table']['log_maintenance_priority'],
-            array('operation_interval', 'run_type'),
+            ['operation_interval', 'run_type'],
             'WHERE run_type = 0',
             'start_run',
-            array(
+            [
                 'tableName' => $aConf['table']['data_raw_ad_impression'],
-                'type'      => 'hour'
-            )
+                'type' => 'hour',
+            ],
         );
         $this->assertTrue(is_array($aResult));
         $this->assertEqual(count($aResult), 3);
@@ -544,10 +535,10 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
      *          returned
      * Test 10: Test with a channel limitation, and ensure values returned
      */
-    function testGetAllDeliveryLimitationsByTypeId()
+    public function testGetAllDeliveryLimitationsByTypeId()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
 
         $oDalMaintenanceCommon = new OA_Dal_Maintenance_Common();
 
@@ -562,7 +553,7 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $table = $aConf['table']['prefix'] . $aConf['table']['acls'];
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($table,true)."
+                " . $oDbh->quoteIdentifier($table, true) . "
                 (
                     bannerid,
                     logical,
@@ -573,32 +564,32 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
                 )
             VALUES
                 (?, ?, ?, ?, ?, ?)";
-        $aTypes = array(
+        $aTypes = [
             'integer',
             'text',
             'text',
             'text',
             'text',
-            'integer'
-        );
+            'integer',
+        ];
         $st = $oDbh->prepare($query, $aTypes, MDB2_PREPARE_MANIP);
-        $aData = array(
+        $aData = [
             3,
             'and',
             'Time:Date',
             '!=',
             '2005-05-25',
-            0
-        );
+            0,
+        ];
         $rows = $st->execute($aData);
-        $aData = array(
+        $aData = [
             3,
             'and',
             'Geo:Country',
             '==',
             'GB',
-            1
-        );
+            1,
+        ];
         $rows = $st->execute($aData);
 
         // Test 3
@@ -632,19 +623,19 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $this->assertEqual($aResult[1]['data'], 'GB');
         $this->assertEqual($aResult[1]['executionorder'], 1);
 
-        $aCleanupTables = array($aConf['table']['acls']);
+        $aCleanupTables = [$aConf['table']['acls']];
         foreach ($aCleanupTables as $table) {
             $query = "DELETE FROM {$aConf['table']['prefix']}$table";
             $oDbh->exec($query);
+            DataGenerator::resetSequence($table);
         }
-        DataGenerator::resetSequence($aCleanupTables);
 
         TestEnv::restoreEnv();
 
         $table = $aConf['table']['prefix'] . $aConf['table']['acls_channel'];
         $query = "
             INSERT INTO
-                ".$oDbh->quoteIdentifier($table,true)."
+                " . $oDbh->quoteIdentifier($table, true) . "
                 (
                     channelid,
                     logical,
@@ -655,32 +646,32 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
                 )
             VALUES
                 (?, ?, ?, ?, ?, ?)";
-        $aTypes = array(
+        $aTypes = [
             'integer',
             'text',
             'text',
             'text',
             'text',
-            'integer'
-        );
+            'integer',
+        ];
         $st = $oDbh->prepare($query, $aTypes, MDB2_PREPARE_MANIP);
-        $aData = array(
+        $aData = [
             3,
             'and',
             'Time:Date',
             '!=',
             '2005-05-25',
-            0
-        );
+            0,
+        ];
         $rows = $st->execute($aData);
-        $aData = array(
+        $aData = [
             3,
             'and',
             'Geo:Country',
             '==',
             'GB',
-            1
-        );
+            1,
+        ];
         $rows = $st->execute($aData);
 
         // Test 7
@@ -714,14 +705,11 @@ class Test_OA_Dal_Maintenance_Common extends UnitTestCase
         $this->assertEqual($aResult[1]['data'], 'GB');
         $this->assertEqual($aResult[1]['executionorder'], 1);
 
-        $aCleanupTables = array($aConf['table']['acls_channel']);
+        $aCleanupTables = [$aConf['table']['acls_channel']];
         foreach ($aCleanupTables as $table) {
             $query = "DELETE FROM {$aConf['table']['prefix']}$table";
             $oDbh->exec($query);
+            DataGenerator::resetSequence($table);
         }
-        DataGenerator::resetSequence($aCleanupTables);
     }
-
 }
-
-?>

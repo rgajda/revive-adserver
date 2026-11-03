@@ -7,10 +7,12 @@
 
   <patternset id="dist.included">
     <!-- Files in the main directory -->
+    <include name="CHANGELOG.md"/>
     <include name="COPYRIGHT.txt"/>
     <include name="LICENSE.txt"/>
     <include name="README.md"/>
     <include name="RELEASE_NOTES.txt"/>
+    <include name="SECURITY.md"/>
     <include name="*.php"/>
     <include name="*.js"/>
     <include name="robots.txt"/>
@@ -18,6 +20,10 @@
     <include name="composer.json"/>
     <include name="composer.lock"/>
     <exclude name="build.sh"/>
+    <exclude name="ecs.php"/>
+    <exclude name="phpstan*"/>
+    <exclude name="phpcs.xml.dist"/>
+    <exclude name="rector.php"/>
 
     <!-- Subdirectory rules -->
     <exclude name="docs/**"/>
@@ -30,13 +36,15 @@
     <exclude name="lib/ant/**"/>
     <exclude name="lib/simpletest/**"/>
     <exclude name="lib/vendor/figdice/**"/>
-    <exclude name="lib/vendor/tinymce/**"/>
+    <exclude name="lib/vendor/bower-asset/**"/>
     <include name="maintenance/**"/>
     <include name="plugins/**"/>
     <include name="scripts/maintenance/**"/>
     <include name="scripts/rpm/**"/>
     <exclude name="scripts/rpm/*.spec*" />
     <exclude name="scripts/translations/**"/>
+    <include name="scripts/console"/>
+    <include name="scripts/installer"/>
     <include name="scripts/.htaccess"/>
     <include name="var/cache/README.txt"/>
     <include name="var/plugins/cache"/>
@@ -62,15 +70,21 @@
     <exclude name="www/admin/assets/js/jscalendar/test.php"/>
 
     <!-- Build-wide rules -->
+    <exclude name=".idea/**"/>
     <exclude name="nbproject/**"/>
     <exclude name="**/tests"/>
     <exclude name="**/tests/**"/>
     <exclude name="**/.git*"/>
+    <exclude name="**/.git*/**"/>
     <exclude name="**/*.log"/><!-- Log files -->
   </patternset>
 
   <patternset id="dist.excluded">
     <!-- Files in the main directory -->
+    <include name="ecs.php"/>
+    <include name="phpstan*"/>
+    <include name="phpcs.xml.dist"/>
+    <include name="rector.php"/>
     <include name="tests.xsl"/>
     <include name="*.xml"/>
     <include name="*.properties"/>
@@ -89,8 +103,10 @@
     <include name="lib/ant/**"/>
     <include name="lib/simpletest/**"/>
     <include name="lib/vendor/figdice/**"/>
-    <include name="lib/vendor/tinymce/**"/>
+    <include name="lib/vendor/bower-asset/**"/>
     <exclude name="plugins/**"/>
+    <exclude name="scripts/console"/>
+    <exclude name="scripts/installer"/>
     <include name="scripts/db_dataobject/**"/>
     <include name="scripts/delivery/**"/>
     <include name="scripts/plugins/**"/>
@@ -124,6 +140,7 @@
     <include name="www/images/*.png"/>
 
     <!-- Build-wide rules -->
+    <include name=".idea/**"/>
     <include name="nbproject/**"/>
     <include name="**/tests"/>
     <include name="**/tests/**"/>

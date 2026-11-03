@@ -14,6 +14,8 @@ require_once MAX_PATH . '/lib/max/Plugin.php';
 // Using multi-dirname so that the tests can run from either plugins or plugins_repo
 require_once dirname(dirname(dirname(__FILE__))) . '/Geo/Country.delivery.php';
 
+Language_Loader::load();
+
 /**
  * A class for testing the Plugins_DeliveryLimitations_Geo_Country class.
  *
@@ -22,18 +24,16 @@ require_once dirname(dirname(dirname(__FILE__))) . '/Geo/Country.delivery.php';
  */
 class Plugins_TestOfPlugins_DeliveryLimitations_Geo_Country extends UnitTestCase
 {
-    function test_checkGeoCountry()
+    public function test_checkGeoCountry()
     {
         // =~ and !~ - Single country
-        $this->assertTrue(MAX_checkGeo_Country('GB',    '=~', array('country_code' => 'GB')));
-        $this->assertTrue(MAX_checkGeo_Country('GB',   '!~', array('country_code' => 'US')));
+        $this->assertTrue(MAX_checkGeo_Country('GB', '=~', ['country' => 'GB']));
+        $this->assertTrue(MAX_checkGeo_Country('GB', '!~', ['country' => 'US']));
 
         // =~ and !~ - Multiple country
-        $this->assertTrue(MAX_checkGeo_Country('GB,US', '=~', array('country_code' => 'GB')));
-        $this->assertTrue(MAX_checkGeo_Country('GB,US', '=~', array('country_code' => 'US')));
-        $this->assertTrue(MAX_checkGeo_Country('GB,US', '!~', array('country_code' => 'FR')));
-        $this->assertFalse(MAX_checkGeo_Country('GB,US', '!~', array('country_code' => 'US')));
+        $this->assertTrue(MAX_checkGeo_Country('GB,US', '=~', ['country' => 'GB']));
+        $this->assertTrue(MAX_checkGeo_Country('GB,US', '=~', ['country' => 'US']));
+        $this->assertTrue(MAX_checkGeo_Country('GB,US', '!~', ['country' => 'FR']));
+        $this->assertFalse(MAX_checkGeo_Country('GB,US', '!~', ['country' => 'US']));
     }
 }
-
-?>

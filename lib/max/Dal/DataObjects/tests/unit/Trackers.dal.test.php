@@ -13,6 +13,8 @@
 require_once MAX_PATH . '/lib/OA/Dal.php';
 require_once MAX_PATH . '/lib/max/Dal/tests/util/DalUnitTestCase.php';
 
+Language_Loader::load();
+
 /**
  * A class for testing non standard DataObjects_Trackers methods
  *
@@ -21,20 +23,12 @@ require_once MAX_PATH . '/lib/max/Dal/tests/util/DalUnitTestCase.php';
  */
 class DataObjects_TrackersTest extends DalUnitTestCase
 {
-    /**
-     * The constructor method.
-     */
-    function __construct()
+    public function tearDown()
     {
-        parent::__construct();
+        DataGenerator::cleanUp(['trackers']);
     }
 
-    function tearDown()
-    {
-        DataGenerator::cleanUp(array('trackers'));
-    }
-
-    function testDuplicate()
+    public function testDuplicate()
     {
         // Insert a tracker with some default data.
         $doTrackers = OA_Dal::factoryDO('trackers');
@@ -101,10 +95,6 @@ class DataObjects_TrackersTest extends DalUnitTestCase
         $doCampaignTrackers->trackerid = $doNewCampaignTrackers->trackerid = null;
         $this->assertEqualDataObjects($this->stripKeys($doCampaignTrackers), $this->stripKeys($doNewCampaignTrackers));
 
-        DataGenerator::cleanUp(array('campaigns', 'campaigns_trackers','trackers','variables'));
-
+        DataGenerator::cleanUp(['campaigns', 'campaigns_trackers', 'trackers', 'variables']);
     }
-
 }
-
-?>

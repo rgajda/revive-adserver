@@ -18,14 +18,20 @@ $GLOBALS['strAdministrator'] = "Yönetici";
 // Audit
 $GLOBALS['strDeleted'] = "Sil";
 $GLOBALS['strDelete'] = "Sil";
+$GLOBALS['strFilters'] = "Filtreler";
 $GLOBALS['strAdvertiser'] = "Reklamveren";
 $GLOBALS['strPublisher'] = "Web sitesi";
 $GLOBALS['strCampaign'] = "Kampanya";
 $GLOBALS['strZone'] = "Alan";
 $GLOBALS['strType'] = "Tip";
 $GLOBALS['strAction'] = "Eylem";
+$GLOBALS['strParameter'] = "Değişkenler";
+$GLOBALS['strValue'] = "Değer";
+$GLOBALS['strAuditResultsNotFound'] = "Seçilen kriterlere uyan etkinlik bulunamadı";
+$GLOBALS['strCollectedAllEvents'] = "Tüm etkinlikler";
 
 if (!isset($GLOBALS['strUserlog'])) {
-    $GLOBALS['strUserlog'] = array();
+    $GLOBALS['strUserlog'] = [];
 }
+$GLOBALS['strUserlog'][phpAds_actionActiveCampaign] = "{id} kampanyası etkinleştirildi";
 $GLOBALS['strUserlog'][phpAds_actionActivationMailed] = "Veritabanını otomatik temizle";

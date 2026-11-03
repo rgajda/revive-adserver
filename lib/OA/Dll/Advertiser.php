@@ -38,18 +38,17 @@ class OA_Dll_Advertiser extends OA_Dll
      *
      * @return boolean
      */
-    function _setAdvertiserDataFromArray(&$oAdvertiser, $advertiserData)
+    public function _setAdvertiserDataFromArray(&$oAdvertiser, $advertiserData)
     {
         $advertiserData['advertiserName'] = $advertiserData['clientname'];
-        $advertiserData['agencyName']     = $advertiserData['name'];
-        $advertiserData['contactName']    = $advertiserData['contact'];
-        $advertiserData['emailAddress']   = $advertiserData['email'];
-        $advertiserData['agencyId']       = $advertiserData['agencyid'];
-        $advertiserData['advertiserId']   = $advertiserData['clientid'];
-        $advertiserData['accountId']      = $advertiserData['account_id'];
+        $advertiserData['contactName'] = $advertiserData['contact'];
+        $advertiserData['emailAddress'] = $advertiserData['email'];
+        $advertiserData['agencyId'] = $advertiserData['agencyid'];
+        $advertiserData['advertiserId'] = $advertiserData['clientid'];
+        $advertiserData['accountId'] = $advertiserData['account_id'];
 
         $oAdvertiser->readDataFromArray($advertiserData);
-        return  true;
+        return true;
     }
 
     /**
@@ -64,14 +63,13 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  Returns false if fields are not valid and true if valid.
      *
      */
-    function _validate(&$oAdvertiser)
+    public function _validate(&$oAdvertiser)
     {
         if (isset($oAdvertiser->advertiserId)) {
             // When modifying an advertiser, check correct field types are used and the advertiserID exists.
-            if (!$this->checkStructureRequiredIntegerField($oAdvertiser, 'advertiserId')){
+            if (!$this->checkStructureRequiredIntegerField($oAdvertiser, 'advertiserId')) {
                 return false;
             }
-
             $doAdvertiser = OA_Dal::factoryDO('clients');
             $doAdvertiser->get($oAdvertiser->advertiserId);
             $advertiserOld = $doAdvertiser->toArray();
@@ -79,11 +77,9 @@ class OA_Dll_Advertiser extends OA_Dll
                 !$this->checkIdExistence('clients', $oAdvertiser->advertiserId)) {
                 return false;
             }
-        } else {
+        } elseif (!$this->checkStructureRequiredStringField($oAdvertiser, 'advertiserName', 255)) {
             // When adding an advertiser, check that the required field 'advertiserName' is correct.
-            if (!$this->checkStructureRequiredStringField($oAdvertiser, 'advertiserName', 255)){
-                return false;
-            }
+            return false;
         }
 
         if (isset($oAdvertiser->emailAddress) &&
@@ -101,11 +97,7 @@ class OA_Dll_Advertiser extends OA_Dll
             return false;
         }
         // Check that an agencyID exists and that the user has permissions.
-        if (!$this->checkAgencyPermissions($oAdvertiser->agencyId)) {
-            return false;
-        }
-
-        return true;
+        return (bool) $this->checkAgencyPermissions($oAdvertiser->agencyId);
     }
 
     /**
@@ -120,14 +112,9 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean
      *
      */
-    function _validateForStatistics($advertiserId, $oStartDate, $oEndDate)
+    public function _validateForStatistics($advertiserId, $oStartDate, $oEndDate)
     {
-        if (!$this->checkIdExistence('clients', $advertiserId) ||
-            !$this->checkDateOrder($oStartDate, $oEndDate)) {
-            return false;
-        }
-
-        return true;
+        return $this->checkIdExistence('clients', $advertiserId) && $this->checkDateOrder($oStartDate, $oEndDate);
     }
 
     /**
@@ -139,14 +126,13 @@ class OA_Dll_Advertiser extends OA_Dll
      *
      * @return boolean  False if access is denied and true if allowed.
      */
-    function checkStatisticsPermissions($advertiserId)
+    public function checkStatisticsPermissions($advertiserId)
     {
-       if (!$this->checkPermissions($this->aAllowAdvertiserAndAbovePerm,
-            'clients', $advertiserId)) {
-            return false;
-        } else {
-            return true;
-        }
+        return $this->checkPermissions(
+            $this->aAllowAdvertiserAndAbovePerm,
+            'clients',
+            $advertiserId,
+        );
     }
 
 
@@ -168,11 +154,13 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful.
      *
      */
-    function modify(&$oAdvertiser)
+    public function modify(&$oAdvertiser)
     {
-        if (!$this->checkPermissions($this->aAllowAdvertiserAndAbovePerm, 'clients',
-            $oAdvertiser->advertiserId))
-        {
+        if (!$this->checkPermissions(
+            $this->aAllowAdvertiserAndAbovePerm,
+            'clients',
+            $oAdvertiser->advertiserId,
+        )) {
             return false;
         }
 
@@ -183,13 +171,23 @@ class OA_Dll_Advertiser extends OA_Dll
             $oAdvertiser->advertiserId = (int) $oAdvertiser->advertiserId;
         }
 
+        if (!empty($oAdvertiser->agencyId)) {
+            if (!$this->checkPermissions(
+                [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+                'agency',
+                $oAdvertiser->agencyId,
+            )) {
+                return false;
+            }
+        }
+
         $advertiserData = (array) $oAdvertiser;
 
         // Name
-        $advertiserData['clientname']     = $oAdvertiser->advertiserName;
+        $advertiserData['clientname'] = $oAdvertiser->advertiserName;
         // Default fields
-        $advertiserData['contact']        = $oAdvertiser->contactName;
-        $advertiserData['email']          = $oAdvertiser->emailAddress;
+        $advertiserData['contact'] = $oAdvertiser->contactName;
+        $advertiserData['email'] = $oAdvertiser->emailAddress;
 
         if ($this->_validate($oAdvertiser)) {
             $doAdvertiser = OA_Dal::factoryDO('clients');
@@ -201,7 +199,7 @@ class OA_Dll_Advertiser extends OA_Dll
                 if ($oAdvertiser->advertiserId) {
                     // Set the account ID
                     $doAdvertiser = OA_Dal::staticGetDO('clients', $oAdvertiser->advertiserId);
-                    $oAdvertiser->accountId = (int)$doAdvertiser->account_id;
+                    $oAdvertiser->accountId = (int) $doAdvertiser->account_id;
                 }
             } else {
                 $doAdvertiser->get($advertiserData['advertiserId']);
@@ -209,9 +207,8 @@ class OA_Dll_Advertiser extends OA_Dll
                 $doAdvertiser->update();
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -224,14 +221,19 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful.
      *
      */
-    function delete($advertiserId)
+    public function delete($advertiserId)
     {
-       if (!$this->checkPermissions(array(OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER),
-            'clients', $advertiserId)) {
+        if (!$this->checkPermissions(
+            [OA_ACCOUNT_ADMIN, OA_ACCOUNT_MANAGER],
+            'clients',
+            $advertiserId,
+            null,
+            OA_Permission::OPERATION_DELETE,
+        )) {
             return false;
         }
 
-       if (isset($advertiserId)) {
+        if (isset($advertiserId)) {
             $doAdvertiser = OA_Dal::factoryDO('clients');
             $doAdvertiser->clientid = $advertiserId;
             $result = $doAdvertiser->delete();
@@ -241,10 +243,9 @@ class OA_Dll_Advertiser extends OA_Dll
 
         if ($result) {
             return true;
-        } else {
-            $this->raiseError('Unknown advertiserId Error');
-            return false;
         }
+        $this->raiseError('Unknown advertiserId Error');
+        return false;
     }
 
     /**
@@ -257,7 +258,7 @@ class OA_Dll_Advertiser extends OA_Dll
      *
      * @return boolean
      */
-    function getAdvertiser($advertiserId, &$oAdvertiser)
+    public function getAdvertiser($advertiserId, &$oAdvertiser)
     {
         if ($this->checkIdExistence('clients', $advertiserId)) {
             if (!$this->checkPermissions(null, 'clients', $advertiserId, null, OA_Permission::OPERATION_VIEW)) {
@@ -271,12 +272,9 @@ class OA_Dll_Advertiser extends OA_Dll
 
             $this->_setAdvertiserDataFromArray($oAdvertiser, $advertiserData);
             return true;
-
-        } else {
-
-            $this->raiseError('Unknown advertiserId Error');
-            return false;
         }
+        $this->raiseError('Unknown advertiserId Error');
+        return false;
     }
 
     /**
@@ -289,12 +287,12 @@ class OA_Dll_Advertiser extends OA_Dll
      *
      * @return boolean
      */
-    function getAdvertiserListByAgencyId($agencyId, &$aAdvertiserList)
+    public function getAdvertiserListByAgencyId($agencyId, &$aAdvertiserList)
     {
-        $aAdvertiserList = array();
+        $aAdvertiserList = [];
 
         if (!$this->checkIdExistence('agency', $agencyId)) {
-                return false;
+            return false;
         }
 
         if (!$this->checkPermissions(null, 'agency', $agencyId)) {
@@ -337,7 +335,7 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getAdvertiserDailyStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAdvertiserDailyStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($advertiserId)) {
             return false;
@@ -348,9 +346,44 @@ class OA_Dll_Advertiser extends OA_Dll
             $rsStatisticsData = $dalAdvertiser->getAdvertiserDailyStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
+        }
+        return false;
+    }
+
+    /**
+     * This method returns hourly statistics for an advertiser for a specified period.
+     *
+     * @access public
+     *
+     * @param integer $advertiserId The ID of the advertiser to view the statistics for.
+     * @param date $oStartDate The date from which to get statistics (inclusive)
+     * @param date $oEndDate The date to which to get statistics (inclusive)
+     * @param bool $localTZ Should stats be using the manager TZ or UTC?
+     * @param array &$rsStatisticsData The data returned by the function
+     *   <ul>
+     *   <li><b>day date</b> The day
+     *   <li><b>requests integer</b> The number of requests for the day
+     *   <li><b>impressions integer</b> The number of impressions for the day
+     *   <li><b>clicks integer</b> The number of clicks for the day
+     *   <li><b>revenue decimal</b> The revenue earned for the day
+     *   </ul>
+     *
+     * @return boolean  True if the operation was successful and false if not.
+     *
+     */
+    public function getAdvertiserHourlyStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    {
+        if (!$this->checkStatisticsPermissions($advertiserId)) {
             return false;
         }
+
+        if ($this->_validateForStatistics($advertiserId, $oStartDate, $oEndDate)) {
+            $dalAdvertiser = new OA_Dal_Statistics_Advertiser();
+            $rsStatisticsData = $dalAdvertiser->getAdvertiserHourlyStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ);
+
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -375,7 +408,7 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getAdvertiserCampaignStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAdvertiserCampaignStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($advertiserId)) {
             return false;
@@ -386,9 +419,8 @@ class OA_Dll_Advertiser extends OA_Dll
             $rsStatisticsData = $dalAdvertiser->getAdvertiserCampaignStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -415,7 +447,7 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful and false otherwise.
      *
      */
-    function getAdvertiserBannerStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAdvertiserBannerStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($advertiserId)) {
             return false;
@@ -426,9 +458,8 @@ class OA_Dll_Advertiser extends OA_Dll
             $rsStatisticsData = $dalAdvertiser->getAdvertiserBannerStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -453,7 +484,7 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getAdvertiserPublisherStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAdvertiserPublisherStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($advertiserId)) {
             return false;
@@ -464,9 +495,8 @@ class OA_Dll_Advertiser extends OA_Dll
             $rsStatisticsData = $dalAdvertiser->getAdvertiserPublisherStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -493,7 +523,7 @@ class OA_Dll_Advertiser extends OA_Dll
      * @return boolean  True if the operation was successful and false if not.
      *
      */
-    function getAdvertiserZoneStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
+    public function getAdvertiserZoneStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ, &$rsStatisticsData)
     {
         if (!$this->checkStatisticsPermissions($advertiserId)) {
             return false;
@@ -504,11 +534,7 @@ class OA_Dll_Advertiser extends OA_Dll
             $rsStatisticsData = $dalAdvertiser->getAdvertiserZoneStatistics($advertiserId, $oStartDate, $oEndDate, $localTZ);
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
-
 }
-
-?>

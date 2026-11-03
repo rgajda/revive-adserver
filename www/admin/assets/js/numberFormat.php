@@ -37,7 +37,7 @@
 require_once '../../../init.php';
 
 // Required files
-require_once MAX_PATH . '/lib/max/language/Default.php';
+require_once MAX_PATH . '/lib/max/language/Loader.php';
 
 require_once MAX_PATH . '/lib/OA/Preferences.php';
 
@@ -45,10 +45,10 @@ require_once MAX_PATH . '/lib/OA/Preferences.php';
 $pref = OA_Preferences::loadAdminAccountPreferences(true);
 
 // Load the required language files
-Language_Default::load();
+Language_Loader::load();
 
 // Send content-type header
-header("Content-type: application/x-javascript");
+header("Content-type: application/javascript");
 
 // The largest possible integer in when using JavaScript's
 // default 4-octet storage for numbers
@@ -101,16 +101,16 @@ function max_formatNumberIgnoreDecimals(number)
     // Delimiter to use
     var ddelimiter = '<?php
                         global $phpAds_DecimalPoint;
-                        $aLocale = localeconv();
-                        if (isset($phpAds_DecimalPoint)) {
-                            $separator = $phpAds_DecimalPoint;
-                        } elseif (isset($aLocale['decimal_point'])) {
-                            $separator = $aLocale['decimal_point'];
-                        } else {
-                            $separator = '.';
-                        }
-                        echo $separator;
-                      ?>';
+$aLocale = localeconv();
+if (isset($phpAds_DecimalPoint)) {
+    $separator = $phpAds_DecimalPoint;
+} elseif (isset($aLocale['decimal_point'])) {
+    $separator = $aLocale['decimal_point'];
+} else {
+    $separator = '.';
+}
+echo $separator;
+?>';
     // Ensure the number is represented as a string
     var numberString = numberFloat.toString();
     // Remove decimals delimiters
@@ -137,29 +137,29 @@ function max_baseFormatNumber(number)
 {
     // Delimiters to use
     var tdelimiter = '<?php
-                        global $phpAds_ThousandsSeperator;
-                        $aLocale = localeconv();
-                        if (isset($phpAds_ThousandsSeperator)) {
-                            $separator = $phpAds_ThousandsSeperator;
-                        } elseif (isset($aLocale['thousands_sep'])) {
-                            $separator = $aLocale['thousands_sep'];
-                        } else {
-                            $separator = ',';
-                        }
-                        echo $separator;
-                      ?>';
+  global $phpAds_ThousandsSeperator;
+$aLocale = localeconv();
+if (isset($phpAds_ThousandsSeperator)) {
+    $separator = $phpAds_ThousandsSeperator;
+} elseif (isset($aLocale['thousands_sep'])) {
+    $separator = $aLocale['thousands_sep'];
+} else {
+    $separator = ',';
+}
+echo $separator;
+?>';
     var ddelimiter = '<?php
-                        global $phpAds_DecimalPoint;
-                        $aLocale = localeconv();
-                        if (isset($phpAds_DecimalPoint)) {
-                            $separator = $phpAds_DecimalPoint;
-                        } elseif (isset($aLocale['decimal_point'])) {
-                            $separator = $aLocale['decimal_point'];
-                        } else {
-                            $separator = '.';
-                        }
-                        echo $separator;
-                      ?>';
+  global $phpAds_DecimalPoint;
+$aLocale = localeconv();
+if (isset($phpAds_DecimalPoint)) {
+    $separator = $phpAds_DecimalPoint;
+} elseif (isset($aLocale['decimal_point'])) {
+    $separator = $aLocale['decimal_point'];
+} else {
+    $separator = '.';
+}
+echo $separator;
+?>';
     // Ensure the number is represented as a string
     var numberString = number.toString();
     // Split off any decimals
@@ -225,17 +225,17 @@ function max_formattedNumberStringToFloat(number)
 {
     // A list of all valid characters in a float
     var validCharsString = "0123456789<?php
-                                        global $phpAds_DecimalPoint;
-                                        $aLocale = localeconv();
-                                        if (isset($phpAds_DecimalPoint)) {
-                                            $separator = $phpAds_DecimalPoint;
-                                        } elseif (isset($aLocale['decimal_point'])) {
-                                            $separator = $aLocale['decimal_point'];
-                                        } else {
-                                            $separator = '.';
-                                        }
-                                        echo $separator;
-                                      ?>";
+                  global $phpAds_DecimalPoint;
+$aLocale = localeconv();
+if (isset($phpAds_DecimalPoint)) {
+    $separator = $phpAds_DecimalPoint;
+} elseif (isset($aLocale['decimal_point'])) {
+    $separator = $aLocale['decimal_point'];
+} else {
+    $separator = '.';
+}
+echo $separator;
+?>";
     // Ensure the number is represented as a string
     var numberString = number.toString();
     // Strip all non-valid characters from the string

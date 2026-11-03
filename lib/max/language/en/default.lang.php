@@ -159,12 +159,13 @@ $GLOBALS['strUsernameToLink'] = "Username of user to add";
 $GLOBALS['strNewUserWillBeCreated'] = "New user will be created";
 $GLOBALS['strToLinkProvideEmail'] = "To add user, provide user's email";
 $GLOBALS['strToLinkProvideUsername'] = "To add user, provide username";
-$GLOBALS['strUserLinkedToAccount'] = "User has been added to account";
+$GLOBALS['strUserLinkedToAccount'] = "User has been added to the account";
+$GLOBALS['strUserLinkedAndWelcomeSent'] = "User has been added to the account. They will receive an email to set up their password.";
 $GLOBALS['strUserAccountUpdated'] = "User account updated";
-$GLOBALS['strUserUnlinkedFromAccount'] = "User has been removed from account";
+$GLOBALS['strUserUnlinkedFromAccount'] = "User has been removed from the account";
 $GLOBALS['strUserWasDeleted'] = "User has been deleted";
 $GLOBALS['strUserNotLinkedWithAccount'] = "Such user is not linked with account";
-$GLOBALS['strCantDeleteOneAdminUser'] = "You can't delete a user. At least one user needs to be linked with admin account.";
+$GLOBALS['strCantDeleteOneAdminUser'] = "You can't delete this user. At least one user needs to be linked with admin account.";
 $GLOBALS['strLinkUserHelp'] = "To add an <b>existing user</b>, type the %1\$s and click %2\$s <br />To add a <b>new user</b>, type the desired %1\$s and click %2\$s";
 $GLOBALS['strLinkUserHelpUser'] = "username";
 $GLOBALS['strLinkUserHelpEmail'] = "email address";
@@ -190,10 +191,10 @@ $GLOBALS['strPasswordRepeat'] = "Repeat password";
 $GLOBALS['strAccessDenied'] = "Access denied";
 $GLOBALS['strUsernameOrPasswordWrong'] = "The username and/or password were not correct. Please try again.";
 $GLOBALS['strPasswordWrong'] = "The password is not correct";
-$GLOBALS['strNotAdmin'] = "Your account does not have the required permissions to use this feature, you can log into another account to use it.";
+$GLOBALS['strNotAdmin'] = "Your user does not have the required permissions to use this feature, you can log in with another username to use it.";
 $GLOBALS['strDuplicateClientName'] = "The username you provided already exists, please use a different username.";
 $GLOBALS['strInvalidPassword'] = "The new password is invalid, please use a different password.";
-$GLOBALS['strInvalidEmail'] = "The email is not correctly formatted, please put a correct email address.";
+$GLOBALS['strInvalidEmail'] = "The email address is not correctly formatted, please enter a correctly formatted email address.";
 $GLOBALS['strNotSamePasswords'] = "The two passwords you supplied are not the same";
 $GLOBALS['strRepeatPassword'] = "Repeat Password";
 $GLOBALS['strDeadLink'] = "Your link is invalid.";
@@ -245,7 +246,7 @@ $GLOBALS['strDayOfWeek'] = "Day of week";
 
 
 if (!isset($GLOBALS['strDayFullNames'])) {
-    $GLOBALS['strDayFullNames'] = array();
+    $GLOBALS['strDayFullNames'] = [];
 }
 $GLOBALS['strDayFullNames'][0] = 'Sunday';
 $GLOBALS['strDayFullNames'][1] = 'Monday';
@@ -256,7 +257,7 @@ $GLOBALS['strDayFullNames'][5] = 'Friday';
 $GLOBALS['strDayFullNames'][6] = 'Saturday';
 
 if (!isset($GLOBALS['strDayShortCuts'])) {
-    $GLOBALS['strDayShortCuts'] = array();
+    $GLOBALS['strDayShortCuts'] = [];
 }
 $GLOBALS['strDayShortCuts'][0] = 'Su';
 $GLOBALS['strDayShortCuts'][1] = 'Mo';
@@ -296,9 +297,10 @@ $GLOBALS['strSendDeactivationWarning'] = "Email when a campaign is automatically
 $GLOBALS['strAllowClientModifyBanner'] = "Allow this user to modify their own banners";
 $GLOBALS['strAllowClientDisableBanner'] = "Allow this user to deactivate their own banners";
 $GLOBALS['strAllowClientActivateBanner'] = "Allow this user to activate their own banners";
-$GLOBALS['strAllowCreateAccounts'] = "Allow this user to create new accounts";
+$GLOBALS['strAllowCreateAccounts'] = "Allow this user to manage this account's users";
 $GLOBALS['strAdvertiserLimitation'] = "Display only one banner from this advertiser on a web page";
 $GLOBALS['strAllowAuditTrailAccess'] = "Allow this user to access the audit trail";
+$GLOBALS['strAllowDeleteItems'] = "Allow this user to delete items";
 
 // Campaign
 $GLOBALS['strCampaign'] = "Campaign";
@@ -528,26 +530,20 @@ $GLOBALS['strTextBelow'] = "Text below image";
 $GLOBALS['strWeight'] = "Weight";
 $GLOBALS['strAlt'] = "Alt text";
 $GLOBALS['strStatusText'] = "Status text";
+$GLOBALS['strCampaignsWeight'] = "Campaign's Weight";
 $GLOBALS['strBannerWeight'] = "Banner weight";
+$GLOBALS['strBannersWeight'] = "Banner's Weight";
 $GLOBALS['strAdserverTypeGeneric'] = "Generic HTML Banner";
 $GLOBALS['strDoNotAlterHtml'] = "Do not alter HTML";
 $GLOBALS['strGenericOutputAdServer'] = "Generic";
-$GLOBALS['strSwfTransparency'] = "Allow transparent background";
 $GLOBALS['strBackToBanners'] = "Back to banners";
 $GLOBALS['strUseWyswygHtmlEditor'] = "Use WYSIWYG HTML Editor";
 $GLOBALS['strChangeDefault'] = "Change default";
+$GLOBALS['strBannerNotSslCompliant'] = "Banner contains non-HTTPS assets and will not be displayed on HTTPS pages";
 
 // Banner (advanced)
 $GLOBALS['strBannerPrependHTML'] = "Always prepend the following HTML code to this banner";
 $GLOBALS['strBannerAppendHTML'] = "Always append the following HTML code to this banner";
-
-// Banner (swf)
-$GLOBALS['strCheckSWF'] = "Check for hard-coded links inside the Flash file";
-$GLOBALS['strConvertSWFLinks'] = "Convert Flash links";
-$GLOBALS['strHardcodedLinks'] = "Hard-coded links";
-$GLOBALS['strConvertSWF'] = "<br />The Flash file you just uploaded contains hard-coded urls. {$PRODUCT_NAME} won't be able to track the number of Clicks for this banner unless you convert these hard-coded urls. Below you will find a list of all urls inside the Flash file. If you want to convert the urls, simply click <b>Convert</b>, otherwise click <b>Cancel</b>.<br /><br />Please note: if you click <b>Convert</b> the Flash file you just uploaded will be physically altered. <br />Please keep a backup of the original file. Regardless of in which version this banner was created, the resulting file will need the Flash 4 player (or higher) to display correctly.<br /><br />";
-$GLOBALS['strCompressSWF'] = "Compress SWF file for faster downloading (Flash 6 player required)";
-$GLOBALS['strOverwriteSource'] = "Overwrite source parameter";
 
 // Display Delviery Rules
 $GLOBALS['strModifyBannerAcl'] = "Delivery Options";
@@ -584,19 +580,19 @@ $GLOBALS['strDeliveryCappingTotal'] = "in total";
 $GLOBALS['strDeliveryCappingSession'] = "per session";
 
 if (!isset($GLOBALS['strCappingBanner'])) {
-    $GLOBALS['strCappingBanner'] = array();
+    $GLOBALS['strCappingBanner'] = [];
 }
 $GLOBALS['strCappingBanner']['title'] = "Delivery capping per visitor";
 $GLOBALS['strCappingBanner']['limit'] = "Limit banner views to:";
 
 if (!isset($GLOBALS['strCappingCampaign'])) {
-    $GLOBALS['strCappingCampaign'] = array();
+    $GLOBALS['strCappingCampaign'] = [];
 }
 $GLOBALS['strCappingCampaign']['title'] = "Delivery capping per visitor";
 $GLOBALS['strCappingCampaign']['limit'] = "Limit campaign views to:";
 
 if (!isset($GLOBALS['strCappingZone'])) {
-    $GLOBALS['strCappingZone'] = array();
+    $GLOBALS['strCappingZone'] = [];
 }
 $GLOBALS['strCappingZone']['title'] = "Delivery capping per visitor";
 $GLOBALS['strCappingZone']['limit'] = "Limit zone views to:";
@@ -810,26 +806,7 @@ $GLOBALS['strAutoDetect'] = "Auto-detect";
 $GLOBALS['strCacheBusterComment'] = "  * Replace all instances of {random} with
   * a generated random number (or timestamp).
   *";
-$GLOBALS['strSSLBackupComment'] = "
-  * The backup image section of this tag has been generated for use on a
-  * non-SSL page. If this tag is to be placed on an SSL page, change the
-  *   'http://%s/...'
-  * to
-  *   'https://%s/...'
-  *";
-$GLOBALS['strSSLDeliveryComment'] = "
-  * This tag has been generated for use on a non-SSL page. If this tag
-  * is to be placed on an SSL page, change the
-  *   'http://%s/...'
-  * to
-  *   'https://%s/...'
-  *";
-
-$GLOBALS['strThirdPartyComment'] = "
-  * Don't forget to replace the '{clickurl}' text with
-  * the click tracking URL if this ad is to be delivered through a 3rd
-  * party (non-Max) adserver.
-  *";
+$GLOBALS['strGenerateHttpsTags'] = "Generate tags using the HTTPS protocol";
 
 // Errors
 $GLOBALS['strErrorDatabaseConnection'] = "Database connection error.";
@@ -866,7 +843,6 @@ $GLOBALS['strUnableToChangeZone'] = "Cannot apply this change because:";
 $GLOBALS['strDatesConflict'] = "Dates of the campaign you are trying to link overlap with the dates of a campaign already linked ";
 $GLOBALS['strEmailNoDates'] = "Campaigns linked to Email Zones must have a start and end date set. {$PRODUCT_NAME} ensures that on a given date, only one active banner is linked to an Email Zone. Please ensure that the campaigns already linked to the zone do not have overlapping dates with the campaign you are trying to link.";
 $GLOBALS['strWarningInaccurateStats'] = "Some of these statistics were logged in a non-UTC timezone, and may not be displayed in the correct timezone.";
-$GLOBALS['strWarningInaccurateReadMore'] = "Read more about this";
 $GLOBALS['strWarningInaccurateReport'] = "Some of the statistics in this report were logged in a non-UTC timezone, and may not be displayed in the correct timezone";
 
 //Validation
@@ -879,6 +855,8 @@ $GLOBALS['strGreaterThanZeroField'] = "Must be greater than 0";
 $GLOBALS['strXGreaterThanZeroField'] = "%s must be greater than 0";
 $GLOBALS['strXPositiveWholeNumberField'] = "%s must be a positive whole number";
 $GLOBALS['strInvalidWebsiteURL'] = "Invalid Website URL";
+$GLOBALS['strUploadedRequired'] = "Uploading a file is required";
+$GLOBALS['strUploadedFileTooBig'] = "The uploaded file is too large. Please ensure it's under %s bytes";
 
 // Email
 $GLOBALS['strSirMadam'] = "Sir/Madam";
@@ -1015,6 +993,8 @@ $GLOBALS['aProductStatus']['UPGRADE_FAILED'] = "UPGRADE FAILED";
 
 // Agency
 $GLOBALS['strAgencyManagement'] = "Account Management";
+$GLOBALS['strGlobalAgency'] = 'Accounts';
+$GLOBALS['strAgencyHistory'] = 'Account Statistics';
 $GLOBALS['strAgency'] = "Account";
 $GLOBALS['strAddAgency'] = "Add new account";
 $GLOBALS['strAddAgency_Key'] = "Add <u>n</u>ew account";
@@ -1025,6 +1005,9 @@ $GLOBALS['strConfirmDeleteAgency'] = "Do you really want to delete this account?
 $GLOBALS['strHideInactiveAgencies'] = "Hide inactive accounts";
 $GLOBALS['strInactiveAgenciesHidden'] = "inactive account(s) hidden";
 $GLOBALS['strSwitchAccount'] = "Switch to this account";
+$GLOBALS['strAgencyStatusRunning'] = "Active";
+$GLOBALS['strAgencyStatusInactive'] = "Inactive";
+$GLOBALS['strAgencyStatusPaused'] = "Suspended";
 
 // Channels
 $GLOBALS['strChannel'] = "Delivery Rule Set";
@@ -1066,22 +1049,99 @@ $GLOBALS['strTrackerTypeCustom'] = "Custom JS code";
 $GLOBALS['strVariableCode'] = "Javascript tracking code";
 
 // Password recovery
-$GLOBALS['strForgotPassword'] = "Forgot your password?";
-$GLOBALS['strPasswordRecovery'] = "Password recovery";
+$GLOBALS['strForgotPassword'] = "Request a password reset email";
+$GLOBALS['strPasswordRecovery'] = "Password reset";
+$GLOBALS['strWelcomePage'] = "Welcome new user!";
+$GLOBALS['strWelcomePageText'] = "<b>Welcome to {$PRODUCT_NAME}.</b><br>As a new user, start by setting your first password. Please make sure to select a safe and unique password.";
 $GLOBALS['strEmailRequired'] = "Email is a required field";
-$GLOBALS['strPwdRecWrongId'] = "Wrong ID";
-$GLOBALS['strPwdRecEnterEmail'] = "Enter your email address below";
+$GLOBALS['strPwdRecWrongExpired'] = "Wrong or expired password reset link, please request a new one";
+$GLOBALS['strPwdRecEnterEmail'] = "Enter your email address below to receive a password reset email";
 $GLOBALS['strPwdRecEnterPassword'] = "Enter your new password below";
-$GLOBALS['strPwdRecResetLink'] = "Password reset link";
-$GLOBALS['strPwdRecEmailPwdRecovery'] = "%s password recovery";
 $GLOBALS['strProceed'] = "Proceed >";
 $GLOBALS['strNotifyPageMessage'] = "An e-mail has been sent to you, which includes a link that will allow you
-                                         to re-set your password and log in.<br />Please allow a few minutes for the e-mail to arrive.<br />
+                                         to reset your password and log in.<br />Please allow a few minutes for the e-mail to arrive.<br />
                                          If you do not receive the e-mail, please check your spam folder.<br />
-                                         <a href=\"index.php\">Return the the main login page.</a>";
+                                         <a href=\"index.php\">Return to the main login page.</a>";
+
+// Password recovery - Default
+$GLOBALS['strPwdRecEmailPwdRecovery'] = "Reset Your %s Password";
+$GLOBALS['strPwdRecEmailBody'] = "Dear {name},
+
+You, or someone pretending to be you, recently requested that your {application_name} password be reset.
+
+If this request was made by you, then you can reset the password for your username '{username}' by
+clicking on the following link:
+
+{reset_link}
+
+If you submitted the password reset request by mistake, or if you didn't make a request at all, simply
+ignore this email. No changes have been made to your password and the password reset link will expire
+automatically.
+
+If you continue to receive these password reset mails, then it may indicate that someone is attempting
+to gain access to your username. In that case, please contact the support team or system administrator
+for your {application_name} system, and notify them of the situation.
+
+{admin_signature}";
+
+$GLOBALS['strPwdRecEmailSincerely'] = "Sincerely,";
+
+// Password recovery - Welcome email
+$GLOBALS['strWelcomeEmailSubject'] = "Welcome to %s: set up your password";
+$GLOBALS['strWelcomeEmailBody'] = "Dear {name},
+
+A username has been created for you, enabling you to log in on {application_name}.
+
+Your username is '{username}'.
+
+For security reasons, the password for your username has not been defined yet.
+
+To enter your password, please click the following link:
+
+{reset_link}
+
+Please make sure to enter a safe and unique password.
+
+{admin_signature}";
+
+// Password recovery - Hash update
+$GLOBALS['strPasswordUpdateEmailSubject'] = "Please set a new password for your %s user";
+$GLOBALS['strPasswordUpdateEmailBody'] = "Dear {name},
+
+You are receiving this email because you have a username on {application_name}.
+
+Recently, {application_name} software was updated to a new version, which implements a modern and much
+safer method for verifying user passwords. This change helps make {application_name} more secure
+for you and everyone else using it.
+
+In order to take full advantage of the improvement, your password has been invalidated.
+Therefore, we would like to invite you to set a new password now. While entering your new password, you
+will see a coloured bar indicating how strong the new password is. Please make sure to enter a safe and
+unique password.
+
+To set a new password for your username '{username}' now, please click on the following link:
+
+{reset_link}
+
+For increased security the link above will expire after some time. If the link is no longer valid, you
+will be asked to enter your e-mail address and initiate a regular password recovery process.
+
+Thanks for helping to make {application_name} safer for everyone!
+
+{admin_signature}";
+
+// Password reset warning
+$GLOBALS['strPasswordResetRequiredTitle'] = "Important note about improved password security";
+$GLOBALS['strPasswordResetRequired'] = "
+Recently, the {$PRODUCT_NAME} software has been updated to a new version, which implements a more modern and much safer method of storing passwords. To be able to log in and continue using {$PRODUCT_NAME} you must set a new password first.
+Check your inbox for a password reset email!
+A password reset email has been sent to the email address associated with your username. Please open the email, and click the link in it. This will display a screen that enables you to enter your new password.
+It can take a few minutes before the email arrives. If you don't see the email in your inbox, make sure to also check your spam folder.";
+$GLOBALS['strPasswordUnsafeWarning'] = "Your password is not considered to be safe enough. Please <a href='%s'>change it</a> as soon as possible.";
 
 // Audit
 $GLOBALS['strAdditionalItems'] = "and additional items";
+$GLOBALS['strAuditSystem'] = "System";
 $GLOBALS['strFor'] = "for";
 $GLOBALS['strHas'] = "has";
 $GLOBALS['strBinaryData'] = "Binary data";
@@ -1111,6 +1171,8 @@ $GLOBALS['strCampaignAuditTrailSetup'] = "Activate Audit Trail to start viewing 
 
 $GLOBALS['strUnsavedChanges'] = "You have unsaved changes on this page, make sure you press &quot;Save Changes&quot; when finished";
 $GLOBALS['strDeliveryLimitationsDisagree'] = "WARNING: The cached delivery rules <strong>DO NOT AGREE</strong> with the delivery rules shown below<br />Please hit save changes to update the cached delivery rules";
+$GLOBALS['strDeliveryRulesDbError'] = "WARNING: When saving the delivery rules, a database error occurred. Please check the delivery rules below carefully, and update, if required.";
+$GLOBALS['strDeliveryRulesTruncation'] = "WARNING: When saving the delivery rules, MySQL truncated the data, so the original values were restored. Please reduce your rule size, and try again.";
 $GLOBALS['strDeliveryLimitationsInputErrors'] = "Some delivery rules report incorrect values:";
 
 //confirmation messages
@@ -1159,6 +1221,7 @@ $GLOBALS['strWebsiteHasBeenAdded'] = "Website <a href='%s'>%s</a> has been added
 $GLOBALS['strWebsiteHasBeenUpdated'] = "Website <a href='%s'>%s</a> has been updated";
 $GLOBALS['strWebsiteHasBeenDeleted'] = "Website <b>%s</b> has been deleted";
 $GLOBALS['strWebsitesHaveBeenDeleted'] = "All selected website have been deleted";
+$GLOBALS['strWebsiteHasBeenDuplicated'] = "Website <a href='%s'>%s</a> has been copied to <a href='%s'>%s</a>";
 
 $GLOBALS['strZoneHasBeenAdded'] = "Zone <a href='%s'>%s</a> has been added";
 $GLOBALS['strZoneHasBeenUpdated'] = "Zone <a href='%s'>%s</a> has been updated";
@@ -1174,7 +1237,7 @@ $GLOBALS['strZoneRemovedCampaign'] = "Campaign has been unlinked from zone <a hr
 
 $GLOBALS['strChannelHasBeenAdded'] = "Delivery rule set <a href='%s'>%s</a> has been added. <a href='%s'>Set the delivery rules.</a>";
 $GLOBALS['strChannelHasBeenUpdated'] = "Delivery rule set <a href='%s'>%s</a> has been updated";
-$GLOBALS['strChannelAclHasBeenUpdated'] = "Delivery options for the delivery rule set<a href='%s'>%s</a> have been updated";
+$GLOBALS['strChannelAclHasBeenUpdated'] = "Delivery options for the delivery rule set <a href='%s'>%s</a> have been updated";
 $GLOBALS['strChannelHasBeenDeleted'] = "Delivery rule set <b>%s</b> has been deleted";
 $GLOBALS['strChannelsHaveBeenDeleted'] = "All selected delivery rule sets have been deleted";
 $GLOBALS['strChannelHasBeenDuplicated'] = "Delivery rule set <a href='%s'>%s</a> has been copied to <a href='%s'>%s</a>";
@@ -1189,6 +1252,32 @@ $GLOBALS['strTZPreferencesWarning'] = "However, campaign activation and expiry w
 // Report error messages
 $GLOBALS['strReportErrorMissingSheets'] = "No worksheet was selected for report";
 $GLOBALS['strReportErrorUnknownCode'] = "Unknown error code #";
+
+/* ------------------------------------------------------- */
+/* HTML5                                                   */
+/* ------------------------------------------------------- */
+$GLOBALS['strHtml5InvalidFileType'] = "Invalid file type: %s";
+$GLOBALS['strHtml5MultipleIndexHtml'] = "Multiple 'index.html' files found";
+$GLOBALS['strHtml5NoHtml'] = "No '*.html' file found";
+$GLOBALS['strHtml5MultipleHtml'] = "Multiple '*.html' files found, please rename the main one to 'index.html'";
+
+/* ------------------------------------------------------- */
+/* Password strength                                       */
+/* ------------------------------------------------------- */
+
+$GLOBALS['strPasswordMinLength'] = 'Min. length %d characters';
+$GLOBALS['strPasswordTooShort'] = "Too short";
+
+if (!isset($GLOBALS['strPasswordScore'])) {
+    $GLOBALS['strPasswordScore'] = [];
+}
+
+$GLOBALS['strPasswordScore'][0] = "Very poor";
+$GLOBALS['strPasswordScore'][1] = "Poor";
+$GLOBALS['strPasswordScore'][2] = "Fair";
+$GLOBALS['strPasswordScore'][3] = "Good";
+$GLOBALS['strPasswordScore'][4] = "Excellent";
+
 
 /* ------------------------------------------------------- */
 /* Keyboard shortcut assignments                           */

@@ -22,27 +22,10 @@ class Max_Admin_DB
      * @param string $type  the name of the MySQL storage engine type.
      * @return boolean  true if the server supports the table type.
      */
-    function tableTypeIsSupported($type)
+    public function tableTypeIsSupported($type)
     {
         // Assume MySQL always supports MyISAM table types
-        if ($type == 'MYISAM') {
-            return true;
-        } else {
-            $oDbh =& OA_DB::singleton();
-            $rc = $oDbh->query('SHOW VARIABLES');
-            while ($row = $rc->fetchRow(DB_FETCHMODE_ORDERED)) {
-                if ($type == 'BDB' && $row[0] == 'have_bdb' && $row[1] == 'YES') {
-                    return true;
-                }
-                if ($type == 'GEMINI' && $row[0] == 'have_gemini' && $row[1] == 'YES') {
-                    return true;
-                }
-                if ($type == 'INNODB' && $row[0] == 'have_innodb' && $row[1] == 'YES') {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return $type == 'MYISAM';
     }
 
     /**
@@ -50,14 +33,9 @@ class Max_Admin_DB
      *
      * @return array  list of supported table types.
      */
-    function getTableTypes()
+    public function getTableTypes()
     {
-        $types['MYISAM'] = 'MyISAM';
-        $types['BDB'] = 'Berkeley DB';
-        $types['GEMINI'] = 'NuSphere Gemini';
-        $types['INNODB'] = 'InnoDB';
-        $types[' '] = 'PostgreSQL';
-        return $types;
+        return ['MYISAM' => 'MyISAM', 'BDB' => 'Berkeley DB', 'GEMINI' => 'NuSphere Gemini', 'INNODB' => 'InnoDB', ' ' => 'PostgreSQL'];
     }
 
     /**
@@ -65,14 +43,9 @@ class Max_Admin_DB
      *
      * @return array
      */
-    function getServerTypes()
+    public function getServerTypes()
     {
-        // These values must be the same as used for the
-        // data access layer file names!
-        $types['mysql'] = 'mysql';
-        $types['mysqli'] = 'mysqli';
-        //$types['pgsql'] = 'pgsql';
-        return $types;
+        return ['mysql' => 'mysql', 'mysqli' => 'mysqli'];
     }
 
     /**
@@ -81,9 +54,9 @@ class Max_Admin_DB
      * @param array $installvars
      * @return boolean
      */
-    function checkDatabaseExists($installvars)
+    public function checkDatabaseExists($installvars)
     {
-        $oDbh =& OA_DB::singleton();
+        $oDbh = OA_DB::singleton();
         $oTable = OA_DB_Table_Core::singleton();
         $aTables = OA_DB_Table::listOATablesCaseSensitive();
         $result = false;
@@ -97,5 +70,3 @@ class Max_Admin_DB
         return $result;
     }
 }
-
-?>

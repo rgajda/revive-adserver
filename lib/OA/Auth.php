@@ -16,12 +16,16 @@ require_once MAX_PATH . '/lib/OA/Permission/User.php';
 require_once MAX_PATH . '/lib/OA/Admin/Template.php';
 require_once LIB_PATH . '/Extension/authentication/authentication.php';
 
+use RV\Auth\AuthContext;
+
 /**
  * A class to deal with user authentication
  *
  */
 class OA_Auth
 {
+    public const DEFAULT_MIN_PASSWORD_LENGTH = 12;
+
     /**
      * Returns authentication plugin
      *
@@ -29,12 +33,12 @@ class OA_Auth
      * @param string $authType
      * @return Plugins_Authentication
      */
-    static function staticGetAuthPlugin()
+    public static function staticGetAuthPlugin()
     {
         static $authPlugin;
         static $authPluginType;
 
-        if (!isset($authPlugin) || $authPluginType != $authType) {
+        if (!isset($authPlugin) || null === $authPluginType) {
             $aConf = $GLOBALS['_MAX']['CONF'];
             if (!empty($aConf['authentication']['type'])) {
                 $authType = $aConf['authentication']['type'];
@@ -58,20 +62,20 @@ class OA_Auth
      *
      * @static
      *
-     * @param callback $redirectCallback
+     * @param callable $redirectCallback
      * @return mixed Array on success
      */
-    function login($redirectCallback = null)
+    public static function login($redirectCallback = null)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         if (!is_callable($redirectCallback)) {
             // Set the default callback
-            $redirectCallback = array('OA_Auth', 'checkRedirect');
+            $redirectCallback = ['OA_Auth', 'checkRedirect'];
         }
 
         if (call_user_func($redirectCallback)) {
-            header('location: http://'.$aConf['webpath']['admin']);
+            header('location: http://' . $aConf['webpath']['admin']);
             exit();
         }
 
@@ -89,6 +93,12 @@ class OA_Auth
             // Regenerate session ID now
             phpAds_SessionRegenerateId();
 
+            if ($doUser->isResetRequired()) {
+                self::sendResetEmailAndDisplayMessage($doUser);
+
+                exit;
+            }
+
             return OA_Auth::getSessionData($doUser);
         }
 
@@ -103,7 +113,7 @@ class OA_Auth
      * @todo Fix when preferences are ready and logout url is stored into the
      * preferences table
      */
-    function logout()
+    public static function logout()
     {
         $authPlugin = OA_Auth::staticGetAuthPlugin();
         $authPlugin->logout();
@@ -116,10 +126,26 @@ class OA_Auth
      *
      * @return bool
      */
-    function suppliedCredentials()
+    public static function suppliedCredentials()
     {
         $authPlugin = OA_Auth::staticGetAuthPlugin();
         return $authPlugin->suppliedCredentials();
+    }
+
+    public static function checkAndQueueUnsafePasswordWarning()
+    {
+        $oUser = OA_Permission::getCurrentUser();
+
+        if (false === $oUser || !$oUser->aUser['unsafe_password']) {
+            return;
+        }
+
+        OA_Admin_UI::queueMessage(
+            sprintf($GLOBALS['strPasswordUnsafeWarning'], MAX::constructURL(MAX_URL_ADMIN, 'account-user-password.php')),
+            'global',
+            'warning',
+            10000,
+        );
     }
 
     /**
@@ -127,18 +153,14 @@ class OA_Auth
      *
      * @static
      *
-     * @return bool
+     * @return DataObjects_Users
      */
-    function authenticateUser()
+    private static function authenticateUser()
     {
         $authPlugin = OA_Auth::staticGetAuthPlugin();
         $doUsers = $authPlugin->authenticateUser();
         if ($doUsers) {
-            // never upgrade the username
-            $tmpUserName = $doUsers->username;
-            unset($doUsers->username);
             $doUsers->logDateLastLogIn();
-            $doUsers->username = $tmpUserName;
         }
         return $doUsers;
     }
@@ -148,9 +170,11 @@ class OA_Auth
      *
      * @return boolean
      */
-    function isLoggedIn()
+    public static function isLoggedIn(AuthContext $context = AuthContext::UI)
     {
-        return is_a(OA_Permission::getCurrentUser(), 'OA_Permission_User');
+        $user = OA_Permission::getCurrentUser();
+
+        return $user && $user->context === $context;
     }
 
     /**
@@ -163,11 +187,11 @@ class OA_Auth
      *                                 avoid performing some checks accessing the database
      * @return array
      */
-    function getSessionData($doUser, $skipDatabaseAccess = false)
+    public static function getSessionData($doUser, $skipDatabaseAccess = false, AuthContext $context = AuthContext::UI)
     {
-        return array(
-            'user' => new OA_Permission_User($doUser, $skipDatabaseAccess)
-        );
+        return [
+            'user' => new OA_Permission_User($doUser, $skipDatabaseAccess, $context),
+        ];
     }
 
     /**
@@ -177,11 +201,11 @@ class OA_Auth
      *
      * @return array
      */
-    function getFakeSessionData()
+    public static function getFakeSessionData()
     {
-        return array(
-            'user' => false
-        );
+        return [
+            'user' => false,
+        ];
     }
 
     /**
@@ -191,7 +215,7 @@ class OA_Auth
      *
      * @param string $sMessage Optional message
      */
-    function restart($sMessage = '')
+    public static function restart($sMessage = '')
     {
         $_COOKIE['sessionID'] = phpAds_SessionRegenerateId();
         OA_Auth::displayLogin($sMessage, $_COOKIE['sessionID']);
@@ -204,7 +228,7 @@ class OA_Auth
      *
      * @param PEAR_Error $oError
      */
-    function displayError($oError)
+    public static function displayError($oError)
     {
         OA_Auth::restart($oError->getMessage());
     }
@@ -218,8 +242,14 @@ class OA_Auth
      * @param string $sessionID
      * @param bool $inlineLogin
      */
-    function displayLogin($sMessage = '', $sessionID = 0, $inLineLogin = false)
+    public static function displayLogin($sMessage = '', $sessionID = 0, $inLineLogin = false)
     {
+        if (empty($GLOBALS['_MAX']['CONF']['ui']['enabled'])) {
+            OA_Admin_UI::showUIDisabledScreen();
+
+            exit;
+        }
+
         $authLogin = OA_Auth::staticGetAuthPlugin();
         $authLogin->displayLogin($sMessage, $sessionID, $inLineLogin);
     }
@@ -232,31 +262,37 @@ class OA_Auth
      * @param string $location
      * @return boolean True if a redirect is needed
      */
-    function checkRedirect($location = 'admin')
+    public static function checkRedirect($location = 'admin')
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         $redirect = false;
         // Is it possible to detect that we are NOT in the admin directory
         // via the URL the user is accessing OpenXwith?
-        if (!preg_match('#/'. $location .'/?$#', $_SERVER['REQUEST_URI'])) {
+        if (!preg_match('#/' . $location . '/?$#', $_SERVER['REQUEST_URI'])) {
             $dirName = dirname($_SERVER['REQUEST_URI']);
             // This check now allows for files in plugin folders
             $pluginDirName = basename($aConf['pluginPaths'][$location]);
-            if (!preg_match("#/{$location}(/{$pluginDirName}/.*?)?/?$#", $dirName)) {
-                // The user is not in the "admin" folder directly. Are they
-                // in the admin folder as a result of a "full" virtual host
-                // configuration?
-                if ($aConf['webpath']['admin'] != OX_getHostName()) {
-                    // Not a "full" virtual host setup, so re-direct
-                    $redirect = true;
-                }
+            // The user is not in the "admin" folder directly. Are they
+            // in the admin folder as a result of a "full" virtual host
+            // configuration?
+            if (!preg_match("#/{$location}(/{$pluginDirName}/.*?)?/?$#", $dirName) && $aConf['webpath']['admin'] != OX_getHostName()) {
+                // Not a "full" virtual host setup, so re-direct
+                $redirect = true;
             }
         }
 
         return $redirect;
     }
 
-}
+    private static function sendResetEmailAndDisplayMessage(DataObjects_Users $doUser): void
+    {
+        require_once MAX_PATH . '/lib/OA/Admin/PasswordRecovery.php';
 
-?>
+        $oPasswordRecovery = new OA_Admin_PasswordRecovery();
+
+        $oPasswordRecovery->sendPasswordUpdateEmail([$doUser->user_id]);
+
+        $oPasswordRecovery->displayResetRequiredUponLogin();
+    }
+}

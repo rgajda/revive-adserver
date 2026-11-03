@@ -11,12 +11,8 @@
 */
 
 require_once RV_PATH . '/lib/RV.php';
-
 require_once MAX_PATH . '/lib/Max.php';
-require_once MAX_PATH . '/scripts/maintenance/translationStrings.php';
-
 require_once OX_PATH . '/lib/OX.php';
-
 
 if (!isset($GLOBALS['_MAX']['FILES']['/lib/max/Delivery/cache.php']) && !is_callable('MAX_commonGetDeliveryUrl')) {
     require_once(MAX_PATH . '/lib/max/Delivery/cache.php');
@@ -44,19 +40,24 @@ require_once OX_PATH . '/lib/pear/Date.php';
  */
 class OX_Maintenance
 {
-    var $oDbh;
-    var $aConf;
-    var $aPref;
+    public $oDbh;
+    public $aConf;
+    public $aPref;
 
-    function __construct()
+    /** @var Date */
+    private $oLastRun;
+
+    public function __construct()
     {
         $this->aConf = $GLOBALS['_MAX']['CONF'];
 
         OA_Preferences::loadAdminAccountPreferences();
         $this->aPref = $GLOBALS['_MAX']['PREF'];
 
+        Language_Loader::load('default');
+
         // Get a connection to the datbase
-        $this->oDbh =& OA_DB::singleton();
+        $this->oDbh = OA_DB::singleton();
         if (PEAR::isError($this->oDbh)) {
             // Unable to continue!
             MAX::raiseError($this->oDbh, null, PEAR_ERROR_DIE);
@@ -66,7 +67,7 @@ class OX_Maintenance
     /**
      * A method to run maintenance.
      */
-    function run()
+    public function run()
     {
         // Print a blank line in the debug log file when maintenance starts
         OA::debug();
@@ -76,7 +77,7 @@ class OX_Maintenance
             return;
         }
         // Acquire the maintenance lock
-        $oLock =& OA_DB_AdvisoryLock::factory();
+        $oLock = OA_DB_AdvisoryLock::factory();
         if ($oLock->get(OA_DB_ADVISORYLOCK_MAINTENANCE)) {
             OA::switchLogIdent('maintenance');
             OA::debug();
@@ -86,13 +87,15 @@ class OX_Maintenance
             // Set UTC timezone
             OA_setTimeZoneUTC();
             // Get last run
-            $oLastRun = $this->getLastRun();
+            $this->oLastRun = static::getLastRun();
             // Update the timestamp for old maintenance code and auto-maintenance
             $this->updateLastRun();
             // Record the current time, and register with the OA_ServiceLocator
             $oDate = new Date();
-            $oServiceLocator =& OA_ServiceLocator::instance();
+            $oServiceLocator = OA_ServiceLocator::instance();
             $oServiceLocator->register('now', $oDate);
+            // Register the class instance itself
+            $oServiceLocator->register('Maintenance_Controller', $this);
             // Check the operation interval is valid
             $result = OX_OperationInterval::checkOperationIntervalValue($this->aConf['maintenance']['operationInterval']);
             if (PEAR::isError($result)) {
@@ -105,7 +108,7 @@ class OX_Maintenance
             $this->_runMSE();
             // Run the "midnight" tasks, if required
             $runSync = false;
-            if ($this->isMidnightMaintenance($oLastRun)) {
+            if ($this->isMidnightMaintenance()) {
                 $this->_runMidnightTasks();
                 $runSync = true;
             }
@@ -135,8 +138,8 @@ class OX_Maintenance
             }
         } else {
             OA::switchLogIdent('maintenance');
-			OA::debug('Maintenance Engine not run: could not acquire lock', PEAR_LOG_INFO);
-			OA::switchLogIdent();
+            OA::debug('Maintenance Engine not run: could not acquire lock', PEAR_LOG_INFO);
+            OA::switchLogIdent();
         }
     }
 
@@ -145,7 +148,7 @@ class OX_Maintenance
      *
      * @access private
      */
-    function _runMSE()
+    public function _runMSE()
     {
         $oMaintenanceStatistics = new OX_Maintenance_Statistics();
         $oMaintenanceStatistics->run();
@@ -156,11 +159,11 @@ class OX_Maintenance
      *
      * @return Date A Date object, or null if maintenance did never run
      */
-    function getLastRun()
+    public static function getLastRun()
     {
         $iLastRun = OA_Dal_ApplicationVariables::get('maintenance_timestamp');
         if ($iLastRun) {
-            return new Date((int)$iLastRun);
+            return new Date((int) $iLastRun);
         }
 
         return null;
@@ -171,11 +174,11 @@ class OX_Maintenance
      *
      * @return Date A Date object, or null if scheduled maintenance did never run
      */
-    function getLastScheduledRun()
+    public static function getLastScheduledRun()
     {
         $iLastRun = OA_Dal_ApplicationVariables::get('maintenance_cron_timestamp');
         if ($iLastRun) {
-            return new Date((int)$iLastRun);
+            return new Date((int) $iLastRun);
         }
 
         return null;
@@ -185,17 +188,20 @@ class OX_Maintenance
      * A method to check if midnight tasks should run
      *
      * @param Date $oLastRun
+     *
      * @return boolean
      */
-    function isMidnightMaintenance($oLastRun)
+    public function isMidnightMaintenance(?Date $oLastRun = null)
     {
         global $serverTimezone;
+
+        $oLastRun ??= $this->oLastRun;
 
         if (empty($oLastRun)) {
             return true;
         }
 
-        $oServiceLocator = &OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $lastMidnight = new Date($oServiceLocator->get('now'));
         if (!empty($serverTimezone)) {
             $lastMidnight->convertTZbyID($serverTimezone);
@@ -214,7 +220,7 @@ class OX_Maintenance
      *
      * @access private
      */
-    function _runMidnightTasks()
+    public function _runMidnightTasks()
     {
         OA::debug('Running Midnight Maintenance Tasks', PEAR_LOG_INFO);
         $this->_runReports();
@@ -228,7 +234,7 @@ class OX_Maintenance
      *
      * @access private
      */
-    function _runMPE()
+    public function _runMPE()
     {
         OA_Maintenance_Priority::run(true);
     }
@@ -240,7 +246,7 @@ class OX_Maintenance
      *
      * @access private
      */
-    function _runReports()
+    public function _runReports()
     {
         OA::debug('  Starting to send advertiser "campaign delivery" reports.', PEAR_LOG_DEBUG);
         // Get all advertisers where the advertiser preference is to send reports
@@ -280,18 +286,17 @@ class OX_Maintenance
      *
      * @access private
      */
-    function _runReviveSync()
+    public function _runReviveSync()
     {
         $delay = mt_rand(0, 30); // Delay up to 30 seconds
         OA::debug(sprintf('Delaying ' . PRODUCT_NAME . ' sync process by %d seconds.', $delay), PEAR_LOG_INFO);
         sleep($delay);
-        require_once MAX_PATH . '/lib/RV/Sync.php';
-        $oSync = new RV_Sync($this->aConf, $this->aPref);
-        $oSync->checkForUpdates(0);
+        $oSync = RV_getContainer()->get(\RV\Sync::class);
+        $oSync->checkForUpdates();
         OA::debug('Finished ' . PRODUCT_NAME . ' Sync process.', PEAR_LOG_INFO);
     }
 
-    function _runPriorityPruning()
+    public function _runPriorityPruning()
     {
         if (empty($GLOBALS['_MAX']['CONF']['maintenance']['pruneDataTables'])) {
             return;
@@ -300,37 +305,19 @@ class OX_Maintenance
         $oDal->run();
     }
 
-    function _startProcessDebugMessage($processName)
-    {
-        OA::debug('  Starting OpenX '.$processName.' process.', PEAR_LOG_DEBUG);
-    }
-
-    function _stopProcessDebugMessage()
-    {
-        OA::debug('  Starting OpenX '.$processName.' process.', PEAR_LOG_DEBUG);
-    }
-
-    function _debugIfError($processName, $error)
-    {
-        if (PEAR::isError($error)) {
-            OA::debug("OpenX $processName error (".$error->getCode()."): "
-                . $error->getMessage(), PEAR_LOG_INFO);
-        }
-    }
-
     /**
      * A private method to run the "midnight" general pruning tasks.
      *
      * @access private
      */
-    function _runGeneralPruning()
+    public function _runGeneralPruning()
     {
         if (empty($GLOBALS['_MAX']['CONF']['maintenance']['pruneDataTables'])) {
             return;
         }
         // Calculate the date before which it is valid to prune data
-        $oServiceLocator =& OA_ServiceLocator::instance();
-        $oNowDate =& $oServiceLocator->get('now');
+        $oServiceLocator = OA_ServiceLocator::instance();
+        $oNowDate = &$oServiceLocator->get('now');
         if (is_null($oNowDate) || !is_a($oNowDate, 'Date')) {
             return;
         }
@@ -357,7 +344,7 @@ class OX_Maintenance
      * A method to update maintenance last run information for
      * old maintenance code.
      */
-    function updateLastRun($bScheduled = false)
+    public function updateLastRun($bScheduled = false)
     {
         $sField = $bScheduled ? 'maintenance_cron_timestamp' : 'maintenance_timestamp';
         OA_Dal_ApplicationVariables::set($sField, OA::getNow('U'));
@@ -366,5 +353,3 @@ class OX_Maintenance
         MAX_cacheCheckIfMaintenanceShouldRun(false);
     }
 }
-
-?>

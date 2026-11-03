@@ -10,7 +10,10 @@
 +---------------------------------------------------------------------------+
 */
 
-if (!@include('XML/RPC.php')) {
+require_once __DIR__ . '/../../../polyfills.php';
+
+set_include_path(get_include_path() . PATH_SEPARATOR . __DIR__."/../../pear/");
+if (!@include_once('XML/RPC.php')) {
     die('Error: cannot load the PEAR XML_RPC class');
 }
 
@@ -88,7 +91,7 @@ class OA_Api_Xmlrpc
      *
      * @return XML_RPC_Client
      */
-    function &_getClient()
+    function _getClient($service = null)
     {
         $oClient = new XML_RPC_Client($this->basepath . '/' . $this->debug, $this->host, $this->port);
         return $oClient;
@@ -126,19 +129,18 @@ class OA_Api_Xmlrpc
         }
         $message = new XML_RPC_Message($method, $dataMessage);
 
-        $client = &$this->_getClient();
+        $client = $this->_getClient();
 
         // Send the XML-RPC message to the server.
         $response = $client->send($message, $this->timeout);
 
         // Check for an error response.
         if ($response && $response->faultCode() == 0) {
-            $result = XML_RPC_decode($response->value());
-        } else {
-            trigger_error('XML-RPC Error (' . $response->faultCode() . '): ' . $response->faultString() .
-                ' in method ' . $method . '()', E_USER_ERROR);
+            return XML_RPC_decode($response->value());
         }
-        return $result;
+
+        trigger_error('XML-RPC Error (' . $response->faultCode() . '): ' . $response->faultString() .
+            ' in method ' . $method . '()', E_USER_ERROR);
     }
 
     /**
@@ -268,6 +270,26 @@ class OA_Api_Xmlrpc
     function agencyDailyStatistics($agencyId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
     {
         $statisticsData = $this->_callStatisticsMethod('ox.agencyDailyStatistics', $agencyId, $oStartDate, $oEndDate, $useManagerTimezone);
+
+        foreach ($statisticsData as $key => $data) {
+            $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
+                                            $data['day']));
+        }
+
+        return $statisticsData;
+    }
+
+    /**
+     * This method returns the hourly statistics for an agency for a specified time period.
+     *
+     * @param int $agencyId
+     * @param Pear::Date $oStartDate
+     * @param Pear::Date $oEndDate
+     * @return array  result data
+     */
+    function agencyHourlyStatistics($agencyId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
+    {
+        $statisticsData = $this->_callStatisticsMethod('ox.agencyHourlyStatistics', $agencyId, $oStartDate, $oEndDate, $useManagerTimezone);
 
         foreach ($statisticsData as $key => $data) {
             $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
@@ -434,6 +456,26 @@ class OA_Api_Xmlrpc
     }
 
     /**
+     * This method returns hourly statistics for an advertiser for a specified period.
+     *
+     * @param int $advertiserId
+     * @param Pear::Date $oStartDate
+     * @param Pear::Date $oEndDate
+     * @return array  result data
+     */
+    function advertiserHourlyStatistics($advertiserId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
+    {
+        $statisticsData = $this->_callStatisticsMethod('ox.advertiserHourlyStatistics', $advertiserId, $oStartDate, $oEndDate, $useManagerTimezone);
+
+        foreach ($statisticsData as $key => $data) {
+            $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
+                                            $data['day']));
+        }
+
+        return $statisticsData;
+    }
+
+    /**
      * This method returns campaign statistics for an advertiser for a specified period.
      *
      * @param int $advertiserId
@@ -566,6 +608,26 @@ class OA_Api_Xmlrpc
     function campaignDailyStatistics($campaignId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
     {
         $statisticsData = $this->_callStatisticsMethod('ox.campaignDailyStatistics', $campaignId, $oStartDate, $oEndDate, $useManagerTimezone);
+
+        foreach ($statisticsData as $key => $data) {
+            $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
+                                            $data['day']));
+        }
+
+        return $statisticsData;
+    }
+
+    /**
+     * This method returns hourly statistics for a campaign for a specified period.
+     *
+     * @param int $campaignId
+     * @param Pear::Date $oStartDate
+     * @param Pear::Date $oEndDate
+     * @return array  result data
+     */
+    function campaignHourlyStatistics($campaignId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
+    {
+        $statisticsData = $this->_callStatisticsMethod('ox.campaignHourlyStatistics', $campaignId, $oStartDate, $oEndDate, $useManagerTimezone);
 
         foreach ($statisticsData as $key => $data) {
             $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
@@ -743,6 +805,26 @@ class OA_Api_Xmlrpc
     }
 
     /**
+     * This method returns hourly statistics for a banner for a specified period.
+     *
+     * @param int $bannerId
+     * @param Pear::Date $oStartDate
+     * @param Pear::Date $oEndDate
+     * @return array  result data
+     */
+    function bannerHourlyStatistics($bannerId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
+    {
+        $statisticsData = $this->_callStatisticsMethod('ox.bannerHourlyStatistics', $bannerId, $oStartDate, $oEndDate, $useManagerTimezone);
+
+        foreach ($statisticsData as $key => $data) {
+            $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
+                                            $data['day']));
+        }
+
+        return $statisticsData;
+    }
+
+    /**
      * This method returns publisher statistics for a banner for a specified period.
      *
      * @param int $bannerId
@@ -848,6 +930,26 @@ class OA_Api_Xmlrpc
     function publisherDailyStatistics($publisherId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
     {
         $statisticsData = $this->_callStatisticsMethod('ox.publisherDailyStatistics', $publisherId, $oStartDate, $oEndDate, $useManagerTimezone);
+
+        foreach ($statisticsData as $key => $data) {
+            $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
+                                            $data['day']));
+        }
+
+        return $statisticsData;
+    }
+
+    /**
+     * This method returns hourly statistics for a publisher for a specified period.
+     *
+     * @param int $publisherId
+     * @param Pear::Date $oStartDate
+     * @param Pear::Date $oEndDate
+     * @return array  result data
+     */
+    function publisherHourlyStatistics($publisherId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
+    {
+        $statisticsData = $this->_callStatisticsMethod('ox.publisherHourlyStatistics', $publisherId, $oStartDate, $oEndDate, $useManagerTimezone);
 
         foreach ($statisticsData as $key => $data) {
             $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
@@ -990,6 +1092,21 @@ class OA_Api_Xmlrpc
         return (bool) $this->_sendWithSession('ox.updateUserEmailBySsoId', array((int)$ssoUserId, $email));
     }
 
+    function linkUserToAdvertiserAccount($userId, $accountId, array $aPermissions = [])
+    {
+        return (bool) $this->_sendWithSession('ox.linkUserToAdvertiserAccount', [(int)$userId, (int)$accountId, $aPermissions]);
+    }
+
+    function linkUserToTraffickerAccount($userId, $accountId, array $aPermissions = [])
+    {
+        return (bool) $this->_sendWithSession('ox.linkUserToTraffickerAccount', [(int)$userId, (int)$accountId, $aPermissions]);
+    }
+
+    function linkUserToManagerAccount($userId, $accountId, array $aPermissions = [])
+    {
+        return (bool) $this->_sendWithSession('ox.linkUserToManagerAccount', [(int)$userId, (int)$accountId, $aPermissions]);
+    }
+
     /**
      * This method deletes a user from the user object.
      *
@@ -1089,6 +1206,26 @@ class OA_Api_Xmlrpc
     }
 
     /**
+     * This method returns hourly statistics for a zone for a specified period.
+     *
+     * @param int $zoneId
+     * @param Pear::Date $oStartDate
+     * @param Pear::Date $oEndDate
+     * @return array  result data
+     */
+    function zoneHourlyStatistics($zoneId, $oStartDate = null, $oEndDate = null, $useManagerTimezone = false)
+    {
+        $statisticsData = $this->_callStatisticsMethod('ox.zoneHourlyStatistics', $zoneId, $oStartDate, $oEndDate, $useManagerTimezone);
+
+        foreach ($statisticsData as $key => $data) {
+            $statisticsData[$key]['day'] = date('Y-m-d',XML_RPC_iso8601_decode(
+                                            $data['day']));
+        }
+
+        return $statisticsData;
+    }
+
+    /**
      * This method returns advertiser statistics for a zone for a specified period.
      *
      * @param int $zoneId
@@ -1149,7 +1286,7 @@ class OA_Api_Xmlrpc
 
     function generateTags($zoneId, $codeType, $aParams = null)
     {
-        if (!isset($aParams)) {
+        if (null === $aParams) {
             $aParams = array();
         }
         return $this->_sendWithSession('ox.generateTags', array((int)$zoneId, $codeType, $aParams));

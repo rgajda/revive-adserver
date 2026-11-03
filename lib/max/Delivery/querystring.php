@@ -38,12 +38,12 @@ function MAX_querystringConvertParams()
         $qs = substr($qs, 0, $pos);
     }
     // 2.  Parse the remaining string
-    $aGet = array();
+    $aGet = [];
     $paramStr = $conf['var']['params'] . '=';
     $paramPos = strpos($qs, $paramStr);
     if (is_numeric($paramPos)) {
         $qs = urldecode(substr($qs, $paramPos + strlen($paramStr)));
-        $delim = $qs{0};
+        $delim = $qs[0];
         if (is_numeric($delim)) {
             $delim = substr($qs, 1, $delim);
         }
@@ -55,7 +55,7 @@ function MAX_querystringConvertParams()
         $aPos = isset($aGet[$conf['var']['dest']]) ? strpos($aGet[$conf['var']['dest']], '&') : false;
         if ($aPos && !$qPos) {
             $desturl = substr($aGet[$conf['var']['dest']], 0, $aPos);
-            $destparams = substr($aGet[$conf['var']['dest']], $aPos+1);
+            $destparams = substr($aGet[$conf['var']['dest']], $aPos + 1);
             $aGet[$conf['var']['dest']] = $desturl . '?' . $destparams;
         }
     } else {
@@ -65,10 +65,10 @@ function MAX_querystringConvertParams()
         $aGet[$conf['var']['dest']] = $dest;
     }
     // 3.  Add any cookie values to the GET string...
-    $n = isset($_GET[$conf['var']['n']]) ? $_GET[$conf['var']['n']] : '';
+    $n = $_GET[$conf['var']['n']] ?? '';
     if (empty($n)) {
         // Try from querystring
-        $n = isset($aGet[$conf['var']['n']]) ? $aGet[$conf['var']['n']] : '';
+        $n = $aGet[$conf['var']['n']] ?? '';
     }
     if (!empty($n) && !empty($_COOKIE[$conf['var']['vars']][$n])) {
         $aVars = json_decode($_COOKIE[$conf['var']['vars']][$n], true);
@@ -98,14 +98,23 @@ function MAX_querystringConvertParams()
  * to see if the URL is passed in.  If not, it checks the banner from the cache
  * or database.  As a last resort, it either uses the default banner URL or the referer.
  *
- * @param integer $adId The ID of the ad that was clicked or null for no DB lookup
+ * @param integer $adId The ID of the ad that was clicked
+ * @param integer $zoneId The ID of the zone id that was clicked
  *
  * @return string The destination URL
  */
-function MAX_querystringGetDestinationUrl($adId = null)
+function MAX_querystringGetDestinationUrl($adId = 0, $zoneId = 0)
 {
     $conf = $GLOBALS['_MAX']['CONF'];
-    $dest = isset($_REQUEST[$conf['var']['dest']]) ? $_REQUEST[$conf['var']['dest']] : '';
+    $dest = $_REQUEST[$conf['var']['dest']] ?? '';
+
+    $adId = (int) $adId;
+    $zoneId = (int) $zoneId;
+
+    if (!empty($dest) && !OX_Delivery_Common_checkClickSignature($adId, $zoneId, $dest)) {
+        return null;
+    }
+
     if (empty($dest) && !empty($adId)) {
         // Get the destination from the banner
         $aAd = MAX_cacheGetAd($adId);
@@ -116,17 +125,18 @@ function MAX_querystringGetDestinationUrl($adId = null)
 
     // If no destination URL has been found by now, then we don't need to redirect
     if (empty($dest)) {
-        return;
+        return null;
     }
-    $aVariables = array();
+
+    $aVariables = [];
     $aValidVariables = array_values($conf['var']);
 
     // See if any plugin-components have added items to the click url...
-    $componentParams =  OX_Delivery_Common_hook('addUrlParams', array(array('bannerid' => $adId)));
+    $componentParams = OX_Delivery_Common_hook('addUrlParams', [['bannerid' => $adId]]);
     if (!empty($componentParams) && is_array($componentParams)) {
         foreach ($componentParams as $params) {
             if (!empty($params) && is_array($params)) {
-                foreach ($params as $key => $value) {
+                foreach (array_keys($params) as $key) {
                     $aValidVariables[] = $key;
                 }
             }
@@ -139,7 +149,7 @@ function MAX_querystringGetDestinationUrl($adId = null)
         $destQuery = explode('&', $destParams['query']);
         if (!empty($destQuery)) {
             foreach ($destQuery as $destPair) {
-                list($destName, $destValue) = explode('=', $destPair);
+                [$destName, $destValue] = explode('=', $destPair);
                 $aValidVariables[] = $destName;
             }
         }
@@ -174,14 +184,12 @@ function MAX_querystringParseStr($qs, &$aArr, $delim = '&')
     $aArr = $_GET;
     // Parse the rest of the array and add to the request array.
     $aElements = explode($delim, $qs);
-    foreach($aElements as $element) {
+    foreach ($aElements as $element) {
         $len = strpos($element, '=');
         if ($len !== false) {
             $name = substr($element, 0, $len);
-            $value = substr($element, $len+1);
+            $value = substr($element, $len + 1);
             $aArr[$name] = urldecode($value);
         }
     }
 }
-
-?>

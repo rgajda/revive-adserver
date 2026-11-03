@@ -24,22 +24,13 @@ require_once OX_PATH . '/lib/pear/Date.php';
  */
 class Test_OA_Maintenance extends UnitTestCase
 {
-
-    /**
-     * The constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * A method to test the _runGeneralPruning() method.
      */
-    function test_runGeneralPruning()
+    public function test_runGeneralPruning()
     {
         $oNowDate = new Date('2007-09-28 12:00:01');
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $oServiceLocator->register('now', $oNowDate);
 
         $oMaintenance = new OX_Maintenance();
@@ -80,42 +71,42 @@ class Test_OA_Maintenance extends UnitTestCase
 
         // Test 3: Insert test data, and assert its presence
         $doLog_maintenance_statistics = OA_Dal::factoryDO('log_maintenance_statistics');
-        $doLog_maintenance_statistics->start_run  = '2007-09-28 11:00:01';
+        $doLog_maintenance_statistics->start_run = '2007-09-28 11:00:01';
         $idStatsOne = DataGenerator::generateOne($doLog_maintenance_statistics);
 
         $doLog_maintenance_statistics = OA_Dal::factoryDO('log_maintenance_statistics');
-        $doLog_maintenance_statistics->start_run  = '2007-09-28 10:00:01';
+        $doLog_maintenance_statistics->start_run = '2007-09-28 10:00:01';
         $idStatsTwo = DataGenerator::generateOne($doLog_maintenance_statistics);
 
         $doLog_maintenance_statistics = OA_Dal::factoryDO('log_maintenance_statistics');
-        $doLog_maintenance_statistics->start_run  = '2007-08-28 11:00:01';
+        $doLog_maintenance_statistics->start_run = '2007-08-28 11:00:01';
         $idStatsThree = DataGenerator::generateOne($doLog_maintenance_statistics);
 
         $doLog_maintenance_priority = OA_Dal::factoryDO('log_maintenance_priority');
-        $doLog_maintenance_priority->start_run  = '2007-09-28 11:00:01';
+        $doLog_maintenance_priority->start_run = '2007-09-28 11:00:01';
         $idPriorityOne = DataGenerator::generateOne($doLog_maintenance_priority);
 
         $doLog_maintenance_priority = OA_Dal::factoryDO('log_maintenance_priority');
-        $doLog_maintenance_priority->start_run  = '2007-09-28 10:00:01';
+        $doLog_maintenance_priority->start_run = '2007-09-28 10:00:01';
         $idPriorityTwo = DataGenerator::generateOne($doLog_maintenance_priority);
 
         $doLog_maintenance_priority = OA_Dal::factoryDO('log_maintenance_priority');
-        $doLog_maintenance_priority->start_run  = '2007-08-28 11:00:01';
+        $doLog_maintenance_priority->start_run = '2007-08-28 11:00:01';
         $idPriorityThree = DataGenerator::generateOne($doLog_maintenance_priority);
 
         $oDate = new Date('2007-09-28 11:01:01');
         $doUserlog = OA_Dal::factoryDO('userlog');
-        $doUserlog->timestamp  = $oDate->getTime();
+        $doUserlog->timestamp = $oDate->getTime();
         $idUserlogOne = DataGenerator::generateOne($doUserlog);
 
         $oDate = new Date('2007-09-28 10:01:01');
         $doUserlog = OA_Dal::factoryDO('userlog');
-        $doUserlog->timestamp  = $oDate->getTime();
+        $doUserlog->timestamp = $oDate->getTime();
         $idUserlogTwo = DataGenerator::generateOne($doUserlog);
 
         $oDate = new Date('2007-08-28 11:01:01');
         $doUserlog = OA_Dal::factoryDO('userlog');
-        $doUserlog->timestamp  = $oDate->getTime();
+        $doUserlog->timestamp = $oDate->getTime();
         $idUserlogThree = DataGenerator::generateOne($doUserlog);
 
         $doLog_maintenance_statistics = OA_Dal::factoryDO('log_maintenance_statistics');
@@ -141,7 +132,7 @@ class Test_OA_Maintenance extends UnitTestCase
         $rows = $doLog_maintenance_statistics->getRowCount();
         $this->assertEqual($rows, 2);
         while ($doLog_maintenance_statistics->fetch()) {
-            $this->assertNotEqual($doLog_maintenance_statistics->id, $idStatsThree);
+            $this->assertNotEqual($doLog_maintenance_statistics->log_maintenance_statistics_id, $idStatsThree);
         }
 
         $doLog_maintenance_priority = OA_Dal::factoryDO('log_maintenance_priority');
@@ -149,7 +140,7 @@ class Test_OA_Maintenance extends UnitTestCase
         $rows = $doLog_maintenance_priority->getRowCount();
         $this->assertEqual($rows, 2);
         while ($doLog_maintenance_priority->fetch()) {
-            $this->assertNotEqual($doLog_maintenance_priority->id, $idPriorityThree);
+            $this->assertNotEqual($doLog_maintenance_priority->log_maintenance_priority_id, $idPriorityThree);
         }
 
         $doUserlog = OA_Dal::factoryDO('userlog');
@@ -157,13 +148,13 @@ class Test_OA_Maintenance extends UnitTestCase
         $rows = $doUserlog->getRowCount();
         $this->assertEqual($rows, 2);
         while ($doUserlog->fetch()) {
-            $this->assertNotEqual($doUserlog->id, $idUserlogThree);
+            $this->assertNotEqual($doUserlog->userlogid, $idUserlogThree);
         }
 
         DataGenerator::cleanUp();
     }
 
-    function testGetLastRun()
+    public function testGetLastRun()
     {
         $oMaintenance = new OX_Maintenance();
 
@@ -172,18 +163,18 @@ class Test_OA_Maintenance extends UnitTestCase
         $iLastRun = strtotime('2002-01-01');
         OA_Dal_ApplicationVariables::set('maintenance_timestamp', $iLastRun);
 
-        $oDate = new Date((int)$iLastRun);
+        $oDate = new Date((int) $iLastRun);
         $this->assertTrue($oDate->equals($oMaintenance->getLastRun()));
 
         OA_Dal_ApplicationVariables::delete('maintenance_timestamp');
     }
 
-    function testIsMidnightMaintenance()
+    public function testIsMidnightMaintenance()
     {
         unset($GLOBALS['serverTimezone']);
 
         $oNowDate = new Date('2008-01-28 00:00:10');
-        $oServiceLocator =& OA_ServiceLocator::instance();
+        $oServiceLocator = OA_ServiceLocator::instance();
         $oServiceLocator->register('now', $oNowDate);
 
         $oMaintenance = new OX_Maintenance();
@@ -209,7 +200,4 @@ class Test_OA_Maintenance extends UnitTestCase
         $oLastRun = new Date('2008-01-27 12:00:04');
         $this->assertFalse($oMaintenance->isMidnightMaintenance($oLastRun));
     }
-
 }
-
-?>

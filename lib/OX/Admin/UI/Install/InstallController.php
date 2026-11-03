@@ -20,7 +20,6 @@ require_once MAX_PATH . '/lib/OX/Admin/UI/Install/SystemCheckModelBuilder.php';
 require_once MAX_PATH . '/lib/OX/Admin/UI/Install/InstallStatus.php';
 require_once MAX_PATH . '/lib/OX/Admin/UI/SessionStorage.php';
 require_once MAX_PATH . '/lib/OX/Admin/Redirect.php';
-require_once MAX_PATH . '/lib/OX/Upgrade/InstallConfig.php';
 require_once MAX_PATH . '/lib/OX/Upgrade/InstallPlugin/Controller.php';
 require_once MAX_PATH . '/lib/OX/Upgrade/PostUpgradeTask/Controller.php';
 
@@ -41,14 +40,12 @@ require_once MAX_PATH . '/www/admin/lib-gui.inc.php';
  * @package OX_Admin_UI
  * @subpackage Install
  */
-class OX_Admin_UI_Install_InstallController
-    extends OX_Admin_UI_Controller_BaseController
+class OX_Admin_UI_Install_InstallController extends OX_Admin_UI_Controller_BaseController
 {
     /**
      * @var OA_Upgrade
      */
     private $oUpgrader;
-    private $oTranslation;
 
     /**
      * @var OX_Admin_UI_Install_InstallStatus
@@ -63,11 +60,11 @@ class OX_Admin_UI_Install_InstallController
      */
     protected function getRegisteredActions()
     {
-        return array(
+        return [
             'welcome', 'check', 'configuration', 'database',
             'error', 'finish', 'index', 'jobs', 'login', 'recovery', 'restart',
             'uptodate',
-        );
+        ];
     }
 
 
@@ -76,11 +73,14 @@ class OX_Admin_UI_Install_InstallController
      */
     protected function init()
     {
+        $oRequest = $this->getRequest();
+        $action = $oRequest->getParam('action');
+
         // No upgrade file? No installer! Unless the user is in the last step
-        if (!file_exists(MAX_PATH . '/var/UPGRADE') && 'finish' != $_REQUEST['action']) {
-            header("Location: index.php");
-            exit();
+        if (!file_exists(MAX_PATH . '/var/UPGRADE') && 'finish' != $action) {
+            $this->abortInstall();
         }
+
         @set_time_limit(0);
 
         //  load translations for installer
@@ -91,7 +91,6 @@ class OX_Admin_UI_Install_InstallController
 
         // Setup oUpgrader
         $this->initUpgrader();
-        $this->oTranslation = new OX_Translation();
 
         // clear the $session variable to prevent users pretending to be logged in.
         global $session;
@@ -102,9 +101,7 @@ class OX_Admin_UI_Install_InstallController
         $this->initStepConfig();
 
         //check if recovery required
-        $oRequest = $this->getRequest();
-        if ($this->oInstallStatus->isRecovery()
-            && $oRequest->getParam('action') != 'recovery'
+        if ($this->oInstallStatus->isRecovery() && $action != 'recovery'
         ) {
             //if recovery required and not recovering already, force recovery to be started
             $oRequest->setParam('action', 'recovery');
@@ -190,24 +187,27 @@ class OX_Admin_UI_Install_InstallController
         $oStatus = $this->getInstallStatus();
 
         if ($oStatus->isRecovery()) {
-            $pageTitle = $this->oTranslation->translate('InstallStatusRecovery',
-                array(VERSION));
-        }
-        else if ($oStatus->isInstall()) {
-            $pageTitle = $this->oTranslation->translate('InstallStatusInstall',
-                array(VERSION));
-        }
-        else if ($oStatus->isUpgrade()) {
-            $pageTitle = $this->oTranslation->translate('InstallStatusUpgrade',
-                array(VERSION));
-        }
-        else if ($oStatus->isUpToDate()) {
-            $pageTitle = $this->oTranslation->translate('InstallStatusUpToDate',
-                array(VERSION));
+            $pageTitle = $this->oTranslation->translate(
+                'InstallStatusRecovery',
+                [VERSION],
+            );
+        } elseif ($oStatus->isInstall()) {
+            $pageTitle = $this->oTranslation->translate(
+                'InstallStatusInstall',
+                [VERSION],
+            );
+        } elseif ($oStatus->isUpgrade()) {
+            $pageTitle = $this->oTranslation->translate(
+                'InstallStatusUpgrade',
+                [VERSION],
+            );
+        } elseif ($oStatus->isUpToDate()) {
+            $pageTitle = $this->oTranslation->translate(
+                'InstallStatusUpToDate',
+                [VERSION],
+            );
         }
         $this->setModelProperty('pageHeader', new OA_Admin_UI_Model_PageHeaderModel($pageTitle));
-
-        $aConfig = OX_Upgrade_InstallConfig::getConfig();
     }
 
 
@@ -269,8 +269,10 @@ class OX_Admin_UI_Install_InstallController
             $this->redirect($oWizard->getNextStep());
         }
 
-        $this->setModelProperty('aChecks',
-            array_merge($oCheckResults->getSections(), $oUpgraderResults->getSections()));
+        $this->setModelProperty(
+            'aChecks',
+            array_merge($oCheckResults->getSections(), $oUpgraderResults->getSections()),
+        );
         $this->setModelProperty('oWizard', $oWizard);
         $this->setModelProperty('needsRetry', !$canSkip);
         $this->setModelProperty('loaderMessage', $GLOBALS['strSyscheckProgressMessage']);
@@ -298,13 +300,17 @@ class OX_Admin_UI_Install_InstallController
     public function loginAction()
     {
         $oWizard = new OX_Admin_UI_Install_Wizard($this->getInstallStatus(), 'login');
-        $oForm = new OX_Admin_UI_Install_AdminLoginForm($this->oTranslation,
-            $oWizard->getCurrentStep());
+        $oForm = new OX_Admin_UI_Install_AdminLoginForm(
+            $this->oTranslation,
+            $oWizard->getCurrentStep(),
+        );
 
         if ($oForm->validate()) {
             if (!OA_Upgrade_Login::checkLogin()) {
-                $this->setModelProperty('aMessages',
-                    array('error' => array($GLOBALS['strUsernameOrPasswordWrong'])));
+                $this->setModelProperty(
+                    'aMessages',
+                    ['error' => [$GLOBALS['strUsernameOrPasswordWrong']]],
+                );
             } else {
                 $oWizard->markStepAsCompleted();
                 $this->redirect($oWizard->getNextStep());
@@ -330,8 +336,14 @@ class OX_Admin_UI_Install_InstallController
         $aTableTypes = OX_Admin_UI_Install_InstallUtils::getSupportedTableTypes();
         $hasZoneError = $isUpgrade && OX_Admin_UI_Install_InstallUtils::hasZoneError($oUpgrader);
 
-        $oForm = new OX_Admin_UI_Install_DbForm($this->oTranslation, $oWizard->getCurrentStep(),
-            $aDbTypes, $aTableTypes, $isUpgrade, $hasZoneError);
+        $oForm = new OX_Admin_UI_Install_DbForm(
+            $this->oTranslation,
+            $oWizard->getCurrentStep(),
+            $aDbTypes,
+            $aTableTypes,
+            $isUpgrade,
+            $hasZoneError,
+        );
 
         //populate form with defaults from upgrader dsn
         $oUpgrader->canUpgradeOrInstall(); //need to call upgrade, otherwise no db data will be available
@@ -339,14 +351,10 @@ class OX_Admin_UI_Install_InstallController
         $aConfig['detectedVersion'] = $oUpgrader->getProductApplicationVersion();
 
         //get default socket
-        if (empty($aConfig['database']['socket'])) {
-            if ($aConfig['database']['type'] == 'mysql') {
-                $aConfig['database']['socket'] = str_replace("'", '', ini_get('mysql.default_socket'));
-            } elseif ($aConfig['database']['type'] == 'mysqli') {
-                $aConfig['database']['socket'] = str_replace("'", '', ini_get('mysqli.default_socket'));
-            }
-
+        if (empty($aConfig['database']['socket']) && $aConfig['database']['type'] == 'mysqli') {
+            $aConfig['database']['socket'] = str_replace("'", '', ini_get('mysqli.default_socket'));
         }
+
         $oForm->populateForm($aConfig);
 
         //process the request
@@ -384,8 +392,14 @@ class OX_Admin_UI_Install_InstallController
         $prevPathRequired = !$aPluginsVerifyResult['verified'];
         $aLanguages = RV_Admin_Languages::getAvailableLanguages();
         $aTimezones = OX_Admin_Timezones::AvailableTimezones(true);
-        $oForm = new OX_Admin_UI_Install_ConfigForm($this->oTranslation, $oWizard->getCurrentStep(),
-            $aLanguages, $aTimezones, $isUpgrade, $prevPathRequired);
+        $oForm = new OX_Admin_UI_Install_ConfigForm(
+            $this->oTranslation,
+            $oWizard->getCurrentStep(),
+            $aLanguages,
+            $aTimezones,
+            $isUpgrade,
+            $prevPathRequired,
+        );
 
         $aStepData = $oWizard->getStepData();
 
@@ -398,10 +412,10 @@ class OX_Admin_UI_Install_InstallController
             $aStepData['config'] = $aConfig;
 
             //admin part
-            $aStepData['prefs'] = array();
+            $aStepData['prefs'] = [];
             $aStepData['prefs']['timezone'] = OX_Admin_Timezones::getTimezone();
 
-            $aStepData['admin'] = array();
+            $aStepData['admin'] = [];
             $aStepData['admin']['language'] = 'en';
         }
 
@@ -456,7 +470,7 @@ class OX_Admin_UI_Install_InstallController
                 $aJobStatuses = $oStorage->get('aJobStatuses');
                 foreach ($aJobErrors as $id => $errMessage) {
                     $aJobStatuses[$id]['errors'][] = $errMessage;
-                    list($type, $name) = explode(':', $id);
+                    [$type, $name] = explode(':', $id);
                     $aJobStatuses[$id]['name'] = $name;
                     $aJobStatuses[$id]['type'] = $type;
                 }
@@ -477,8 +491,10 @@ class OX_Admin_UI_Install_InstallController
 
         //collect tasks
         $aUrls = OX_Upgrade_InstallPlugin_Controller::getTasksUrls($baseInstallUrl);
-        $aUrls = array_merge($aUrls,
-            OX_Upgrade_PostUpgradeTask_Controller::getTasksUrls($baseInstallUrl, $oUpgrader));
+        $aUrls = array_merge(
+            $aUrls,
+            OX_Upgrade_PostUpgradeTask_Controller::getTasksUrls($baseInstallUrl, $oUpgrader),
+        );
 
         $json = new Services_JSON();
         $jsonJobs = $json->encode($aUrls);
@@ -502,7 +518,7 @@ class OX_Admin_UI_Install_InstallController
         $oStorage = OX_Admin_UI_Install_InstallUtils::getSessionStorage();
         //collect only job statuses with errors
         $aJobStatuses = $oStorage->get('aJobStatuses');
-        $aStatuses = array();
+        $aStatuses = [];
         if ($aJobStatuses) {
             foreach ($aJobStatuses as $jobId => $aJobStatus) { //check session for job statuses
                 if (!empty($aJobStatus['errors'])) {
@@ -515,8 +531,6 @@ class OX_Admin_UI_Install_InstallController
         if ($oRequest->isPost()) {
             $this->resetInstaller();
 
-            global $installerIsUpgrade;
-            $installerIsUpgrade = $isUpgrade;
             // Execute any components which have registered at the afterLogin hook
             $aPlugins = OX_Component::getListOfRegisteredComponentsForHook('afterLogin');
             foreach ($aPlugins as $i => $id) {
@@ -524,9 +538,13 @@ class OX_Admin_UI_Install_InstallController
                     $obj->afterLogin();
                 }
             }
+
+            OA_Auth::checkAndQueueUnsafePasswordWarning();
+
             require_once LIB_PATH . '/Admin/Redirect.php';
             OX_Admin_Redirect::redirect('advertiser-index.php');
         }
+
         $logPath = str_replace('/', DIRECTORY_SEPARATOR, $oUpgrader->getLogFileName());
         $this->setModelProperty('logPath', $logPath);
         $this->setModelProperty('oWizard', $oWizard);
@@ -537,6 +555,9 @@ class OX_Admin_UI_Install_InstallController
 
     public function uptodateAction()
     {
+        $oWizard = new OX_Admin_UI_Install_Wizard($this->getInstallStatus());
+        $this->setCurrentStepIfReachable($oWizard, 'uptodate');
+
         $this->finalizeInstallation();
 
         if ($this->getRequest()->isPost()) {
@@ -563,17 +584,15 @@ class OX_Admin_UI_Install_InstallController
             if ($recoverySuccess) { //succes, restart wizard
                 $this->forward('restart');
                 return;
-            } else {  //report errors
-                $aMessages = OX_Admin_UI_Install_InstallUtils
-                    ::getMessagesWithType($oUpgrader->getMessages());
-                $this->setModelProperty('aMessages', $aMessages);
             }
+            //report errors
+            $aMessages = OX_Admin_UI_Install_InstallUtils::getMessagesWithType($oUpgrader->getMessages());
+            $this->setModelProperty('aMessages', $aMessages);
         }
 
         //check if we were forwarded to recovery, maybe we already have
         //some messages or the recovery itself failed
-        $aMessages = OX_Admin_UI_Install_InstallUtils
-            ::getMessagesWithType($oUpgrader->getMessages());
+        $aMessages = OX_Admin_UI_Install_InstallUtils::getMessagesWithType($oUpgrader->getMessages());
         $this->setModelProperty('aMessages', $aMessages);
     }
 
@@ -619,8 +638,10 @@ class OX_Admin_UI_Install_InstallController
 
         $upgradeFileRemoved = $oUpgrader->removeUpgradeTriggerFile();
         if (!$upgradeFileRemoved) {
-            $this->setModelProperty('aMessages',
-                array('error' => array($GLOBALS['strOaUpToDateCantRemove'])));
+            $this->setModelProperty(
+                'aMessages',
+                ['error' => [$GLOBALS['strOaUpToDateCantRemove']]],
+            );
         }
     }
 
@@ -664,25 +685,22 @@ class OX_Admin_UI_Install_InstallController
         //reachable is fine, check if not secured
         if ($reachable) {
             $aMeta = $oWizard->getStepMeta();
-            if ($aMeta['secured'] == true && !OA_Upgrade_Login::checkLogin()) {
+            if (!empty($aMeta['secured']) && !OA_Upgrade_Login::checkLogin()) {
                 $this->redirect('login');
             }
 
             return true;
-        } else {
-            //if step is not reachable check the last one marked as completed
-            //and redirect user to the next one
-            $lastCompleted = $oWizard->getLastCompletedStep();
-            if ($lastCompleted != null) {
-                $forwardStep = $oWizard->getNextStep($lastCompleted);
-            }
-
-            if ($forwardStep == null) {
-                $forwardStep = $oWizard->getFirstStep();
-            }
-
-            $this->redirect($forwardStep);
         }
+        //if step is not reachable check the last one marked as completed
+        //and redirect user to the next one
+        $lastCompleted = $oWizard->getLastCompletedStep();
+        if ($lastCompleted != null) {
+            $forwardStep = $oWizard->getNextStep($lastCompleted);
+        }
+        if ($forwardStep == null) {
+            $forwardStep = $oWizard->getFirstStep();
+        }
+        $this->redirect($forwardStep);
     }
 
 
@@ -702,38 +720,32 @@ class OX_Admin_UI_Install_InstallController
             $installStatus = $oUpgrader->existing_installation_status;
             define('DISABLE_ALL_EMAILS', 1);
             OA_Permission::switchToSystemProcessUser('Installer');
-
             if ($installStatus == OA_STATUS_NOT_INSTALLED) {
-
                 if ($oUpgrader->install($aDbConfig)) {
                     $message = $GLOBALS['strDBInstallSuccess'];
                     $upgraderSuccess = true;
                 }
-            } else {
-                if ($oUpgrader->upgrade($oUpgrader->package_file)) {
-                    // Timezone support - hack
-                    if ($oUpgrader->versionInitialSchema['tables_core'] < 538
-                        && empty($aDbConfig['noTzAlert'])
-                    ) {
-                        OA_Dal_ApplicationVariables::set('utc_update', OA::getNowUTC());
-                    }
-
-                    // Clear the menu cache to built a new one with the new settings
-                    OA_Admin_Menu::_clearCache(OA_ACCOUNT_ADMIN);
-                    OA_Admin_Menu::_clearCache(OA_ACCOUNT_MANAGER);
-                    OA_Admin_Menu::_clearCache(OA_ACCOUNT_ADVERTISER);
-                    OA_Admin_Menu::_clearCache(OA_ACCOUNT_TRAFFICKER);
-                    OA_Admin_Menu::singleton();
-
-                    $message = $GLOBALS['strDBUpgradeSuccess'];
-                    $upgraderSuccess = true;
+            } elseif ($oUpgrader->upgrade($oUpgrader->package_file)) {
+                // Timezone support - hack
+                if ($oUpgrader->versionInitialSchema['tables_core'] < 538
+                    && empty($aDbConfig['noTzAlert'])
+                ) {
+                    OA_Dal_ApplicationVariables::set('utc_update', OA::getNowUTC());
                 }
+                // Clear the menu cache to built a new one with the new settings
+                OA_Admin_Menu::_clearCache(OA_ACCOUNT_ADMIN);
+                OA_Admin_Menu::_clearCache(OA_ACCOUNT_MANAGER);
+                OA_Admin_Menu::_clearCache(OA_ACCOUNT_ADVERTISER);
+                OA_Admin_Menu::_clearCache(OA_ACCOUNT_TRAFFICKER);
+                OA_Admin_Menu::singleton();
+                $message = $GLOBALS['strDBUpgradeSuccess'];
+                $upgraderSuccess = true;
             }
-            OA_Permission::switchToSystemProcessUser(); //get back to normal user previously logged in
-        } else {
-            if ($oUpgrader->existing_installation_status == OA_STATUS_CURRENT_VERSION) {
-                $upgraderSuccess = true; //rare but can occur if DB has been installed and user revisits the screen
-            }
+            OA_Permission::switchToSystemProcessUser();
+            //get back to normal user previously logged in
+        } elseif ($oUpgrader->existing_installation_status == OA_STATUS_CURRENT_VERSION) {
+            $upgraderSuccess = true;
+            //rare but can occur if DB has been installed and user revisits the screen
         }
 
         $dbSuccess = $upgraderSuccess && !$oUpgrader->oLogger->errorExists;
@@ -769,17 +781,21 @@ class OX_Admin_UI_Install_InstallController
         $oUpgrader = $this->getUpgrader();
         $isUpgrade = $this->getInstallStatus()->isUpgrade();
         $configStepSuccess = true;
-        $syncEnabled = true;
 
         // 1) Import any plugins present from the previous install
-        $path = isset($previousInstallationPath)
-            ? $previousInstallationPath : '';
-        $path = get_magic_quotes_gpc() ? stripslashes($path) : $path;
+        $path = $previousInstallationPath ?? '';
         if ($path && ($path != MAX_PATH)) {
             $importOK = OX_Admin_UI_Install_InstallUtils::importPlugins($path);
             if (!$importOK) {
                 $errMessage = $GLOBALS['strPathToPreviousError'];
                 $configStepSuccess = false;
+            }
+
+            // Temporarily disable all plugins
+            if (!empty($aConfig['config']['plugins'])) {
+                foreach ($aConfig['config']['plugins'] as $name => $enabled) {
+                    $aConfig['config']['plugins'][$name] = 0;
+                }
             }
         }
 
@@ -791,12 +807,10 @@ class OX_Admin_UI_Install_InstallController
                     $errMessage = $GLOBALS['strImageDirLockedDetected'];
                     $configStepSuccess = false;
                 }
+            } elseif ($isUpgrade) {
+                $errMessage = $GLOBALS['strUnableUpdateConfFile'];
             } else {
-                if ($isUpgrade) {
-                    $errMessage = $GLOBALS['strUnableUpdateConfFile'];
-                } else {
-                    $errMessage = $GLOBALS['strUnableCreateConfFile'];
-                }
+                $errMessage = $GLOBALS['strUnableCreateConfFile'];
             }
         }
 
@@ -817,10 +831,20 @@ class OX_Admin_UI_Install_InstallController
             OA_Permission::switchToSystemProcessUser(); //get back to normal user previously logged in
         }
 
+        //4) upgrade password hash, if necessary
+        if ($configStepSuccess && $isUpgrade && !empty($GLOBALS['session'][OA_Upgrade_Login::SESSION_PASSWORD_HASH])) {
+            $doUsers = OA_Dal::staticGetDO('users', OA_Permission::getUserId());
+
+            if ($doUsers) {
+                $doUsers->password = $GLOBALS['session'][OA_Upgrade_Login::SESSION_PASSWORD_HASH];
+                $doUsers->update();
+            }
+        }
+
         $configStepSuccess = $configStepSuccess && empty($errMessage);
 
         if ($errMessage) {
-            $this->setModelProperty('aMessages', array('error' => array($errMessage)));
+            $this->setModelProperty('aMessages', ['error' => [$errMessage]]);
         }
 
         return $configStepSuccess;
@@ -848,6 +872,9 @@ class OX_Admin_UI_Install_InstallController
         return $this->oInstallStatus;
     }
 
+    protected function abortInstall(): void
+    {
+        header("Location: index.php");
+        exit();
+    }
 }
-
-?>

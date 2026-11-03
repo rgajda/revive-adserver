@@ -35,16 +35,6 @@ require_once MAX_PATH . '/www/api/v1/common/XmlRpcUtils.php';
 class LogonXmlRpcService extends BaseLogonService
 {
     /**
-     * The LogonXmlRpcService constructor calls the base service constructor to
-     * initialise the service.
-     *
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * The logon method sends the username and password to log on to the service
      * and returns either a session ID or an error message.
      *
@@ -54,25 +44,24 @@ class LogonXmlRpcService extends BaseLogonService
      *
      * @return generated result (data or error)
      */
-    function logon($oParams)
+    public function logon($oParams)
     {
-        $sessionId          = null;
+        $sessionId = null;
         $oResponseWithError = null;
 
-        if (!XmlRpcUtils::getScalarValues(array(&$userName, &$password),
-            array(true, true), $oParams, $oResponseWithError)) {
-
+        if (!XmlRpcUtils::getScalarValues(
+            [&$userName, &$password],
+            [true, true],
+            $oParams,
+            $oResponseWithError,
+        )) {
             return $oResponseWithError;
         }
 
-        if($this->logonServiceImp->logon($userName, $password, $sessionId))
-        {
+        if ($this->logonServiceImp->logon($userName, $password, $sessionId)) {
             return XmlRpcUtils::stringTypeResponse($sessionId);
         }
-        else
-        {
-            return XmlRpcUtils::generateError($this->logonServiceImp->getLastError());
-        }
+        return XmlRpcUtils::generateError($this->logonServiceImp->getLastError());
     }
 
 
@@ -86,24 +75,19 @@ class LogonXmlRpcService extends BaseLogonService
      *
      * @return generated result (data or error)
      */
-    function logoff($oParams)
+    public function logoff($oParams)
     {
-        $sessionId          = null;
+        $sessionId = null;
         $oResponseWithError = null;
 
         if (!XmlRpcUtils::getRequiredScalarValue($sessionId, $oParams, 0, $oResponseWithError)) {
-
-            return  $oResponseWithError;
+            return $oResponseWithError;
         }
 
-        if($this->logonServiceImp->logoff($sessionId))
-        {
+        if ($this->logonServiceImp->logoff($sessionId)) {
             return XmlRpcUtils::booleanTypeResponse(true);
         }
-        else
-        {
-            return XmlRpcUtils::generateError($this->logonServiceImp->getLastError());
-        }
+        return XmlRpcUtils::generateError($this->logonServiceImp->getLastError());
     }
 }
 
@@ -114,24 +98,22 @@ class LogonXmlRpcService extends BaseLogonService
 $oLogonXmlRpcService = new LogonXmlRpcService();
 
 $server = new XML_RPC_Server(
-    array(
-        'logon' => array(
-            'function'  => array($oLogonXmlRpcService, 'logon'),
-            'signature' => array(
-                array('string', 'string', 'string')
-            ),
-            'docstring' => 'Logon method'
-        ),
+    [
+        'logon' => [
+            'function' => $oLogonXmlRpcService->logon(...),
+            'signature' => [
+                ['string', 'string', 'string'],
+            ],
+            'docstring' => 'Logon method',
+        ],
 
-        'logoff' => array(
-            'function'  => array($oLogonXmlRpcService, 'logoff'),
-            'signature' => array(
-                array('bool', 'string')
-            ),
-            'docstring' => 'Logoff method'
-        ),
-    ),
-    1  // serviceNow
+        'logoff' => [
+            'function' => $oLogonXmlRpcService->logoff(...),
+            'signature' => [
+                ['bool', 'string'],
+            ],
+            'docstring' => 'Logoff method',
+        ],
+    ],
+    1,  // serviceNow
 );
-
-?>

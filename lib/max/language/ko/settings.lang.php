@@ -15,6 +15,7 @@ $GLOBALS['strInstall'] = "설치";
 $GLOBALS['strDatabaseSettings'] = "�?��?�터베�?�스 설정";
 $GLOBALS['strAdvancedSettings'] = "고급 설정";
 $GLOBALS['strWarning'] = "경고";
+$GLOBALS['strTablesPrefix'] = "테�?�블 접�?어";
 $GLOBALS['strTablesType'] = "테�?�블 종류";
 
 
@@ -60,6 +61,8 @@ $GLOBALS['strEmailSettings'] = "설정";
 $GLOBALS['strQmailPatch'] = "qmail 패치를 사용합니다.(qmail�?� 사용하는 경우)";
 $GLOBALS['strEnableQmailPatch'] = "qmail 패치를 사용합니다.(qmail�?� 사용하는 경우)";
 
+// Security settings
+
 // Audit Trail Settings
 
 // Debug Logging Settings
@@ -71,15 +74,11 @@ $GLOBALS['strTypeWebSettings'] = "로컬 배너(웹서버) 설정";
 $GLOBALS['strTypeWebMode'] = "저장 방법";
 $GLOBALS['strTypeWebModeLocal'] = "로컬 디렉토리";
 $GLOBALS['strTypeWebModeFtp'] = "외부 FTP 서버";
-$GLOBALS['strTypeWebDir'] = "로컬 디렉터리";
+$GLOBALS['strTypeWebDir'] = "로컬 디렉토리";
 $GLOBALS['strTypeFTPHost'] = "FTP 호스트";
 $GLOBALS['strTypeFTPDirectory'] = "호스트 디렉터리";
 $GLOBALS['strTypeFTPUsername'] = "로그인";
 $GLOBALS['strTypeFTPPassword'] = "비밀번호";
-$GLOBALS['strP3PSettings'] = "P3P 개인정보 보호정책";
-$GLOBALS['strUseP3P'] = "P3P 정책 사용";
-$GLOBALS['strP3PCompactPolicy'] = "P3P Compact 정책";
-$GLOBALS['strP3PPolicyLocation'] = "P3P 정책 위치";
 
 // General Settings
 
@@ -88,7 +87,7 @@ $GLOBALS['strGeotargetingSettings'] = "지역별 광고설정";
 $GLOBALS['strGeotargeting'] = "지역별 광고설정";
 
 // Interface Settings
-$GLOBALS['strInventory'] = "광고목록";
+$GLOBALS['strInventory'] = "목�?";
 $GLOBALS['strShowCampaignInfo'] = "<i>캠페�?� 목�?</i> 페�?�지�? 캠페�?� 정보를 �?세히 보여�?니다.";
 $GLOBALS['strShowBannerInfo'] = "<i>배너 목�?</i> 페�?�지�? 배너 정보를 �?세히 보여�?니다.";
 $GLOBALS['strShowCampaignPreview'] = "<i>배너 목�?</i> 페�?�지�? 배너�?� 미리보기를 모�? 표시합니다.";

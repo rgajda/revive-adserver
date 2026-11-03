@@ -42,19 +42,17 @@ if (OA_Permission::isAccount(OA_ACCOUNT_MANAGER) && !$GLOBALS['_MAX']['CONF']['s
     OX_Admin_Redirect::redirect('advertiser-index.php');
 }
 
-$widget = !empty($_REQUEST['widget']) ? $_REQUEST['widget'] : 'Index';
+$widget = empty($_REQUEST['widget']) ? 'Index' : $_REQUEST['widget'];
 
-if (preg_match('/^[a-z0-9]+$/i', $widget) && file_exists(MAX_PATH.'/lib/OA/Dashboard/Widgets/'.$widget.'.php')) {
+if (preg_match('/^[a-z0-9]+$/i', $widget) && file_exists(MAX_PATH . '/lib/OA/Dashboard/Widgets/' . $widget . '.php')) {
     // Load widget
-    require(MAX_PATH.'/lib/OA/Dashboard/Widgets/'.$widget.'.php');
-    $widget = 'OA_Dashboard_Widget_'.$widget;
+    require(MAX_PATH . '/lib/OA/Dashboard/Widgets/' . $widget . '.php');
+    $widget = 'OA_Dashboard_Widget_' . $widget;
 } else {
     // Show empty widget
-    require(MAX_PATH.'/lib/OA/Dashboard/Widget.php');
+    require(MAX_PATH . '/lib/OA/Dashboard/Widget.php');
     $widget = 'OA_Dashboard_Widget';
 }
 
 $oDashboard = new $widget($_REQUEST);
 $oDashboard->display();
-
-?>

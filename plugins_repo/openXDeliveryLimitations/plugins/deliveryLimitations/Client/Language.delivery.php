@@ -25,7 +25,7 @@ require_once MAX_PATH . '/lib/max/Delivery/limitations.delivery.php';
  * @param array $aParams An array of additional parameters to be checked
  * @return boolean Whether this impression's language passes this limitation's test.
  */
-function MAX_checkClient_Language($limitation, $op, $aParams = array())
+function MAX_checkClient_Language($limitation, $op, $aParams = [])
 {
     if (empty($aParams)) {
         $language = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
@@ -41,15 +41,10 @@ function MAX_checkClient_Language($limitation, $op, $aParams = array())
     $aLimitation = MAX_limitationsGetAFromS($limitation);
     $aLanguages = MAX_limitationsGetAFromS($language);
 
-    $aMatchedValues = array_uintersect($aLimitation, $aLanguages, function ($limitation, $language) {
-        return strncasecmp($language, $limitation, strlen($limitation));
-    });
+    $aMatchedValues = array_uintersect($aLimitation, $aLanguages, fn($limitation, $language) => strncasecmp($language, $limitation, strlen($limitation)));
 
     if ('=~' == $op) {
         return !empty($aMatchedValues);
-    } else {
-        return empty($aMatchedValues);
     }
+    return empty($aMatchedValues);
 }
-
-?>

@@ -23,6 +23,11 @@
  *   existing files
  */
 
+// No need to serve HEAD requests
+if (isset($_SERVER['REQUEST_METHOD']) && 'HEAD' === $_SERVER['REQUEST_METHOD']) {
+    exit();
+}
+
 require_once 'init-delivery-parse.php';
 require_once 'memory.php';
 require_once 'variables.php';
@@ -30,17 +35,12 @@ require_once 'variables.php';
 // Increase the PHP memory_limit value to the minimum required value, if necessery
 OX_increaseMemoryLimit(OX_getMinimumRequiredMemory());
 
-// PHP 5.3 compatibility
-if (!defined('E_DEPRECATED')) {
-    define('E_DEPRECATED', 0);
-}
-
 setupServerVariables();
 setupDeliveryConfigVariables();
 $conf = $GLOBALS['_MAX']['CONF'];
 
 // Bootstrap PSR Autoloader
-include MAX_PATH.'/lib/vendor/autoload.php';
+include MAX_PATH . '/lib/vendor/autoload.php';
 
 // Set this script's identifier (from the config file) in the global scope
 $GLOBALS['_OA']['invocationType'] = array_search(basename($_SERVER['SCRIPT_FILENAME']), $conf['file']);
@@ -48,10 +48,10 @@ $GLOBALS['_OA']['invocationType'] = array_search(basename($_SERVER['SCRIPT_FILEN
 // Disable all notices and warnings,
 // as some PAN code still generates PHP warnings in places
 if (!empty($conf['debug']['production'])) {
-    error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_DEPRECATED | E_STRICT));
+    error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_DEPRECATED));
 } else {
     // show all errors when developing
-    error_reporting(E_ALL & ~(E_DEPRECATED | E_STRICT));
+    error_reporting(E_ALL & ~(E_DEPRECATED));
 }
 
 require_once MAX_PATH . '/lib/max/Delivery/common.php';
@@ -80,5 +80,3 @@ MAX_cookieUnpackCapping();
 if (empty($GLOBALS['_OA']['invocationType']) || $GLOBALS['_OA']['invocationType'] != 'xmlrpc') {
     OX_Delivery_Common_hook('postInit');
 }
-
-?>

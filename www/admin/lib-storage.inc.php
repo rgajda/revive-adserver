@@ -42,16 +42,15 @@ function phpAds_ImageStore($type, $name, $buffer, $overwrite = false)
 
         $filesystem = new \League\Flysystem\Filesystem(new \RV\Bridge\Flysystem\SqlStoredBannerAdapter());
 
-        if (!$overwrite && $filesystem->has($name)) {
+        if (!$overwrite && $filesystem->fileExists($name)) {
             $name = \RV\Bridge\Flysystem\SqlStoredBannerAdapter::getUniqueNameForDuplication($name);
         }
     }
 
     try {
-        if ($filesystem->put($name, $buffer)) {
-            return $name;
-        }
-    } catch (\Exception $e) {
+        $filesystem->write($name, $buffer);
+        return $name;
+    } catch (\Exception) {
         // The previous behaviour was to ignore errors, so that's what we do here too
     }
 
@@ -79,15 +78,14 @@ function phpAds_ImageDuplicate($type, $name)
         return $name;
     }
 
-    $filesystem = new \League\Flysystem\Filesystem(new \RV\Bridge\Flysystem\SqlStoredBannerAdapter(false));
+    $filesystem = new \League\Flysystem\Filesystem(new \RV\Bridge\Flysystem\SqlStoredBannerAdapter());
 
     $destName = \RV\Bridge\Flysystem\SqlStoredBannerAdapter::getUniqueNameForDuplication($name);
 
     try {
-        if ($filesystem->copy($name, $destName)) {
-            return $destName;
-        }
-    } catch (\Exception $e) {
+        $filesystem->copy($name, $destName);
+        return $destName;
+    } catch (\Exception) {
         // The previous behaviour was to ignore errors, so that's what we do here too
     }
 
@@ -123,7 +121,7 @@ function phpAds_ImageRetrieve($type, $name)
 
     try {
         return $filesystem->read($name);
-    } catch (\Exception $e) {
+    } catch (\Exception) {
         // The previous behaviour was to ignore errors, so that's what we do here too
     }
 
@@ -150,8 +148,12 @@ function phpAds_ImageDelete($type, $name)
     }
 
     try {
-        return $filesystem->delete($name);
-    } catch (\Exception $e) {
+        if (!$filesystem->fileExists($name)) {
+            return false;
+        }
+        $filesystem->delete($name);
+        return true;
+    } catch (\Exception) {
         // The previous behaviour was to ignore errors, so that's what we do here too
     }
 
@@ -181,8 +183,8 @@ function phpAds_ImageSize($type, $name)
     }
 
     try {
-        return $filesystem->getSize($name);
-    } catch (\Exception $e) {
+        return $filesystem->fileSize($name);
+    } catch (\Exception) {
         // The previous behaviour was to ignore errors, so that's what we do here too
     }
 
@@ -209,4 +211,3 @@ function phpAds_LocalUniqueName($buffer, $extension)
     $filename = md5($buffer) . $extension;
     return $filename;
 }
-

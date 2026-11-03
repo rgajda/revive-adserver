@@ -20,18 +20,23 @@ $GLOBALS['strBtnContinue'] = "Nadaljuj »";
 $GLOBALS['strBtnRecover'] = "Povrni »";
 $GLOBALS['strBtnAgree'] = "Strinjam se »";
 $GLOBALS['strBtnRetry'] = "Poizkusi znova";
-$GLOBALS['strWarningRegisterArgcArv'] = "PHP nastavitvena spremenljivka register_argc_argv mora biti omogočena za zagon vzdrževanja iz ukazne vrstice.";
+$GLOBALS['strTablesPrefix'] = "Predpona tabelnih imen";
 $GLOBALS['strTablesType'] = "Tip tabele";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Vaš prejšnji poizkus posodobitve je naletel na težavo";
 $GLOBALS['strRecoveryRequired'] = "Prišlo je do napake med procesiranjem vaše prejšnje posodobitve. {$PRODUCT_NAME} bo poizkusil povrniti posodobitveni postopek. Prosimo, potrdite z klikom na gumb Povrni.";
 
+$GLOBALS['strProductUpToDateTitle'] = "{$PRODUCT_NAME} je posodobljen";
 $GLOBALS['strOaUpToDate'] = "Vaša {$PRODUCT_NAME} podatkovna baza in struktura datotek uporabljata najnovejšo različico in zato posodobitev v tem trenutku ni potrebna. Kliknite \"Nadaljuj\" za napotitev v {$PRODUCT_NAME} Nadzorno ploščo.";
 $GLOBALS['strOaUpToDateCantRemove'] = "Opozorilo: Posodobitvena datoteka je še vedno v vaši mapi. Zaradi varnostnih razlogov je ne moremo odstraniti. Prosimo, datoteko izbrišite ročno.";
 $GLOBALS['strErrorWritePermissions'] = "Prišlo je do napak pri dostopu do datotek. Pred nadaljevanjem jih morate odpraviti.<br />Pri odpravi teh napak v sistemu Linux vtipkajte naslednji ukazni niz:";
+$GLOBALS['strErrorFixPermissionsRCommand'] = "<i>chmod -R a+w %s</i>";
+$GLOBALS['strNotWriteable'] = "NI zapisljivo";
+$GLOBALS['strDirNotWriteableError'] = "Mapa mora omogočati pisanje";
 
 $GLOBALS['strErrorWritePermissionsWin'] = "Prišlo je do napak pri dostopu do datotek. Pred nadaljevanjem jih morate odpraviti.";
 $GLOBALS['strCheckDocumentation'] = "Za več pomoči si prosimo oglejte <a href='{$PRODUCT_DOCSURL}'>{$PRODUCT_NAME}  dokumentacijo</a>.";
+$GLOBALS['strSystemCheckBadPHPConfig'] = "Vaša trenutna PHP konfiguracija ne izpolnjuje zahtev za {$PRODUCT_NAME}. Za odpravo težav prosimo, spremenite nastavitve v datoteki 'php.ini'.";
 
 $GLOBALS['strAdminUrlPrefix'] = "URL Nadzorniškega vmesnika";
 $GLOBALS['strDeliveryUrlPrefix'] = "URL Dostavnega orodja";
@@ -40,6 +45,7 @@ $GLOBALS['strImagesUrlPrefix'] = "URL Hrambe slik";
 $GLOBALS['strImagesUrlPrefixSSL'] = "URL (SSL) Hrambe slik";
 
 
+$GLOBALS['strUpgrade'] = "Nadgradnja";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
@@ -47,12 +53,15 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "URL (SSL) Hrambe slik";
 
 // Global
 $GLOBALS['strChooseSection'] = "Izberi oddelek";
+$GLOBALS['strEditConfigNotPossible'] = "Ni mogoče urejati vseh nastavitev, ker je konfiguracijska datoteka zaklenjena iz varnostnih razlogov.
+    Če želite opraviti spremembe, boste morali najprej odkleniti konfiguracijsko datoteko za to namestitev.";
+$GLOBALS['strEditConfigPossible'] = "Mogoče je urejati vse nastavitve, ker konfiguracijska datoteka ni zaklenjena, vendar to lahko povzroči varnostne težave.
+    Če želite zaščititi svoj sistem, morate zakleniti konfiguracijsko datoteko za to namestitev.";
 $GLOBALS['strUnableToWriteConfig'] = "V konfiguracijsko datoteko je bilo nemožno zapisati spremembe";
 $GLOBALS['strUnableToWritePrefs'] = "Podatkovni bazi je bilo nemožno izročiti izbiro";
-$GLOBALS['strImageDirLockedDetected'] = "Strežnik ne more zapisovati v <b>Mapo z slikami</b>. <br>Ne morete nadaljevati, dokler ne spremenite dovoljenj za to mapo ali pa ustvarite novo.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Konfiguracijske nastavitve";
+$GLOBALS['strConfigurationSettings'] = "Nastavitve konfiguracije";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Administrator  Uporabniško ime";
@@ -64,6 +73,7 @@ $GLOBALS['strAdminCheckUpdates'] = "Samodejni preveri za posodobitve izdelka in 
 $GLOBALS['strAdminShareStack'] = "Delite tehnične informacije z OpenX ekipo pri nadaljnem razvoju in testiranju.";
 $GLOBALS['strNovice'] = "Zaradi varnostnih razlogov potrebujejo postopki o izbrisu potrditev";
 $GLOBALS['strUserlogEmail'] = "Beleži vsa odhodna e-poštna sporočila";
+$GLOBALS['strEnableDashboard'] = "Omogoči nadzorno ploščo";
 $GLOBALS['strEnableDashboardSyncNotice'] = "Prosimo, omogočite <a href='account-settings-update.php'>Preveri za posodobitve</a> , če bi želeli uporabljati Nadzorno ploščo.";
 $GLOBALS['strTimezone'] = "Časovno področje";
 $GLOBALS['strEnableAutoMaintenance'] = "Samodejno izvrši vzdrževalna dela med dostavo, če načrtovana vzdrževalna dela niso omogočena";
@@ -96,6 +106,12 @@ $GLOBALS['strEnableQmailPatch'] = "Omogoči qmail popravek";
 $GLOBALS['strEmailHeader'] = "Glava za e-pošto";
 $GLOBALS['strEmailLog'] = "Beležka za e-pošto";
 
+// Security settings
+$GLOBALS['strSecurityAndDebug'] = "Nastavitve varnosti in odpravljanja napak";
+$GLOBALS['strSecuritySettings'] = "Nastavitve varnosti";
+$GLOBALS['strSecurityPasswordMinLength'] = "Minimalna dolžina gesla";
+$GLOBALS['strSecurityBadLoginPath'] = "Dnevnik neuspešnih prijav";
+
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Nastavitve za pregled poti (audit trail)";
 $GLOBALS['strEnableAudit'] = "Omogoči pregled poti (audit trail)";
@@ -107,12 +123,18 @@ $GLOBALS['strDebugMethodNames'] = "Vključi imena postopkov v \"debug\" beležko
 $GLOBALS['strDebugLineNumbers'] = "Vključi številke nizov v \"debug\" beležko";
 $GLOBALS['strDebugType'] = "Tip beležke za iskanje in odstranjevanje napak (debug)";
 $GLOBALS['strDebugTypeFile'] = "Datoteka";
+$GLOBALS['strDebugTypeMcal'] = "mCal";
 $GLOBALS['strDebugTypeSql'] = "SQL podatkovna baza";
 $GLOBALS['strDebugTypeSyslog'] = "Sistemska beležka (syslog)";
 $GLOBALS['strDebugName'] = "Ime beležke, Kolendar, SQL Tabela,<br />ali Sistemska beležka";
 $GLOBALS['strDebugPriority'] = "Prioritetni nivo iskanja in odstranjevanja napak";
 $GLOBALS['strPEAR_LOG_DEBUG'] = "PEAR_LOG_DEBUG - Največ informacij";
 $GLOBALS['strPEAR_LOG_INFO'] = "PEAR_LOG_INFO - Privzete informacije";
+$GLOBALS['strPEAR_LOG_NOTICE'] = "PEAR_LOG_NOTICE";
+$GLOBALS['strPEAR_LOG_WARNING'] = "PEAR_LOG_WARNING";
+$GLOBALS['strPEAR_LOG_ERR'] = "PEAR_LOG_ERR";
+$GLOBALS['strPEAR_LOG_CRIT'] = "PEAR_LOG_CRIT";
+$GLOBALS['strPEAR_LOG_ALERT'] = "PEAR_LOG_ALERT";
 $GLOBALS['strPEAR_LOG_EMERG'] = "PEAR_LOG_EMERG - Najmanj informacij";
 $GLOBALS['strDebugIdent'] = "\"Debug\" identifikacijski niz";
 $GLOBALS['strDebugUsername'] = "mCal, SQL Uporabniško ime strežnika";
@@ -120,6 +142,7 @@ $GLOBALS['strDebugPassword'] = "mCal, SQL Geslo strežnika";
 $GLOBALS['strProductionSystem'] = "Sistem produkcije";
 
 // Delivery Settings
+$GLOBALS['strWebPath'] = "Dostopne poti do strežnika {$PRODUCT_NAME}";
 $GLOBALS['strWebPathSimple'] = "Omrežna pot";
 $GLOBALS['strDeliveryPath'] = "Dostavna pot";
 $GLOBALS['strImagePath'] = "Pot slik";
@@ -144,6 +167,7 @@ $GLOBALS['strTypeFTPErrorUpload'] = "Datoteke ni bilo mogoče naložiti na FTP s
 $GLOBALS['strTypeFTPErrorHost'] = "FTP gostitelj ni pravilen";
 $GLOBALS['strDeliveryFilenames'] = "Dostavna imena datotek";
 $GLOBALS['strDeliveryFilenamesAdClick'] = "Klikov na oglas";
+$GLOBALS['strDeliveryFilenamesSignedAdClick'] = "Podpisan klik na oglas";
 $GLOBALS['strDeliveryFilenamesAdConversionVars'] = "Pretvorbenih spremenljivk oglasa";
 $GLOBALS['strDeliveryFilenamesAdContent'] = "Vsebina oglasa";
 $GLOBALS['strDeliveryFilenamesAdConversion'] = "Pretvorba oglasa";
@@ -158,17 +182,14 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Prikaz oglasa";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "XML RPC Poziv";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Lokalni poziv";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Sprednji preglednik";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Vključujoč FLASH (lahko je poln URL)";
 $GLOBALS['strDeliveryCaching'] = "Nastavitve dostavnega pomnilnika pasice";
 $GLOBALS['strDeliveryCacheLimit'] = "Čas med posodobitvami pomnilnika pasice (v sekundah)";
 $GLOBALS['strDeliveryCacheStore'] = "Tip hrambe pomnilnika dostavljanja pasice ";
-$GLOBALS['strDeliveryExecPhp'] = "Dovoli izvedbo PHP kode v oglasih<br />(Opozorilo: Varnostno tveganje)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Omejitev zunanjih (3rd party) sledilnikov klikov";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "Privzet URL slikovne pasice ";
-$GLOBALS['strP3PSettings'] = "P3P Varovanje zasebnosti";
-$GLOBALS['strUseP3P'] = "Uporabi P3P polico";
-$GLOBALS['strP3PCompactPolicy'] = "P3P pogodbena polica";
-$GLOBALS['strP3PPolicyLocation'] = "Lokacija P3P police";
+$GLOBALS['strPrivacySettings'] = "Nastavitve zasebnosti";
+$GLOBALS['strDisableViewerId'] = "Onemogoči piškotek ID gledalca";
+$GLOBALS['strDisableDeliveryCookies'] = 'Onemogoči piškotke za dostavo oglasov';
+$GLOBALS['strBannerFileSettings'] = 'Splošne nastavitve datoteke pasice';
+$GLOBALS['strMaxBannerFilesize'] = 'Največja velikost datoteke pasice (v bajtih, 0 pomeni neomejeno)';
 
 // General Settings
 $GLOBALS['generalSettings'] = "Globalne nastavitve sistema";
@@ -187,15 +208,17 @@ $GLOBALS['strShowBannerInfo'] = "Prikaži dodatne informacije o pasici na strani
 $GLOBALS['strShowCampaignPreview'] = "Prikaži predogled vseh pasic na strani <i>Pasice</i>";
 $GLOBALS['strShowBannerHTML'] = "Prikaži dejansko pasico namesto enostavne HTML kode pri predogledu HTML pasice";
 $GLOBALS['strShowBannerPreview'] = "Prikaži predogled pasice na vrhu strani, ki obravnavajo pasice";
+$GLOBALS['strUseWyswygHtmlEditorByDefault'] = "Privzeto uporabite WYSIWYG HTML urejevalnik pri ustvarjanju ali urejanju HTML pasic";
 $GLOBALS['strHideInactive'] = "Skrij neaktivne";
 $GLOBALS['strGUIShowMatchingBanners'] = "Prikaži ujemajoče pasice na strani <i>Pasica s povezavo</i>";
 $GLOBALS['strGUIShowParentCampaigns'] = "Prikaži izvorne kampanje na strani <i>Pasica s povezavo</i>";
+$GLOBALS['strShowEntityId'] = "Prikaži identifikatorje entitet";
 $GLOBALS['strStatisticsDefaults'] = "Statistika";
 $GLOBALS['strBeginOfWeek'] = "Začetek tedna";
 $GLOBALS['strPercentageDecimals'] = "Decimalke po odstotkih";
-$GLOBALS['strWeightDefaults'] = "Privzeta vrednost";
-$GLOBALS['strDefaultBannerWeight'] = "Privzeta vrednost pasice";
-$GLOBALS['strDefaultCampaignWeight'] = "Privzeta vrednost kampanje";
+$GLOBALS['strWeightDefaults'] = "Privzeta teža";
+$GLOBALS['strDefaultBannerWeight'] = "Privzeta teža pasice";
+$GLOBALS['strDefaultCampaignWeight'] = "Privzeta teža kampanje";
 $GLOBALS['strConfirmationUI'] = "Potrditev v Uporabniškem vmesniku";
 
 // Invocation Settings
@@ -208,7 +231,7 @@ $GLOBALS['strBannerDelivery'] = "Nastavitve dostave pasice";
 // Banner Logging Settings
 $GLOBALS['strBannerLogging'] = "Nastavitve beleženja pasice";
 $GLOBALS['strLogAdRequests'] = "Beleži zahtevo ob vsaki zahtevani pasici";
-$GLOBALS['strLogAdImpressions'] = "Beleži ogled ob vsakem ogledu pasice";
+$GLOBALS['strLogAdImpressions'] = "Beleži prikaz ob vsakem ogledu pasice";
 $GLOBALS['strLogAdClicks'] = "Beleži klik ob vsakem kliku na pasico";
 $GLOBALS['strReverseLookup'] = "Preglej imena gostiteljev obiskovalcev, če niso podana";
 $GLOBALS['strProxyLookup'] = "Poizkusi ugotoviti prave IP naslove obiskovalcev, ki uporabljajo proxy strežnik";
@@ -221,16 +244,23 @@ $GLOBALS['strEnforceUserAgents'] = "<b>Samo</b> beleži statistike odjemalcev z 
 $GLOBALS['strBannerStorage'] = "Nastavitve hrambe pasic";
 
 // Campaign ECPM settings
+$GLOBALS['strEnableECPM'] = "Uporabite prioritete optimizirane glede na eCPM namesto prioritet, ki temeljijo na teži";
+$GLOBALS['strEnableContractECPM'] = "Uporabite prioritete optimizirane glede na eCPM namesto standardnih pogodbenih prioritet";
+$GLOBALS['strEnableECPMfromECPM'] = "(Če onemogočite to funkcijo, bodo nekatere vaše aktivne eCPM kampanje deaktivirane; za ponovno aktivacijo jih boste morali ročno posodobiti)";
+$GLOBALS['strInactivatedCampaigns'] = "Seznam kampanj, ki so postale neaktivne zaradi sprememb v preferencah:";
 
 // Statistics & Maintenance Settings
 $GLOBALS['strMaintenanceSettings'] = "Vzdrževalne nastavitve";
 $GLOBALS['strConversionTracking'] = "Nastavitve sledilnika pretvorb";
 $GLOBALS['strEnableConversionTracking'] = "Omogoči sledenje pretvorb";
+$GLOBALS['strBlockInactiveBanners'] = "Ne štejte prikazov oglasov, klikov ali preusmeritev uporabnika na ciljni URL, če uporabnik klikne na pasico, ki je neaktivna";
 $GLOBALS['strBlockAdClicks'] = "Ne štej klikov oglasa, če je obiskovalec kliknil na enak oglas/področje znotraj označenega časa (v sekundah)";
 $GLOBALS['strMaintenanceOI'] = "Presledek vzdrževalnega postopka (v minutah)";
 $GLOBALS['strPrioritySettings'] = "Prednostne nastavitve";
 $GLOBALS['strPriorityInstantUpdate'] = "Takoj posodobi oglasne prioritete po spremembi uporabniškega vmesnika (UI)";
-$GLOBALS['strWarnLimit'] = "Pošlji opozorilo ko je število preostalih učinkov manjše kot navedeno tukaj";
+$GLOBALS['strDefaultImpConvWindow'] = "Privzeto časovno okno za konverzijo oglasnih prikazov (v sekundah)";
+$GLOBALS['strDefaultCliConvWindow'] = "Privzeto časovno okno za konverzijo po kliku na oglas (v sekundah)";
+$GLOBALS['strWarnLimit'] = "Pošlji opozorilo ko je število preostalih prikazov manjše kot navedeno tukaj";
 $GLOBALS['strWarnLimitDays'] = "Pošlji opozorilo ko je število preostalih dni manjše kot navedeno tukaj";
 $GLOBALS['strWarnAdmin'] = "Pošlji opozorilo administratorju, ko se kampanja bliža svojemu koncu";
 $GLOBALS['strWarnClient'] = "Pošlji opozorilo oglaševalcu, ko se kampanja bliža svojemu koncu";
@@ -256,5 +286,9 @@ $GLOBALS['strGuiHeaderTextColor'] = "Barva besedila v header-ju";
 $GLOBALS['strGzipContentCompression'] = "Uporabi GZIP za stiskanje vsebine";
 
 // Regenerate Platfor Hash script
+$GLOBALS['strNewPlatformHash'] = "Vaš novi Platform Hash je:";
+$GLOBALS['strPlatformHashInsertingError'] = "Napaka pri vstavljanju Platform Hash v podatkovno bazo";
 
 // Plugin Settings
+$GLOBALS['strPluginSettings'] = "Nastavitve vtičnika";
+$GLOBALS['strEnableNewPlugins'] = "Omogoči novo nameščene vtičnike";

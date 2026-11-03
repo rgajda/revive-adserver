@@ -25,19 +25,19 @@ phpAds_registerGlobal('newaffiliateid', 'returnurl', 'duplicate');
 OA_Permission::enforceAccount(OA_ACCOUNT_MANAGER);
 OA_Permission::enforceAccessToObject('channel', $channelid);
 
-$affiliateid    = (int) $affiliateid;
-$channelid      = (int) $channelid;
+// CVE-2013-5954 - see OA_Permission::checkSessionToken() method for details
+OA_Permission::checkSessionToken();
+
+$affiliateid = (int) $affiliateid;
+$channelid = (int) $channelid;
 
 if (empty($returnurl)) {
     $returnurl = 'channel-edit.php';
 }
 
 // Security check
-if (isset($channelid) && $channelid != '') {
-    OA_Permission::checkSessionToken();
-
+if (isset($channelid) && $channelid != 0) {
     if (isset($duplicate) && $duplicate == 'true') {
-
         //get channel old channel name
         $doChannel = OA_Dal::factoryDO('channel');
         if ($doChannel->get($channelid)) {
@@ -53,30 +53,27 @@ if (isset($channelid) && $channelid != '') {
         }
         // Queue confirmation message
         $translation = new OX_Translation();
-        $oldChannelParams = (!$affiliateid)
-            ? "channelid=$channelid"
-            :   "affiliateid=$affiliateid&channelid=$channelid";
+        $oldChannelParams = ($affiliateid)
+            ? "affiliateid=$affiliateid&channelid=$channelid"
+            : "channelid=$channelid";
 
-        $newChannelParams = (!$affiliateid)
-            ? "?channelid=$newChannelId"
-            : "?affiliateid=$affiliateid&channelid=$newChannelId";
+        $newChannelParams = ($affiliateid)
+            ? "?affiliateid=$affiliateid&channelid=$newChannelId"
+            : "?channelid=$newChannelId";
 
-        $translated_message = $translation->translate ( $GLOBALS['strChannelHasBeenDuplicated'],
-            array(MAX::constructURL(MAX_URL_ADMIN, "channel-edit.php?".$oldChannelParams),
+        $translated_message = $translation->translate(
+            $GLOBALS['strChannelHasBeenDuplicated'],
+            [MAX::constructURL(MAX_URL_ADMIN, "channel-edit.php?" . $oldChannelParams),
                 htmlspecialchars($oldName),
-                MAX::constructURL(MAX_URL_ADMIN, "channel-edit.php?".$newChannelParams),
-                htmlspecialchars($newName))
+                MAX::constructURL(MAX_URL_ADMIN, "channel-edit.php?" . $newChannelParams),
+                htmlspecialchars($newName)],
         );
         OA_Admin_UI::queueMessage($translated_message, 'local', 'confirm', 0);
 
 
-        Header("Location: ".$returnurl.$newChannelParams);
+        Header("Location: " . $returnurl . $newChannelParams);
         exit;
-
     }
-
 }
 
-Header("Location: ".$returnurl."?affiliateid=".$affiliateid."&channelid=".$channelid);
-
-?>
+Header("Location: " . $returnurl . "?affiliateid=" . $affiliateid . "&channelid=" . $channelid);

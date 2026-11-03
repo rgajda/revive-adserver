@@ -40,6 +40,9 @@ phpAds_MaintenanceSelection("acls");
 if (!empty($action) && ($action == 'Recompile')) {
     OA_Permission::checkSessionToken();
 
+    // This could take a long time!
+    @set_time_limit(0);
+
     MAX_AclReCompileAll();
     echo "<strong>$strAllBannerChannelCompiled</strong><br />";
 }
@@ -48,7 +51,7 @@ echo $strBannerChannelResult;
 phpAds_ShowBreak();
 // Check the ACLs in the database against the compiled limitation strings...
 
-echo "<strong>". $strChannels .":</strong>";
+echo "<strong>" . $strChannels . ":</strong>";
 phpAds_showBreak();
 
 // Check all the channels...
@@ -59,10 +62,10 @@ $rsChannel = $dalChannel->getChannelsAndAffiliates();
 $rsChannel->find();
 $allChannelsValid = true;
 while ($rsChannel->fetch() && $row = $rsChannel->toArray()) {
-    if (!MAX_AclValidate('channel-acl.php', array('channelid' => $row['channelid']))) {
+    if (!MAX_AclValidate('channel-acl.php', ['channelid' => $row['channelid']])) {
         $allChannelsValid = false;
-        $affiliateName = (!empty($row['affiliatename'])) ? $row['affiliatename'] : $strUntitled;
-        echo "<a href='channel-acl.php?affiliateid={$row['affiliateid']}&channelid={$row['channelid']}'>{$row['name']}</a><br />";
+        $channelName = htmlspecialchars(empty($row['name']) ? $strUntitled : $row['name'], ENT_QUOTES);
+        echo "<a href='channel-acl.php?affiliateid={$row['affiliateid']}&channelid={$row['channelid']}'>{$channelName}</a><br />";
     }
 }
 if ($allChannelsValid) {
@@ -79,11 +82,11 @@ $rsBanners->find();
 
 $allBannersValid = true;
 while ($rsBanners->fetch() && $row = $rsBanners->toArray()) {
-    if (!MAX_AclValidate('banner-acl.php', array('bannerid' => $row['bannerid']))) {
+    if (!MAX_AclValidate('banner-acl.php', ['bannerid' => $row['bannerid']])) {
         $allBannersValid = false;
-        $bannerName = (!empty($row['description'])) ? $row['description'] : $strUntitled;
-        $campaignName = (!empty($row['campaignname'])) ? $row['campaignname'] : $strUntitled;
-        $clientName = (!empty($row['clientname'])) ? $row['clientname'] : $strUntitled;
+        $bannerName = htmlspecialchars(empty($row['description']) ? $strUntitled : $row['description'], ENT_QUOTES);
+        $campaignName = htmlspecialchars(empty($row['campaignname']) ? $strUntitled : $row['campaignname'], ENT_QUOTES);
+        $clientName = htmlspecialchars(empty($row['clientname']) ? $strUntitled : $row['clientname'], ENT_QUOTES);
         echo "{$clientName} -> {$campaignName} -> <a href='banner-acl.php?clientid={$row['clientid']}&campaignid={$row['campaignid']}&bannerid={$row['bannerid']}'>{$bannerName}</a><br />";
     }
 }
@@ -93,10 +96,10 @@ if ($allBannersValid) {
 
 if (!$allBannersValid || !$allChannelsValid) {
     phpAds_ShowBreak();
-    echo "<br /><strong>". $strErrorsFound ."</strong><br /><br />";
+    echo "<br /><strong>" . $strErrorsFound . "</strong><br /><br />";
     echo $strRepairCompiledLimitations;
     echo "<form action='' METHOD='GET'>";
-    echo "<input type='hidden' name='token' value='".htmlspecialchars(phpAds_SessionGetToken(), ENT_QUOTES)."' />";
+    echo "<input type='hidden' name='token' value='" . htmlspecialchars(phpAds_SessionGetToken(), ENT_QUOTES) . "' />";
     echo "<input type='submit' name='action' value='$strRecompile' />";
     echo "</form>";
 }
@@ -107,5 +110,3 @@ if (!$allBannersValid || !$allChannelsValid) {
 /*-------------------------------------------------------*/
 
 phpAds_PageFooter();
-
-?>

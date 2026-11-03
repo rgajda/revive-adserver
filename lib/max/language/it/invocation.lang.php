@@ -34,10 +34,7 @@ $GLOBALS['strInvocationComments'] = "Includi commenti";
 
 // Iframe
 $GLOBALS['strIFrameRefreshAfter'] = "Aggiorna dopo";
-$GLOBALS['strIframeResizeToBanner'] = "Adatta dimensioni IFrame al Banner";
 $GLOBALS['strIframeMakeTransparent'] = "Sfondo IFrame trasparente";
-$GLOBALS['strIframeIncludeNetscape4'] = "Includi ilayer compatibile con Netscape 4";
-$GLOBALS['strIframeGoogleClickTracking'] = "Includi il codice per monitorare i click AdSense di Google";
 
 // PopUp
 $GLOBALS['strPopUpStyle'] = "Tipo di Pop-up";
@@ -52,17 +49,9 @@ $GLOBALS['strWindowOptions'] = "Opzioni finestra";
 $GLOBALS['strShowToolbars'] = "Barra degli strumenti";
 $GLOBALS['strShowLocation'] = "Barra dell'indirizzo";
 $GLOBALS['strShowMenubar'] = "Barra dei menu";
-$GLOBALS['strShowStatus'] = "Barra di stato";
+$GLOBALS['strShowStatus'] = "Stato";
 $GLOBALS['strWindowResizable'] = "Ridimensionabile";
 $GLOBALS['strShowScrollbars'] = "Barre di scorrimento";
-
-// XML-RPC
-$GLOBALS['strXmlRpcLanguage'] = "Linguaggio utilizzato";
-$GLOBALS['strXmlRpcProtocol'] = "Usa HTTPS per contattare il Server XML-RPC";
-$GLOBALS['strXmlRpcTimeout'] = "Timeout XML-RPC (secondi)";
-
-// Support for 3rd party server clicktracking
-$GLOBALS['str3rdPartyTrack'] = "Supporta server di tracciamento dei click di terze parti";
 
 // Support for cachebusting code
 $GLOBALS['strCacheBuster'] = "Inserisci codice di Cache-Busting";
@@ -70,6 +59,3 @@ $GLOBALS['strCacheBuster'] = "Inserisci codice di Cache-Busting";
 // IMG invocation selected for tracker with appended code
 $GLOBALS['strWarning'] = "Attenzione";
 $GLOBALS['strImgWithAppendWarning'] = "Questo tracker ha aggiunto il codice, il codice aggiunto funzionerà <strong>solo</strong> con tag JavaScript";
-
-// Local Invocation
-

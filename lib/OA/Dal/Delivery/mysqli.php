@@ -20,54 +20,69 @@
 /**
  * The function to open a database connection, or return the resource if already open
  *
- * @param string $database   The name of the database config to use
- *                           (Must match the database section name in the conf file)
- * @return mysqli|false    The MySQL database resource
- *                           or false on failure
+ * @param string $database The name of the database config section to use. If not found, it falls back to 'database'
+ *
+ * @return mysqli|false
  */
-function OA_Dal_Delivery_connect($database = 'database') {
+function OA_Dal_Delivery_connect($database = 'database')
+{
+    $database = 'rawDatabase' === $database ? 'database' : $database;
+
     // If a connection already exists, then return that
-    if ($database == 'database' && isset($GLOBALS['_MAX']['ADMIN_DB_LINK']) && $GLOBALS['_MAX']['ADMIN_DB_LINK'] instanceof mysqli) {
+    if ('database' === $database && isset($GLOBALS['_MAX']['ADMIN_DB_LINK']) && $GLOBALS['_MAX']['ADMIN_DB_LINK'] instanceof \Pgsql\Connection) {
         return $GLOBALS['_MAX']['ADMIN_DB_LINK'];
-    } elseif ($database == 'rawDatabase' && isset($GLOBALS['_MAX']['RAW_DB_LINK']) && $GLOBALS['_MAX']['RAW_DB_LINK'] instanceof mysqli) {
-        return $GLOBALS['_MAX']['RAW_DB_LINK'];
     }
 
     // No connection exists, so create one
     $conf = $GLOBALS['_MAX']['CONF'];
-    if (!empty($conf[$database])) {
-        $dbConf = $conf[$database];
-    } else {
-        $dbConf = $conf['database'];
-    }
+    $dbConf = empty($conf[$database]) ? $conf['database'] : $conf[$database];
 
     $dbPersistent = empty($dbConf['persistent']) ? '' : 'p:';
     $dbHost = $dbConf['host'];
-    $dbPort = isset($dbConf['port']) ? $dbConf['port'] : 3306;
+    $dbPort = $dbConf['port'] ?? 3306;
     $dbUser = $dbConf['username'];
     $dbPassword = $dbConf['password'];
     $dbName = $dbConf['name'];
 
+    mysqli_report(MYSQLI_REPORT_OFF);
+
     if ($dbConf['protocol'] == 'unix' && !empty($dbConf['socket'])) {
-        $dbLink = mysqli_connect($dbPersistent.'localhost', $dbUser, $dbPassword, $dbName, $dbPort, $dbConf['socket']);
+        $dbLink = @mysqli_connect($dbPersistent . 'localhost', $dbUser, $dbPassword, $dbName, $dbPort, $dbConf['socket']);
+    } elseif ($dbConf['ssl']) {
+        $init = mysqli_init();
+        mysqli_ssl_set(
+            $init,
+            null,
+            null,
+            empty($dbConf['ca']) ? null : $dbConf['ca'],
+            empty($dbConf['capath']) ? null : $dbConf['capath'],
+            null,
+        );
+        if ($dbLink = @mysqli_real_connect($init, $dbPersistent . $dbHost, $dbUser, $dbPassword, $dbName, $dbPort)) {
+            // Connection successful (else: $dbLink == false)
+            $dbLink = $init;
+        }
     } else {
-        $dbLink = mysqli_connect($dbPersistent.$dbHost, $dbUser, $dbPassword, $dbName, $dbPort);
+        $dbLink = @mysqli_connect($dbPersistent . $dbHost, $dbUser, $dbPassword, $dbName, $dbPort);
     }
 
-    if ($dbLink) {
-        if (!empty($dbConf['mysql4_compatibility'])) {
-            mysqli_query($dbLink, "SET SESSION sql_mode='MYSQL40'");
-        }
+    if (!$dbLink) {
+        OX_Delivery_logMessage('DB connection error: ' . mysqli_connect_error(), 4);
 
-        if (!empty($conf['databaseCharset']['checkComplete']) && !empty($conf['databaseCharset']['clientCharset'])) {
-            mysqli_query($dbLink, "SET NAMES '{$conf['databaseCharset']['clientCharset']}'");
-        }
-
-        return $dbLink;
+        return false;
     }
 
-    OX_Delivery_logMessage('DB connection error: ' . mysqli_error($dbLink), 4);
-    return false;
+    @mysqli_query($dbLink, "SET SESSION sql_mode=''");
+
+    if (!empty($conf['databaseCharset']['checkComplete']) && !empty($conf['databaseCharset']['clientCharset'])) {
+        @mysqli_query($dbLink, "SET NAMES '{$conf['databaseCharset']['clientCharset']}'");
+    }
+
+    if ('database' === $database) {
+        $GLOBALS['_MAX']['ADMIN_DB_LINK'] = $GLOBALS['_MAX']['RAW_DB_LINK'] = $dbLink;
+    }
+
+    return $dbLink;
 }
 
 /**
@@ -79,23 +94,22 @@ function OA_Dal_Delivery_connect($database = 'database') {
  * @return resource|false  The MySQL resource if the query suceeded
  *                          or false on failure
  */
-function OA_Dal_Delivery_query($query, $database = 'database') {
-    // Connect to the database if necessary
-    $dbName = ($database == 'rawDatabase') ? 'RAW_DB_LINK' : 'ADMIN_DB_LINK';
+function OA_Dal_Delivery_query($query, $database = 'database')
+{
+    $dbLink = OA_Dal_Delivery_getDbLink($database);
 
-    if (empty($GLOBALS['_MAX'][$dbName])) {
-        $GLOBALS['_MAX'][$dbName] = OA_Dal_Delivery_connect($database);
-    }
-    if ($GLOBALS['_MAX'][$dbName] instanceof mysqli) {
-        $result = mysqli_query($GLOBALS['_MAX'][$dbName], $query);
-        if (!$result) {
-            OX_Delivery_logMessage('DB query error: ' . mysqli_error($GLOBALS['_MAX'][$dbName]), 4);
-            OX_Delivery_logMessage(' - failing query: ' . $query, 5);
-        }
-        return $result;
-    } else {
+    if (!$dbLink instanceof \mysqli) {
         return false;
     }
+
+    $result = mysqli_query($dbLink, $query);
+
+    if (!$result) {
+        OX_Delivery_logMessage('DB query error: ' . mysqli_error($dbLink), 4);
+        OX_Delivery_logMessage(' - failing query: ' . $query, 5);
+    }
+
+    return $result;
 }
 
 /**
@@ -104,7 +118,8 @@ function OA_Dal_Delivery_query($query, $database = 'database') {
  * @param mysqli_result $resource The MySQL resource
  * @return array
  */
-function OA_Dal_Delivery_fetchAssoc($resource) {
+function OA_Dal_Delivery_fetchAssoc($resource)
+{
     return mysqli_fetch_assoc($resource);
 }
 
@@ -120,11 +135,13 @@ function OA_Dal_Delivery_fetchAssoc($resource) {
  */
 function OA_Dal_Delivery_insertId($database = 'database', $table = '', $column = '')
 {
-    $dbName = ($database == 'rawDatabase') ? 'RAW_DB_LINK' : 'ADMIN_DB_LINK';
-    if (!isset($GLOBALS['_MAX'][$dbName]) || !($GLOBALS['_MAX'][$dbName] instanceof mysqli)) {
+    $dbLink = OA_Dal_Delivery_getDbLink($database);
+
+    if (!$dbLink instanceof \mysqli) {
         return false;
     }
-    return mysqli_insert_id($GLOBALS['_MAX'][$dbName]);
+
+    return mysqli_insert_id($dbLink);
 }
 
 function OA_Dal_Delivery_numRows($result)
@@ -148,13 +165,13 @@ function OA_Dal_Delivery_result($result, $row_number, $field_name)
 
 function OX_escapeString($string)
 {
-    // Initiate the connection to the database (before using mysqli_real_escape_string)
-    static $connected;
-    if (!isset($connected)) {
-        $connected = true;
-        $GLOBALS['_MAX']['RAW_DB_LINK'] = OA_Dal_Delivery_connect('rawDatabase');
+    $dbLink = OA_Dal_Delivery_getDbLink('rawDatabase');
+
+    if (!$dbLink instanceof \mysqli) {
+        return false;
     }
-    return mysqli_real_escape_string($GLOBALS['_MAX']['RAW_DB_LINK'], $string);
+
+    return mysqli_real_escape_string($dbLink, $string);
 }
 
 function OX_unescapeBlob($blob)
@@ -164,41 +181,36 @@ function OX_unescapeBlob($blob)
 
 function OX_escapeIdentifier($string)
 {
-    return '`'.$string.'`';
+    return '`' . $string . '`';
 }
 
 function OX_Dal_Delivery_regex($column, $regexp)
 {
-    return $column." REGEXP '".$regexp."'";
+    return $column . " REGEXP '" . $regexp . "'";
 }
 
 function OX_bucket_updateTable($tableName, $aQuery, $increment = true, $counter = 'count')
 {
+    OA_Dal_Delivery_connect('rawDatabase');
+
     $prefix = $GLOBALS['_MAX']['CONF']['table']['prefix'];
     $query = OX_bucket_prepareUpdateQuery($prefix . $tableName, $aQuery, $increment, $counter);
-
-    $result = OA_Dal_Delivery_query(
+    return OA_Dal_Delivery_query(
         $query,
-        'rawDatabase'
+        'rawDatabase',
     );
-    return $result;
 }
 
 function OX_bucket_prepareUpdateQuery($tableName, $aQuery, $increment = true, $counter = 'count')
 {
-    $aQuery = array_map('OX_escapeString', $aQuery);
-    if ($increment) {
-    $aQuery[$counter] = 1;
-    } else {
-        $aQuery[$counter] = -1;
-    }
+    $aQuery = array_map(OX_escapeString(...), $aQuery);
+    $aQuery[$counter] = $increment ? 1 : -1;
     $query = "
         INSERT INTO {$tableName}
             (" . implode(', ', array_keys($aQuery)) . ")
             VALUES ('" . implode("', '", $aQuery) . "')
     ";
-    $query .= " ON DUPLICATE KEY UPDATE $counter = $counter + {$aQuery[$counter]}";
-    return $query;
+    return $query . " ON DUPLICATE KEY UPDATE $counter = $counter + {$aQuery[$counter]}";
 }
 
 function OA_Dal_Delivery_getKeywordCondition($operator, $keyword)
@@ -208,14 +220,24 @@ function OA_Dal_Delivery_getKeywordCondition($operator, $keyword)
 
     $p1 = "CONCAT(' ',d.keyword,' ')";
     $p2 = "LIKE '% $keyword %'";
-
     if ($operator == 'OR') {
         return "OR {$p1} {$p2} ";
-    } elseif ($operator == 'AND') {
-        return "AND {$p1} {$p2} ";
-    } else {
-        return "AND {$p1} NOT {$p2} ";
     }
+
+    if ($operator == 'AND') {
+        return "AND {$p1} {$p2} ";
+    }
+    return "AND {$p1} NOT {$p2} ";
 }
 
-?>
+function OA_Dal_Delivery_getDbLink(string $database = 'database'): ?\mysqli
+{
+    // Connect to the database if necessary
+    $dbName = ($database == 'rawDatabase') ? 'RAW_DB_LINK' : 'ADMIN_DB_LINK';
+
+    if (!empty($GLOBALS['_MAX'][$dbName])) {
+        return $GLOBALS['_MAX'][$dbName];
+    }
+
+    return OA_Dal_Delivery_connect($database) ?: null;
+}

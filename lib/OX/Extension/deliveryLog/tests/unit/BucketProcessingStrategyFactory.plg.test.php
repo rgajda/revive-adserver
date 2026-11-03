@@ -23,22 +23,16 @@ require_once LIB_PATH . '/Extension/deliveryLog/BucketProcessingStrategyFactory.
  */
 class Test_OX_Extension_DeliveryLog_BucketProcessingStrategyFactory extends UnitTestCase
 {
-
     /**
      * The method to test the factory's getAggregateBucketProcessingStrategy()
      * methiod.
      */
-    function testGetAggregateBucketProcessingStrategy()
+    public function testGetAggregateBucketProcessingStrategy()
     {
-        $aConf =& $GLOBALS['_MAX']['CONF'];
+        $aConf = &$GLOBALS['_MAX']['CONF'];
 
         // Test the creation of an edge/aggregate server MySQL strategy class
         $aConf['lb']['enabled'] = true;
-        $aConf['database']['type'] = 'mysql';
-        $oProcessingStrategy =
-            OX_Extension_DeliveryLog_BucketProcessingStrategyFactory::getAggregateBucketProcessingStrategy($aConf['database']['type']);
-        $this->assertTrue(is_a($oProcessingStrategy, 'OX_Extension_DeliveryLog_AggregateBucketProcessingStrategyMysql'));
-
         $aConf['database']['type'] = 'mysqli';
         $oProcessingStrategy =
             OX_Extension_DeliveryLog_BucketProcessingStrategyFactory::getAggregateBucketProcessingStrategy($aConf['database']['type']);
@@ -57,17 +51,12 @@ class Test_OX_Extension_DeliveryLog_BucketProcessingStrategyFactory extends Unit
      * The method to test the factory's getRawBucketProcessingStrategy()
      * methiod.
      */
-    function testGetRawBucketProcessingStrategy()
+    public function testGetRawBucketProcessingStrategy()
     {
-        $aConf =& $GLOBALS['_MAX']['CONF'];
+        $aConf = &$GLOBALS['_MAX']['CONF'];
 
         // Test the creation of an edge/aggregate server MySQL strategy class
         $aConf['lb']['enabled'] = true;
-        $aConf['database']['type'] = 'mysql';
-        $oProcessingStrategy =
-            OX_Extension_DeliveryLog_BucketProcessingStrategyFactory::getRawBucketProcessingStrategy($aConf['database']['type']);
-        $this->assertTrue(is_a($oProcessingStrategy, 'OX_Extension_DeliveryLog_RawBucketProcessingStrategyMysql'));
-
         $aConf['database']['type'] = 'mysqli';
         $oProcessingStrategy =
             OX_Extension_DeliveryLog_BucketProcessingStrategyFactory::getRawBucketProcessingStrategy($aConf['database']['type']);
@@ -81,7 +70,4 @@ class Test_OX_Extension_DeliveryLog_BucketProcessingStrategyFactory extends Unit
         // Restore the configuration file
         TestEnv::restoreConfig();
     }
-
 }
-
-?>

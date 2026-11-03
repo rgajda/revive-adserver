@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "Dalej »";
 $GLOBALS['strBtnRecover'] = "Odzyskaj »";
 $GLOBALS['strBtnAgree'] = "Wyrażam zgodę »";
 $GLOBALS['strBtnRetry'] = "Próbuj ponownie";
-$GLOBALS['strWarningRegisterArgcArv'] = "Aby uruchomić działania konserwacyjne z polecenia należy włączyć zmienną konfiguracji PHP register_argc_argv.";
+$GLOBALS['strTablesPrefix'] = "Prefiks nazw tabeli";
 $GLOBALS['strTablesType'] = "Typ tabeli";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "W czasie poprzedniej próby aktualizacji wystąpiły błędy";
@@ -40,6 +40,7 @@ $GLOBALS['strImagesUrlPrefix'] = "URL pamięci plików graficznych";
 $GLOBALS['strImagesUrlPrefixSSL'] = "URL pamięci plików graficznych (SSL)";
 
 
+$GLOBALS['strUpgrade'] = "Aktualizacja";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
@@ -49,10 +50,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "URL pamięci plików graficznych (SSL)";
 $GLOBALS['strChooseSection'] = "Wybierz sekcję";
 $GLOBALS['strUnableToWriteConfig'] = "Nie można wprowadzić zmian w pliku config";
 $GLOBALS['strUnableToWritePrefs'] = "Nie można wprowadzić preferencji w bazie danych";
-$GLOBALS['strImageDirLockedDetected'] = "Wskazany <b>Folder Obrazów</b> nie jest otwarty do edycji. <b>Zmień uprawnienia w folderze lub utwórz folder, aby kontynuować.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Ustawienia konfiguracji";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Nazwa użytkownika Administratora";
@@ -93,6 +92,8 @@ $GLOBALS['strQmailPatch'] = "Włącz łatkę qmail";
 $GLOBALS['strEnableQmailPatch'] = "Włącz łatkę qmail";
 $GLOBALS['strEmailHeader'] = "Nagłówki e-mail";
 $GLOBALS['strEmailLog'] = "Log e-maila";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Ustawienia Audytu";
@@ -159,16 +160,8 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Wyświetlenie reklamy";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "Kod wywołujący XML RPC";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Lokalny kod wywołujący";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Sterownik główny";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Animacja Flash (może być pełny URL)";
 $GLOBALS['strDeliveryCaching'] = "Ustawienia cache banerów";
 $GLOBALS['strDeliveryCacheLimit'] = "Okres czasu pomiędzy aktualizacjami cache banerów (w sekundach)";
-$GLOBALS['strDeliveryExecPhp'] = "Zezwól na wykonywanie kodu PHP w reklamach <br /> (UWAGA: Obniża poziom bezpieczeństwa)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Ogranicznik śledzenia kliknięć strony trzeciej";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "Ogólny domyślny URL banera obrazu";
-$GLOBALS['strP3PSettings'] = "Polityka prywatności P3P";
-$GLOBALS['strUseP3P'] = "Użyj deklaracji P3P";
-$GLOBALS['strP3PCompactPolicy'] = "Skrócona deklaracja P3P";
-$GLOBALS['strP3PPolicyLocation'] = "Lokalizacja deklaracji P3P";
 
 // General Settings
 $GLOBALS['uiEnabled'] = "Interfejs użytkownika aktywny";

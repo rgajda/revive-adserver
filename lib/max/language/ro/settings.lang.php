@@ -20,7 +20,7 @@ $GLOBALS['strBtnContinue'] = "Continuă »";
 $GLOBALS['strBtnRecover'] = "Recuperează »";
 $GLOBALS['strBtnAgree'] = "Sunt de acord »";
 $GLOBALS['strBtnRetry'] = "Reîncearcă";
-$GLOBALS['strWarningRegisterArgcArv'] = "Variabila register_argc_argv din configuraţia PHP trebuie setată pe on pentru a executa mentenanţa din linia de comandă.";
+$GLOBALS['strTablesPrefix'] = "Prefix nume de tabele";
 $GLOBALS['strTablesType'] = "Tip tabelă";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Încercarea ta anterioară de actualizare a întâmpinat o eroare";
@@ -49,10 +49,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "URL Stocare Imagini (SSL)";
 $GLOBALS['strChooseSection'] = "Alege Secţiune";
 $GLOBALS['strUnableToWriteConfig'] = "Nu pot efectua modificările în fişierul de configurare";
 $GLOBALS['strUnableToWritePrefs'] = "Nu pot introduce aceste preferinţe în baza de date";
-$GLOBALS['strImageDirLockedDetected'] = "<b>Dosarul de Imagini</b> furnizat nu poate fi scris de către server. <br>Nu poţi continua până când nu modifici permisiunile sau creezi acel dosar.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Setări configurare";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Utilizator Administrator";
@@ -93,6 +91,8 @@ $GLOBALS['strQmailPatch'] = "patch qmail";
 $GLOBALS['strEnableQmailPatch'] = "Activează patch-ul qmail";
 $GLOBALS['strEmailHeader'] = "Headere email";
 $GLOBALS['strEmailLog'] = "Jurnal email";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Setări ale Urmăririi Bilanţului";
@@ -155,16 +155,8 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Vizualizare Reclamă";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "Invocare XML RPC";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Invocare Locală";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Controler Faţă";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Include Flash (Poate fi un URL complet)";
 $GLOBALS['strDeliveryCaching'] = "Setări Cache Distribuţie Banner";
 $GLOBALS['strDeliveryCacheLimit'] = "Perioada între actualizările Cache-ului de Bannere (secunde)";
-$GLOBALS['strDeliveryExecPhp'] = "Permite execuţia codului PHP în reclame<br />(Atenţie: Risc de Securitate)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Separator Urmărire Click-uri pentru Terţe Părţi";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "URL Global către bannerul imagine implicit";
-$GLOBALS['strP3PSettings'] = "Politici de Confidenţialitate P3P";
-$GLOBALS['strUseP3P'] = "Foloseşte Politici P3P";
-$GLOBALS['strP3PCompactPolicy'] = "Politică Compactă P3P";
-$GLOBALS['strP3PPolicyLocation'] = "Locaţie Politică P3P";
 
 // General Settings
 $GLOBALS['uiEnabled'] = "Interfaţa Utilizatorului Activată";

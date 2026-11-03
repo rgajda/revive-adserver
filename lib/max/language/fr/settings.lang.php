@@ -15,12 +15,12 @@ $GLOBALS['strInstall'] = "Installer";
 $GLOBALS['strDatabaseSettings'] = "Base de données {$phpAds_dbmsname}";
 $GLOBALS['strAdminAccount'] = "Compte administrateur";
 $GLOBALS['strAdvancedSettings'] = "Paramètres avancés";
-$GLOBALS['strWarning'] = "Attention";
+$GLOBALS['strWarning'] = "Avertissement";
 $GLOBALS['strBtnContinue'] = "Continuer »";
 $GLOBALS['strBtnRecover'] = "Reprendre »";
 $GLOBALS['strBtnAgree'] = "J'accepte »";
 $GLOBALS['strBtnRetry'] = "Réessayer";
-$GLOBALS['strWarningRegisterArgcArv'] = "La variable register_argc_argv de la configuration PHP doit être activée afin de pouvoir lancer la maintenance depuis la ligne de commande.";
+$GLOBALS['strTablesPrefix'] = "Préfixe des noms des tables";
 $GLOBALS['strTablesType'] = "Type de tables";
 
 $GLOBALS['strRecoveryRequiredTitle'] = "Votre précédente tentative de mise à jour a rencontré une erreur";
@@ -40,6 +40,7 @@ $GLOBALS['strImagesUrlPrefix'] = "URL de stockage des images";
 $GLOBALS['strImagesUrlPrefixSSL'] = "URL de stockage des images (SSL)";
 
 
+$GLOBALS['strUpgrade'] = "Mise à niveau";
 
 /* ------------------------------------------------------- */
 /* Configuration translations                            */
@@ -49,10 +50,8 @@ $GLOBALS['strImagesUrlPrefixSSL'] = "URL de stockage des images (SSL)";
 $GLOBALS['strChooseSection'] = "Choisir la section";
 $GLOBALS['strUnableToWriteConfig'] = "Impossible d'écrire les modifications dans le fichier de configuration";
 $GLOBALS['strUnableToWritePrefs'] = "Impossible d'appliquer les préférences dans la base de données";
-$GLOBALS['strImageDirLockedDetected'] = "Le <b>dossier images</b> indiqué n'est pas accessible en écriture par le serveur. <br>Vous ne pourrez pas poursuivre tant que vous n'aurez pas changé les permissions ou créé le dossier.";
 
 // Configuration Settings
-$GLOBALS['strConfigurationSettings'] = "Paramètres de configuration";
 
 // Administrator Settings
 $GLOBALS['strAdminUsername'] = "Identifiant de l'administrateur";
@@ -95,6 +94,8 @@ $GLOBALS['strQmailPatch'] = "Patch qmail";
 $GLOBALS['strEnableQmailPatch'] = "Activer le patch qmail";
 $GLOBALS['strEmailHeader'] = "En-têtes HTML";
 $GLOBALS['strEmailLog'] = "Journal HTML";
+
+// Security settings
 
 // Audit Trail Settings
 $GLOBALS['strAuditTrailSettings'] = "Paramètres de la piste d'audit";
@@ -157,17 +158,9 @@ $GLOBALS['strDeliveryFilenamesAdView'] = "Affichage publicitaire";
 $GLOBALS['strDeliveryFilenamesXMLRPC'] = "Invocation XML RPC";
 $GLOBALS['strDeliveryFilenamesLocal'] = "Invocation locale";
 $GLOBALS['strDeliveryFilenamesFrontController'] = "Contrôleur frontal";
-$GLOBALS['strDeliveryFilenamesFlash'] = "Inclusion Flash (Peut être une URL complète)";
 $GLOBALS['strDeliveryCaching'] = "Paramètres du cache de distribution des bannières";
 $GLOBALS['strDeliveryCacheLimit'] = "Temps entre les mises à jour du cache des bannières (secondes)";
 $GLOBALS['strDeliveryCacheStore'] = "Type de stockage du cache de distribution des bannières";
-$GLOBALS['strDeliveryExecPhp'] = "Autoriser le code PHP à être exécuté dans les publicités<br />(Attention : risque de sécurité)";
-$GLOBALS['strDeliveryCtDelimiter'] = "Délimiteur de suivi des clics par les tiers";
-$GLOBALS['strGlobalDefaultBannerUrl'] = "URL de l'image de la bannière par défaut générale";
-$GLOBALS['strP3PSettings'] = "Politique de vie privée P3P";
-$GLOBALS['strUseP3P'] = "Utiliser les politiques P3P";
-$GLOBALS['strP3PCompactPolicy'] = "Politique P3P réduite";
-$GLOBALS['strP3PPolicyLocation'] = "Emplacement de la politique P3P";
 
 // General Settings
 $GLOBALS['generalSettings'] = "Système de paramétrage global";

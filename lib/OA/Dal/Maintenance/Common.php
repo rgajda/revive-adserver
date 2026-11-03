@@ -25,15 +25,6 @@ require_once LIB_PATH . '/OperationInterval.php';
  */
 class OA_Dal_Maintenance_Common extends MAX_Dal_Common
 {
-
-    /**
-     * The class constructor method.
-     */
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * A method to store data about the times that various Maintenance
      * processes ran.
@@ -53,7 +44,7 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
      * @param string $runTypeField Optional name of DB field to hold $type value.
      * @param integer $type Optional type of process run performed.
      */
-    function setProcessLastRunInfo($oStart, $oEnd, $oUpdateTo, $tableName, $setOperationInterval, $runTypeField = null, $type = null)
+    public function setProcessLastRunInfo($oStart, $oEnd, $oUpdateTo, $tableName, $setOperationInterval, $runTypeField = null, $type = null)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         // Test input values $oStart and $oEnd are dates
@@ -61,10 +52,8 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
             return false;
         }
         // Test $oUpdateTo is a date, or null
-        if (!is_a($oUpdateTo, 'Date')) {
-            if (!is_null($oUpdateTo)) {
-                return false;
-            }
+        if (!is_a($oUpdateTo, 'Date') && !is_null($oUpdateTo)) {
+            return false;
         }
         // Test $setOperationInterval value is a boolean
         if (!is_bool($setOperationInterval)) {
@@ -103,21 +92,21 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
                 )
             VALUES
                 (
-                    '".$oStart->format('%Y-%m-%d %H:%M:%S')."',
-                    '".$oEnd->format('%Y-%m-%d %H:%M:%S')."',";
+                    '" . $oStart->format('%Y-%m-%d %H:%M:%S') . "',
+                    '" . $oEnd->format('%Y-%m-%d %H:%M:%S') . "',";
         if ($setOperationInterval) {
             $query .= "
                     {$aConf['maintenance']['operationInterval']},";
         }
         $query .= "
-                    ".$oDuration->toSeconds();
+                    " . $oDuration->toSeconds();
         if (!is_null($runTypeField) && !is_null($type)) {
             $query .= ",
                     $type";
         }
         if (!is_null($oUpdateTo)) {
             $query .= ",
-                    '".$oUpdateTo->format('%Y-%m-%d %H:%M:%S')."'";
+                    '" . $oUpdateTo->format('%Y-%m-%d %H:%M:%S') . "'";
         }
         $query .= "
                 )";
@@ -125,9 +114,8 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
         $rows = $this->oDbh->exec($query);
         if (PEAR::isError($rows)) {
             return false;
-        } else {
-            return $rows;
         }
+        return $rows;
     }
 
     /**
@@ -163,7 +151,7 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
      *               fields (see $aAdditionalFields parameter), unless the alternate raw table
      *               was used (see $alternateRawTableName parameter).
      */
-    function getProcessLastRunInfo($tableName, $aAdditionalFields = array(), $whereClause = null, $orderBy = 'start_run', $aAlternateInfo = array())
+    public function getProcessLastRunInfo($tableName, $aAdditionalFields = [], $whereClause = null, $orderBy = 'start_run', $aAlternateInfo = [])
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         // Test input values $aAdditionalFields and $aAlternateInfo are arrays
@@ -222,11 +210,11 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
                 if ($aAlternateInfo['type'] == 'oi') {
                     $aDates = OX_OperationInterval::convertDateToOperationIntervalStartAndEndDates($oDate);
                     $oResultDate = $aDates['start'];
-                } else if ($aAlternateInfo['type'] == 'hour') {
+                } elseif ($aAlternateInfo['type'] == 'hour') {
                     $oResultDate = new Date($oDate->format('%Y-%m-%d %H:00:00'));
                 }
                 $oResultDate->subtractSeconds(1);
-                return array('updated_to' => $oResultDate->format('%Y-%m-%d %H:%M:%S'));
+                return ['updated_to' => $oResultDate->format('%Y-%m-%d %H:%M:%S')];
             }
         }
         // No result found, return null
@@ -247,11 +235,11 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
      * the Maintenance Statistics, Maintenance Priority AND the Maintenance
      * Forecasting engines.
      */
-    function getMaintenanceStatisticsLastRunInfo()
+    public function getMaintenanceStatisticsLastRunInfo()
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         $table = $aConf['table']['log_maintenance_statistics'];
-        return $this->getProcessLastRunInfo($table, array('adserver_run_type'));
+        return $this->getProcessLastRunInfo($table, ['adserver_run_type']);
     }
 
     /**
@@ -292,14 +280,14 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
      *
      * @TODO Re-locate this method into the Entities DAL class!
      */
-    function getAllDeliveryLimitationsByTypeId($id, $type)
+    public function getAllDeliveryLimitationsByTypeId($id, $type)
     {
         $aConf = $GLOBALS['_MAX']['CONF'];
         if ($type == 'ad') {
             $table = 'acls';
             $key = 'bannerid';
             $keyAs = 'ad_id';
-        } else if ($type == 'channel') {
+        } elseif ($type == 'channel') {
             $table = 'acls_channel';
             $key = 'channelid';
             $keyAs = 'ad_id';
@@ -327,13 +315,10 @@ class OA_Dal_Maintenance_Common extends MAX_Dal_Common
         if ($rc->numRows() < 1) {
             return null;
         }
-        $aResult = array();
+        $aResult = [];
         while ($aRow = $rc->fetchRow()) {
             $aResult[] = $aRow;
         }
         return $aResult;
     }
-
 }
-
-?>

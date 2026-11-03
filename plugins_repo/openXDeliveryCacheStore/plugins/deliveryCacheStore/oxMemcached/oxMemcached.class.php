@@ -12,7 +12,7 @@
 
 require_once LIB_PATH . '/Extension/deliveryCacheStore/DeliveryCacheStore.php';
 // Using multi-dirname so tests can be run from either plugins or plugins_repo
-require_once dirname(__FILE__) . '/oxMemcached.delivery.php';
+require_once __DIR__ . '/oxMemcached.delivery.php';
 require_once MAX_PATH . '/lib/max/Plugin/Translation.php';
 
 /**
@@ -28,7 +28,7 @@ class Plugins_DeliveryCacheStore_oxMemcached_oxMemcached extends Plugins_Deliver
      *
      * @return string
      */
-    function getName()
+    public function getName()
     {
         return $this->translate('memcached');
     }
@@ -38,18 +38,18 @@ class Plugins_DeliveryCacheStore_oxMemcached_oxMemcached extends Plugins_Deliver
      *
      * @return bool|array True if there is no problems or array of string with error messages otherwise
      */
-    function getStatus()
+    public function getStatus()
     {
-        $aErrors = array();
+        $aErrors = [];
         $aConf = $GLOBALS['_MAX']['CONF'];
 
         // Check if memcached is enabled in php.ini
         if (!class_exists('Memcached') && !class_exists('Memcache')) {
-            return array($this->translate('Either the Memcached or Memcache extensions are required'));
+            return [$this->translate('Either the Memcached or Memcache extensions are required')];
         }
         // Check servers list
         $aServers = (explode(',', $aConf[$this->group]['memcachedServers']));
-        if (count($aServers) > 0) {
+        if ($aServers !== []) {
             foreach ($aServers as $key => $server) {
                 if (empty($server)) {
                     unset($aServers[$key]);
@@ -86,7 +86,7 @@ class Plugins_DeliveryCacheStore_oxMemcached_oxMemcached extends Plugins_Deliver
             $aErrors[] = $this->translate('Could not connect to memcached');
         }
 
-        if (count($aErrors) > 0) {
+        if ($aErrors !== []) {
             return $aErrors;
         }
         return true;
@@ -99,7 +99,7 @@ class Plugins_DeliveryCacheStore_oxMemcached_oxMemcached extends Plugins_Deliver
      *
      * @return bool True if the entres were succesfully deleted
      */
-    function _deleteCacheFile($filename)
+    public function _deleteCacheFile($filename)
     {
         $oMemcache = _oxMemcached_getMemcache();
         // @ - to catch memcached notices on errors
@@ -111,7 +111,7 @@ class Plugins_DeliveryCacheStore_oxMemcached_oxMemcached extends Plugins_Deliver
      *
      * @return bool True if the entres were succesfully deleted
      */
-    function _deleteAll()
+    public function _deleteAll()
     {
         $oMemcache = _oxMemcached_getMemcache();
         if ($oMemcache == false) {
@@ -121,5 +121,3 @@ class Plugins_DeliveryCacheStore_oxMemcached_oxMemcached extends Plugins_Deliver
         return @$oMemcache->flush();
     }
 }
-
-?>

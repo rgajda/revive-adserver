@@ -44,10 +44,10 @@ phpAds_SessionDataStore();
 $pageName = basename($_SERVER['SCRIPT_NAME']);
 $tabIndex = 1;
 $agencyId = OA_Permission::getAgencyId();
-$aEntities = array('affiliateid' => $affiliateid, 'zoneid' => $zoneid);
+$aEntities = ['affiliateid' => $affiliateid, 'zoneid' => $zoneid];
 
-$aOtherPublishers = Admin_DA::getPublishers(array('agency_id' => $agencyId));
-$aOtherZones = Admin_DA::getZones(array('publisher_id' => $affiliateid));
+$aOtherPublishers = Admin_DA::getPublishers(['agency_id' => $agencyId]);
+$aOtherZones = Admin_DA::getZones(['publisher_id' => $affiliateid]);
 MAX_displayNavigationZone($pageName, $aOtherPublishers, $aOtherZones, $aEntities);
 
 /*-------------------------------------------------------*/
@@ -56,17 +56,14 @@ MAX_displayNavigationZone($pageName, $aOtherPublishers, $aOtherZones, $aEntities
 
 $dalZones = OA_Dal::factoryDAL('zones');
 if ($zone = $dalZones->getZoneForInvocationForm($zoneid)) {
-    $extra = array('affiliateid' => $affiliateid,
-                   'zoneid' => $zoneid,
-                   'width' => $zone['width'],
-                   'height' => $zone['height'],
-                   'delivery' => $zone['delivery'],
-                   'website' => $zone['website']
-    );
-    // Ensure 3rd Party Click Tracking defaults to the preference for this agency
-    if (!isset($thirdpartytrack)) {
-        $thirdpartytrack = $GLOBALS['_MAX']['CONF']['delivery']['clicktracking'];
-    }
+    $extra = ['affiliateid' => $affiliateid,
+        'zoneid' => $zoneid,
+        'width' => $zone['width'],
+        'height' => $zone['height'],
+        'delivery' => $zone['delivery'],
+        'website' => $zone['website'],
+    ];
+
     $maxInvocation = new MAX_Admin_Invocation();
     echo $maxInvocation->placeInvocationForm($extra, true);
 }
@@ -76,5 +73,3 @@ if ($zone = $dalZones->getZoneForInvocationForm($zoneid)) {
 /*-------------------------------------------------------*/
 
 phpAds_PageFooter();
-
-?>

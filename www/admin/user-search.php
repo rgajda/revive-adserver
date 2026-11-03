@@ -19,12 +19,15 @@
  *   - "limit" -- The number of search results to be returned.
  *
  * Results of auto completion are limited to those users that are already
- * linked to accounts in the current account realm.
+ * linked to accounts in the current account realm, unless searching as an
+ * administrator or a manager with the existing-user linking bypass enabled.
  */
 
-$q = strtolower($_GET["q"]);
+$q = strtolower(trim($_GET["q"] ?? ''));
 $limit = strtolower($_GET["limit"]);
-if (!$q) return;
+if (!$q) {
+    return;
+}
 
 // Require the initialisation file
 require_once '../../init.php';
@@ -32,21 +35,25 @@ require_once '../../init.php';
 // Required files
 require_once MAX_PATH . '/lib/OA/Dal.php';
 require_once MAX_PATH . '/www/admin/config.php';
+require_once MAX_PATH . '/lib/OA/Admin/UI/UserAccess.php';
 
 // Restrict access to accounts which are allowed to link other accounts
-switch (OA_Permission::getAccountType()) {
+$accountType = OA_Admin_UI_UserAccess::canSearchAllUsers()
+    ? OA_ACCOUNT_ADMIN
+    : OA_Permission::getAccountType();
+switch ($accountType) {
     case OA_ACCOUNT_ADMIN:
         // There are no restrictions on users that are applied to the autocomplete
         // list, as the admin account can see all accounts and therefore users in
         // its realm
-        $oDbh = &OA_DB::singleton();
-        $query = $oDbh->quote('%'.$q.'%');
+        $oDbh = OA_DB::singleton();
+        $like = $oDbh->datatype->matchPattern(['', '%', $q, '%'], 'ILIKE');
         $doUsers = OA_Dal::factoryDO('users');
-        $doUsers->whereAdd('username LIKE ' . $query . ' OR email_address LIKE ' . $query);
+        $doUsers->whereAdd('username ' . $like . ' OR email_address ' . $like);
         $doUsers->limit($limit);
         $doUsers->find();
         while ($doUsers->fetch()) {
-            echo htmlspecialchars($doUsers->user_id) . '|' . htmlspecialchars($doUsers->email_address) . '|' . htmlspecialchars($doUsers->username)."\n";
+            echo htmlspecialchars($doUsers->user_id) . '|' . htmlspecialchars($doUsers->email_address) . '|' . htmlspecialchars($doUsers->username) . "\n";
         }
         break;
 
@@ -59,9 +66,9 @@ switch (OA_Permission::getAccountType()) {
         // current account, and to the advertiser and trafficker accounts that are in the
         // current account's realm -- display only these users -- but also exclude any
         // user that is also linked to the admin account
-        $aAdminUserIds = array();
-        $aUserIds = array();
-        $oDbh = &OA_DB::singleton();
+        $aAdminUserIds = [];
+        $aUserIds = [];
+        $oDbh = OA_DB::singleton();
         // Get the ID of all users linked to the admin account
         $adminAccountId = OA_Dal_ApplicationVariables::get('admin_account_id');
         $doAccount_user_assoc = OA_Dal::factoryDO('account_user_assoc');
@@ -96,7 +103,7 @@ switch (OA_Permission::getAccountType()) {
         $aInfo = $doAgency->toArray();
         $agencyId = $aInfo['agencyid'];
         // Find all advertiser accounts in the current manager account's realm
-        $aAdvertiserAccountIds = array();
+        $aAdvertiserAccountIds = [];
         $doClients = OA_Dal::factoryDO('clients');
         $doClients->agencyid = $agencyId;
         $doClients->find();
@@ -104,7 +111,7 @@ switch (OA_Permission::getAccountType()) {
             $aInfo = $doClients->toArray();
             $aAdvertiserAccountIds[] = $aInfo['account_id'];
         }
-        if (count($aAdvertiserAccountIds) > 0) {
+        if ($aAdvertiserAccountIds !== []) {
             // Obtain the information of users linked to the located account(s)
             $doAccount_user_assoc = OA_Dal::factoryDO('account_user_assoc');
             foreach ($aAdvertiserAccountIds as $accountId) {
@@ -120,7 +127,7 @@ switch (OA_Permission::getAccountType()) {
             }
         }
         // Find all trafficker accounts in the current manager account's realm
-        $aTraffickerAccountIds = array();
+        $aTraffickerAccountIds = [];
         $doAffiliates = OA_Dal::factoryDO('affiliates');
         $doAffiliates->agencyid = $agencyId;
         $doAffiliates->find();
@@ -128,7 +135,7 @@ switch (OA_Permission::getAccountType()) {
             $aInfo = $doAffiliates->toArray();
             $aTraffickerAccountIds[] = $aInfo['account_id'];
         }
-        if (count($aTraffickerAccountIds) > 0) {
+        if ($aTraffickerAccountIds !== []) {
             // Obtain the information of users linked to the located account(s)
             $doAccount_user_assoc = OA_Dal::factoryDO('account_user_assoc');
             foreach ($aTraffickerAccountIds as $accountId) {
@@ -148,14 +155,14 @@ switch (OA_Permission::getAccountType()) {
         if (empty($aUserIds)) {
             break;
         }
-        $query = $oDbh->quote('%'.$q.'%');
+        $like = $oDbh->datatype->matchPattern(['', '%', $q, '%'], 'ILIKE');
         $doUsers = OA_Dal::factoryDO('users');
-        $doUsers->whereAdd('(username LIKE ' . $query . ' OR email_address LIKE ' . $query . ')');
-        $doUsers->whereAdd('user_id IN (' . implode($aUserIds, ',') . ')');
+        $doUsers->whereAdd('(username ' . $like . ' OR email_address ' . $like . ')');
+        $doUsers->whereAdd('user_id IN (' . implode(',', $aUserIds) . ')');
         $doUsers->limit($limit);
         $doUsers->find();
         while ($doUsers->fetch()) {
-            echo htmlspecialchars($doUsers->user_id) . '|' . htmlspecialchars($doUsers->email_address) . '|' . htmlspecialchars($doUsers->username)."\n";
+            echo htmlspecialchars($doUsers->user_id) . '|' . htmlspecialchars($doUsers->email_address) . '|' . htmlspecialchars($doUsers->username) . "\n";
         }
         break;
 
@@ -171,5 +178,3 @@ switch (OA_Permission::getAccountType()) {
         // any other accounts - therefore, do not bother displaying any autocomplete information
         break;
 }
-
-?>

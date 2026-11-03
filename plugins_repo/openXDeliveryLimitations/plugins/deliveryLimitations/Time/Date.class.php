@@ -29,22 +29,22 @@ require_once MAX_PATH . '/lib/OA/Maintenance/Priority/DeliveryLimitation/Common.
  */
 class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
 {
-    function __construct()
+    public function __construct()
     {
-        $this->aOperations = array(
+        $this->aOperations = [
             '==' => $GLOBALS['strEqualTo'],
             '!=' => $GLOBALS['strDifferentFrom'],
             '>' => $GLOBALS['strLaterThan'],
-            '>=' =>$GLOBALS['strLaterThanOrEqual'],
+            '>=' => $GLOBALS['strLaterThanOrEqual'],
             '<' => $GLOBALS['strEarlierThan'],
-            '<=' => $GLOBALS['strEarlierThanOrEqual']
-        );
+            '<=' => $GLOBALS['strEarlierThanOrEqual'],
+        ];
 
         $this->nameEnglish = 'Time - Date';
     }
 
 
-    function init($data)
+    public function init($data)
     {
         parent::init($data);
         $this->data = $this->_flattenData($this->data);
@@ -55,7 +55,7 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
      *
      * @return boolean
      */
-    function isAllowed($page = false)
+    public function isAllowed($page = false)
     {
         return ($page != 'channel-acl.php');
     }
@@ -65,10 +65,10 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
      *
      * @return void
      */
-    function displayData()
+    public function displayData()
     {
         $this->data = $this->_expandData($this->data);
-        $tabindex =& $GLOBALS['tabindex'];
+        $tabindex = &$GLOBALS['tabindex'];
 
         if ($this->data['day'] == 0 && $this->data['month'] == 0 && $this->data['year'] == 0) {
             $set = false;
@@ -79,15 +79,14 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
         echo "<table><tr><td>";
 
         if ($set) {
-        $oDate = new Date($this->data['year'] .'-'. $this->data['month'] .'-'. $this->data['day']);
+            $oDate = new Date($this->data['year'] . '-' . $this->data['month'] . '-' . $this->data['day']);
         }
         $dateStr = is_null($oDate) ? '' : $oDate->format('%d %B %Y ');
 
         echo "
-        <input class='date' name='acl[{$this->executionorder}][data][date]' id='acl[{$this->executionorder}][data][day]' type='text' value='$dateStr' tabindex='".$tabindex++."' />
-        <input type='image' src='" . OX::assetPath() . "/images/icon-calendar.gif' id='{$this->executionorder}_button' align='absmiddle' border='0' tabindex='".$tabindex++."' />
+        <input class='date' name='acl[{$this->executionorder}][data][date]' id='acl[{$this->executionorder}][data][day]' type='text' value='$dateStr' tabindex='" . $tabindex++ . "' />
+        <input type='image' src='" . OX::assetPath() . "/images/icon-calendar.gif' id='{$this->executionorder}_button' align='absmiddle' border='0' tabindex='" . $tabindex++ . "' />
         <script type='text/javascript'>
-        <!--
         Calendar.setup({
             inputField : 'acl[{$this->executionorder}][data][day]',
             ifFormat   : '%d %B %Y',
@@ -96,8 +95,14 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
             weekNumbers: false,
             firstDay   : " . ($GLOBALS['pref']['begin_of_week'] ? 1 : 0) . ",
             electric   : false
-        })
-        //-->
+        });
+
+        (function () {
+            var i = document.getElementById('acl[{$this->executionorder}][data][day]');
+            i.form.addEventListener('submit', function() {
+                i.value = Date.parseDate(i.value, '%d %B %Y').print('%Y-%m-%d');
+            })
+        })();
         </script>";
 
         echo "</td></tr></table>";
@@ -110,7 +115,7 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
      *
      * @return string
      */
-    function getStoredTz()
+    public function getStoredTz()
     {
         $offset = strpos($this->data, '@');
         if ($offset !== false) {
@@ -124,15 +129,9 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
      *
      * @return string
      */
-    function _getCurrentTz()
+    public function _getCurrentTz()
     {
-        if (isset($GLOBALS['_MAX']['PREF']['timezone'])) {
-            $tz = $GLOBALS['_MAX']['PREF']['timezone'];
-        } else {
-            $tz = 'UTC';
-        }
-
-        return $tz;
+        return $GLOBALS['_MAX']['PREF']['timezone'] ?? 'UTC';
     }
 
     /**
@@ -146,7 +145,7 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
      * @param mixed $data An optional, expanded form delivery limitation.
      * @return string The delivery limitation in flattened format.
      */
-    function _flattenData($data = null)
+    public function _flattenData($data = null)
     {
         if (!isset($data)) {
             $data = $this->data;
@@ -154,7 +153,7 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
             if (empty($data['date'])) {
                 $data = '00000000';
             } else {
-                $data = date('Ymd', strtotime($data['date'])).'@'.$this->_getCurrentTz();
+                $data = date('Ymd', strtotime($data['date'])) . '@' . $this->_getCurrentTz();
             }
         }
         return $data;
@@ -171,44 +170,38 @@ class Plugins_DeliveryLimitations_Time_Date extends Plugins_DeliveryLimitations
      * @param string $data An optional, flat form delivery limitation data string.
      * @return mixed The delivery limitation data in expanded format.
      */
-    function _expandData($data = null)
+    public function _expandData($data = null)
     {
-        if (!isset($data)) {
-            $data = $this->data;
-        }
+        $data ??= $this->data;
         if (is_array($data)) {
             return $data;
         }
         $parts = explode('@', $data);
         $data = $parts[0];
-        $tz = isset($parts[1]) ? $parts[1] : 'UTC';
+        $tz = $parts[1] ?? 'UTC';
         if ($data == '00000000' || empty($data)) {
-            $data = array(
-                'day'   => 0,
+            return [
+                'day' => 0,
                 'month' => 0,
-                'year'  => 0,
-                'tz'    => $tz,
-            );
-        } else {
-            $data = array(
-                'day'   => substr($data, 6, 2),
-                'month' => substr($data, 4, 2),
-                'year'  => substr($data, 0, 4),
-                'tz'    => $tz,
-            );
+                'year' => 0,
+                'tz' => $tz,
+            ];
         }
-        return $data;
+        return [
+            'day' => substr($data, 6, 2),
+            'month' => substr($data, 4, 2),
+            'year' => substr($data, 0, 4),
+            'tz' => $tz,
+        ];
     }
 
     /**
      * A method to return an instance to be used by the MPE
      *
-     * @param unknown_type $aDeliveryLimitation
+     * @param array $aDeliveryLimitation
      */
-    function getMpeClassInstance($aDeliveryLimitation)
+    public function getMpeClassInstance($aDeliveryLimitation)
     {
         return new OA_Maintenance_Priority_DeliveryLimitation_Common($aDeliveryLimitation);
     }
 }
-
-?>

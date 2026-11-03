@@ -23,23 +23,22 @@ require_once MAX_PATH . '/lib/max/Admin_DA.php';
 /* Main code                                             */
 /*-------------------------------------------------------*/
 
+OA_Permission::enforceAccount(OA_ACCOUNT_MANAGER, OA_ACCOUNT_ADVERTISER);
+OA_Permission::enforceAccessToObject('banners', $bannerid);
+
 $aBanner = Admin_DA::getAd((int) $bannerid);
 $aBanner['bannerid'] = $aBanner['ad_id'];
 
-if (!empty($aBanner))
-{
-    $conf               = $GLOBALS['_MAX']['CONF'];
-    $bannerName         = strip_tags(phpAds_buildBannerName ($bannerid, $aBanner['name'], $aBanner['alt']));
-    $sizeDescription    = ($aBanner['type'] == 'txt') ? '&nbsp;' : "&nbsp;&nbsp;&nbsp;width: {$aBanner['width']}&nbsp;&nbsp;height: {$aBanner['height']}";
-    $bannerCode         = MAX_adRender($aBanner, 0, '', '', '', true, '', false, false);
-    $protocol           = $GLOBALS['_MAX']['SSL_REQUEST'] ? "https" : "http";
-    $deliveryUrl        = $protocol .':'. MAX_commonConstructPartialDeliveryUrl($conf['file']['flash']);
+if (!empty($aBanner)) {
+    $conf = $GLOBALS['_MAX']['CONF'];
+    $bannerName = strip_tags(phpAds_buildBannerName($bannerid, $aBanner['name'], $aBanner['alt']));
+    $sizeDescription = ($aBanner['type'] == 'txt') ? '&nbsp;' : "&nbsp;&nbsp;&nbsp;width: {$aBanner['width']}&nbsp;&nbsp;height: {$aBanner['height']}";
+    $bannerCode = MAX_adRender($aBanner, 0, '', '', '', true, '', false, false);
     echo "
 <html>
 <head>
 <title>$bannerName</title>
 <link rel='stylesheet' href='" . OX::assetPath() . "/css/interface-$phpAds_TextDirection.css'>
-<script type='text/javascript' src='$deliveryUrl'></script>
 </head>
 <body marginheight='0' marginwidth='0' leftmargin='0' topmargin='0' bgcolor='#EFEFEF'>
 <table cellpadding='0' cellspacing='0' border='0'>
@@ -64,6 +63,3 @@ if (!empty($aBanner))
 </body>
 </html>";
 }
-
-
-?>

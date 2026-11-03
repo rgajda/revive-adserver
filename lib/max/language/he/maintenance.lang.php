@@ -40,6 +40,8 @@ $GLOBALS['strStorage'] = "�?יחסון";
 $GLOBALS['strMoveToDirectory'] = "העבר �?ת התמונות השמורות בתוך בסיס הנתוני�? �?ל תוך התיקייה.";
 $GLOBALS['strStorageExplaination'] = "הב�?נרי�? בשימוש מקומי מ�?וחסני�? בתוך בסיס הנתוני�? �?ו בתיקייה על השרת. �?�? �?תה שומר �?ת הב�?נרי�? בתוך תיקייה יפחת העומס על בסיס הנתוני�? ו�?ף המהירות תו�?ץ. ";
 
+// Security
+
 // Encoding
 
 // Product Updates
@@ -48,8 +50,12 @@ $GLOBALS['strAvailableUpdates'] = "עדכוני�? זמיני�?";
 $GLOBALS['strDownloadZip'] = "הורד (.zip)";
 $GLOBALS['strDownloadGZip'] = "הורד (.tar.gz)";
 
-$GLOBALS['strUpdateAlert'] = "גירסה חדשה של {$PRODUCT_NAME} יצ�?ה ל�?ור.                 \n\nה�?�? �?תה רוצה מידע נוסף \n�?ודות העדכון?";
-$GLOBALS['strUpdateAlertSecurity'] = "גירסה חדשה של {$PRODUCT_NAME} יצ�?ה ל�?ור.                 \n\nמומלץ מ�?וד לעדכן \nבהזדמנות הקרובה ביותר, כיוון שגירסה זו \nמכילה תיקוניי�? בטיחוטיי�?.";
+$GLOBALS['strUpdateAlert'] = "גירסה חדשה של {$PRODUCT_NAME} יצ�?ה ל�?ור.
+
+ה�?�? �?תה רוצה מידע נוסף \\n�?ודות העדכון?";
+$GLOBALS['strUpdateAlertSecurity'] = "גירסה חדשה של {$PRODUCT_NAME} יצ�?ה ל�?ור.
+
+מומלץ מ�?וד לעדכן \\nבהזדמנות הקרובה ביותר, כיוון שגירסה זו \\nמכילה תיקוניי�? בטיחוטיי�?.";
 
 $GLOBALS['strUpdateServerDown'] = "מסיבה בלתי ידועה ל�? ניתן להשיג<br />מידע על עדכוני�? �?פשריי�?. �?נ�? נסה שוב מ�?וחר יותר.";
 
@@ -74,4 +80,7 @@ $GLOBALS['strDeliveryLimitations'] = "כללי משלוח";
 
 //  Append codes
 
+$GLOBALS['strPlugins'] = "Plugins";
 
+
+// Users

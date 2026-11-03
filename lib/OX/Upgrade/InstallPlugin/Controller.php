@@ -10,9 +10,9 @@
 +---------------------------------------------------------------------------+
 */
 
-require_once MAX_PATH.'/lib/OX/Admin/UI/SessionStorage.php';
-require_once MAX_PATH.'/lib/OX/Admin/UI/Install/InstallStatus.php';
-require_once MAX_PATH.'/lib/OX/Admin/UI/Install/InstallUtils.php';
+require_once MAX_PATH . '/lib/OX/Admin/UI/SessionStorage.php';
+require_once MAX_PATH . '/lib/OX/Admin/UI/Install/InstallStatus.php';
+require_once MAX_PATH . '/lib/OX/Admin/UI/Install/InstallUtils.php';
 
 
 /**
@@ -22,11 +22,13 @@ require_once MAX_PATH.'/lib/OX/Admin/UI/Install/InstallUtils.php';
  */
 class OX_Upgrade_InstallPlugin_Controller
 {
-
-    private static $DEPRECATED_PLUGINS = array(
+    private static $DEPRECATED_PLUGINS = [
         'openXMarket',
-        'openXWorkflow'
-    );
+        'openXWorkflow',
+        'openXMaxMindGeoIP',
+        'openXMaxMindModGeoIP',
+        'openX3rdPartyServers',
+    ];
 
     /**
      * Prepare urls to run install plugin tasks
@@ -35,22 +37,24 @@ class OX_Upgrade_InstallPlugin_Controller
      *                              OX_Admin_UI_Controller_Request::getBaseUrl)
      * @return array Array of arrays of 'id', name' and 'url' strings
      */
-    static function getTasksUrls($baseInstallUrl)
+    public static function getTasksUrls($baseInstallUrl)
     {
-        $aUrls = array();
-        $aPluginZips = array();
+        $aUrls = [];
+        $aPluginZips = [];
 
         // Collect all plugin files present in the etc/plugins folder...
         $PLUGINS_DIR = opendir(MAX_PATH . '/etc/plugins');
         while ($file = readdir($PLUGINS_DIR)) {
-            if ((substr($file, 0, 1) == '.') || (substr($file, strrpos($file, '.')) != '.zip')) { continue; }
+            if ((str_starts_with($file, '.')) || (substr($file, strrpos($file, '.')) != '.zip')) {
+                continue;
+            }
             $name = substr($file, 0, strrpos($file, '.'));
-            $aPluginZips[$name] = array(
-                'id'   => 'plugin:' . $name,
+            $aPluginZips[$name] = [
+                'id' => 'plugin:' . $name,
                 'name' => $GLOBALS['strPluginTaskChecking'] . ': <br/> ' .
                           OX_Upgrade_InstallPlugin_Controller::openxToRevivePluginName($name),
-                'url'  => $baseInstallUrl . 'install-plugin.php?status=0&plugin=' . $name . '&disabled=1'
-            );
+                'url' => $baseInstallUrl . 'install-plugin.php?status=0&plugin=' . $name . '&disabled=1',
+            ];
         }
         closedir($PLUGINS_DIR);
 
@@ -68,34 +72,36 @@ class OX_Upgrade_InstallPlugin_Controller
                 $displayName = $name;
                 $oPluginManager = new OX_PluginManager();
                 $aPackageInfo = $oPluginManager->getPackageInfo($name);
-                if ($aPackageInfo['displayname']) {
+                if (!empty($aPackageInfo['displayname'])) {
                     $displayName = $aPackageInfo['displayname'];
                 }
 
-                $aUrls[] = array(
-                    'id'   => 'plugin:' . $name,
-                    'name' => $GLOBALS['strPluginTaskChecking'].': <br/> ' .
+                $aUrls[] = [
+                    'id' => 'plugin:' . $name,
+                    'name' => $GLOBALS['strPluginTaskChecking'] . ': <br/> ' .
                               OX_Upgrade_InstallPlugin_Controller::openxToRevivePluginName($displayName),
-                    'url'  => $baseInstallUrl . 'install-plugin.php?status=' . $status . '&plugin=' . $name);
+                    'url' => $baseInstallUrl . 'install-plugin.php?status=' . $status . '&plugin=' . $name];
                 unset($aPluginZips[$name]);
             }
         }
 
         // Get the list of bundled plugins, retain order
-        include MAX_PATH.'/etc/default_plugins.php';
-        if ($aDefaultPlugins) {
-            foreach ($aDefaultPlugins AS $idx => $aPlugin) {
+        $aDefaultPlugins = [];
+        include MAX_PATH . '/etc/default_plugins.php';
+
+        if ($aDefaultPlugins !== []) {
+            foreach ($aDefaultPlugins as $idx => $aPlugin) {
                 if (!array_key_exists($aPlugin['name'], $GLOBALS['_MAX']['CONF']['plugins'])) {
                     $url = $baseInstallUrl . 'install-plugin.php?status=0&plugin=' . $aPlugin['name'];
                     if (!empty($aPlugin['disabled'])) {
                         $url .= '&disabled=1';
                     }
-                    $aUrls[] = array(
-                        'id'   => 'plugin:' . $aPlugin['name'],
+                    $aUrls[] = [
+                        'id' => 'plugin:' . $aPlugin['name'],
                         'name' => $GLOBALS['strPluginTaskInstalling'] . ': <br/> ' .
                                   OX_Upgrade_InstallPlugin_Controller::openxToRevivePluginName($aPlugin['name']),
-                        'url'  => $url
-                    );
+                        'url' => $url,
+                    ];
                     unset($aPluginZips[$aPlugin['name']]);
                 }
             }
@@ -121,30 +127,19 @@ class OX_Upgrade_InstallPlugin_Controller
      * @param string $pluginName The original, filename-based plugin name
      * @return string The new plugin name, or the original if no match found.
      */
-    static function openxToRevivePluginName($pluginName)
+    public static function openxToRevivePluginName($pluginName)
     {
-        switch ($pluginName) {
-            case "openXBannerTypes":
-                return "Banner Types Plugin";
-            case "openXDeliveryLimitations":
-                return "Delivery Rules Plugin";
-            case "openX3rdPartyServers":
-                return "3rd Party Servers Plugin";
-            case "openXReports":
-                return "Reports Plugin";
-            case "openXDeliveryCacheStore":
-                return "Banner Delivery Cache Store Plugin";
-            case "openXMaxMindGeoIP":
-                return "MaxMind GeoIP Plugin";
-            case "openXInvocationTags":
-                return "Invocation Tags Plugin";
-            case "openXDeliveryLog":
-                return "Banner Delivery Logging Plugin";
-            case "openXVideoAds":
-                return "IAB VAST Plugin";
-        }
-        return $pluginName;
+        return match ($pluginName) {
+            "openXBannerTypes" => "Banner Types Plugin",
+            "openXDeliveryLimitations" => "Delivery Rules Plugin",
+            "openX3rdPartyServers" => "3rd Party Servers Plugin",
+            "openXReports" => "Reports Plugin",
+            "openXDeliveryCacheStore" => "Banner Delivery Cache Store Plugin",
+            "openXInvocationTags" => "Invocation Tags Plugin",
+            "openXDeliveryLog" => "Banner Delivery Logging Plugin",
+            "openXVideoAds" => "IAB VAST Plugin",
+            "reviveMaxMindGeoIP2" => "MaxMind GeoIP2 Plugin",
+            default => $pluginName,
+        };
     }
-
-
 }

@@ -16,8 +16,10 @@ require_once '../../init-delivery.php';
 $etag = md5("{$conf['webpath']['delivery']}*{$conf['webpath']['deliverySSL']}");
 $product = $GLOBALS['_MAX']['CONF']['var']['product'];
 
+OX_Delivery_Common_sendPreconnectHeaders();
+
 if (!empty($_SERVER["HTTP_IF_NONE_MATCH"]) && $_SERVER["HTTP_IF_NONE_MATCH"] == $etag) {
-    header("HTTP/1.x 304 Not modified");
+    MAX_header("HTTP/1.x 304 Not modified");
 
     // Some temporary cookies might have been deleted, if so send permanent ones
     MAX_cookieFlush();
@@ -27,12 +29,13 @@ if (!empty($_SERVER["HTTP_IF_NONE_MATCH"]) && $_SERVER["HTTP_IF_NONE_MATCH"] == 
 
 header("Content-Type: text/javascript");
 header("ETag: {$etag}");
+header("Cross-Origin-Resource-Policy: cross-origin");
 
 // The browser is allowed to cache this
 if (!empty($conf['delivery']['assetClientCacheExpire'])) {
-    $expire = (int)$conf['delivery']['assetClientCacheExpire'];
+    $expire = (int) $conf['delivery']['assetClientCacheExpire'];
 
-    header("Expire: ".gmdate('D, d M Y H:i:s \G\M\T', MAX_commonGetTimeNow() + $expire));
+    header("Expire: " . gmdate('D, d M Y H:i:s \G\M\T', MAX_commonGetTimeNow() + $expire));
     header("Cache-Control: private, max-age={$expire}");
 }
 
@@ -40,5 +43,4 @@ if (!empty($conf['delivery']['assetClientCacheExpire'])) {
 MAX_cookieGetUniqueViewerId();
 MAX_cookieFlush();
 
-require __DIR__.'/'.$GLOBALS['_MAX']['CONF']['file']['asyncjsjs'];
-require __DIR__.'/'.$GLOBALS['_MAX']['CONF']['file']['flash'];
+require __DIR__ . '/' . $GLOBALS['_MAX']['CONF']['file']['asyncjsjs'];
