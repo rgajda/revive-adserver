@@ -274,7 +274,7 @@ class Admin_UI_DaySpanField extends Admin_UI_Field
         function {$this->_name}Reset()
         {
             document.getElementById('{$this->_name}_start').value = '$startDateStr';
-            document.getElementById('{$this->_name}_start').value = '$endDateStr';
+            document.getElementById('{$this->_name}_end').value = '$endDateStr';
             document.getElementById('{$this->_name}_preset').value = $presetValue;
         }
 

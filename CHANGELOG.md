@@ -2,7 +2,11 @@
 
 All notable changes to Revive Adserver will be documented in this file.
 
-## [6.1.0]
+## [6.1.0-rc1] - 2026-11-11
+
+### [Security fixes](https://www.revive-adserver.com/security/revive-sa-2026-004/)
+
+- Includes all the security fixes released in [6.0.9](#609---2026-11-11)
 
 ### Fixes
 - Fixed extra space below banners served by asynchronous tags ([#973](https://github.com/revive-adserver/revive-adserver/pull/973))
@@ -66,6 +70,34 @@ All notable changes to Revive Adserver will be documented in this file.
 - Simplified character encoding conversion to use the required `intl` extension.
 - Replaced the legacy XML-RPC update check with a JSON API ([#1694](https://github.com/revive-adserver/revive-adserver/issues/1694)).
 - Removed unused ad categories and OpenX category metadata from affiliates and zones, completing the previously deferred database cleanup ([#1787](https://github.com/revive-adserver/revive-adserver/issues/1787)).
+- Login passwords are no longer trimmed; leading and trailing whitespace is now significant. Usernames continue to be trimmed.
+
+## [6.0.9] - 2026-11-11
+
+### [Security fixes](https://www.revive-adserver.com/security/revive-sa-2026-004/)
+
+- [CVE-2026-107662](https://www.cve.org/CVERecord?id=CVE-2026-107662): Blind SQL injection through inconsistent request precedence
+- [CVE-2026-107247](https://www.cve.org/CVERecord?id=CVE-2026-107247): Authorization bypass through inconsistent request precedence
+- [CVE-2026-108558](https://www.cve.org/CVERecord?id=CVE-2026-108558): Reflected XSS in conversion statistics
+- [CVE-2026-108559](https://www.cve.org/CVERecord?id=CVE-2026-108559): Reflected XSS in iframe invocation dimensions
+- [CVE-2026-108560](https://www.cve.org/CVERecord?id=CVE-2026-108560): Unauthenticated reflected XSS in update history
+- [CVE-2026-108561](https://www.cve.org/CVERecord?id=CVE-2026-108561): Session-stored XSS in report date selection
+- [CVE-2026-108562](https://www.cve.org/CVERecord?id=CVE-2026-108562): Stored XSS in tracker maintenance
+- [CVE-2026-68486](https://www.cve.org/CVERecord?id=CVE-2026-68486): Campaign-zone linking without ownership validation
+- [CVE-2026-108563](https://www.cve.org/CVERecord?id=CVE-2026-108563): Formula injection in conversion-report XLS exports
+- [CVE-2026-108564](https://www.cve.org/CVERecord?id=CVE-2026-108564): Reflected XSS in direct-selection invocation options
+- [CVE-2026-108565](https://www.cve.org/CVERecord?id=CVE-2026-108565): Reflected XSS in popup invocation options
+- [CVE-2026-68485](https://www.cve.org/CVERecord?id=CVE-2026-68485): Cross-agency website-list disclosure
+- [CVE-2026-82978](https://www.cve.org/CVERecord?id=CVE-2026-82978): Cross-agency delivery rule set creation
+- [CVE-2026-77168](https://www.cve.org/CVERecord?id=CVE-2026-77168): Cross-site request forgery in tracker invocation
+
+### Fixes
+
+- Users with only trafficker permissions could link campaigns belonging to a different agency to their zones ([#1700](https://github.com/revive-adserver/revive-adserver/issues/1700))
+
+### Changed
+
+- Login passwords are no longer trimmed; leading and trailing whitespace is now significant. Usernames continue to be trimmed.
 
 ## [6.0.8] - 2026-06-25
 
